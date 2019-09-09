@@ -94,12 +94,7 @@ def lambda_handler(event, context):
         sqs_message_id_name = config['sqs_messageid_name']
         checkpoint = config['checkpoint']
         arn = config['arn']
-        period = event['RuntimeVariables']['period']
         method_name = config['method_name']
-        time = config['time']  # Set as "period"
-        response_type = config['response_type']  # Set as "response_type"
-        questions_list = config['questions_list']
-        output_file = config['output_file']
 
         # Read from S3 bucket
         data_json = read_data_from_s3(bucket_name, s3_file)
@@ -109,6 +104,7 @@ def lambda_handler(event, context):
         data = pd.DataFrame(data_json)
 
         # Ensure mandatory columns are present
+        logger.info("Checking required data columns are present.")
         req_col_list = ['period', 'county', 'Q608_total']
         for req_col in req_col_list:
             if req_col not in data.columns:
@@ -116,20 +112,27 @@ def lambda_handler(event, context):
                 raise IndexError(err_msg)
 
         # Add output columns
+        logger.info("Appending two further required columns.")
         data['largest_contributor'] = 0
         data['second_largest contributor'] = 0
 
-        # Send wrangled data on to method.
+        # Serialise data
+        logger.info("Converting dataframe to json.")
         prepared_data = data.to_json(orient='records')
 
         # Invoke aggregation top2 method
+        logger.info("Invoking the statistical method.")
         top2 = lambda_client.invoke(FunctionName=method_name, Payload=prepared_data)
         json_response = top2.get('Payload').read().decode("utf-8")
 
+        # Sending output to sql
+        logger.info("Sending function response downstream.")
         sqs.send_message(QueueUrl=queue_url, MessageBody=json.loads(json_response), MessageGroupId=sqs_message_id_name,
                          MessageDeduplicationId=str(random.getrandbits(128)))
+        logger.info("Successfully sent the data to SQS")
 
         send_sns_message(checkpoint, arn)
+        logger.info("Successfully sent the SNS message")
 
     except NoDataInQueueError as e:
         error_message = "There was no data in sqs queue in:  " \
