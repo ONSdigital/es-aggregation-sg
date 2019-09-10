@@ -1,37 +1,20 @@
-import json
-import traceback
+import logging
+
 import boto3
 import pandas as pd
-import os
-import random
 
-# Set up clients
-sqs = boto3.client('sqs')
-lambda_client = boto3.client('lambda')
-
-# SQS
-queue_url = os.environ['queue_url']
-
-# Env vars
-error_handler_arn = os.environ['error_handler_arn']
-
-
-def _get_traceback(exception):
-    """
-    Given an exception, returns the traceback as a string.
-    :param exception: Exception object
-    :return: string
-    """
-
-    return ''.join(
-        traceback.format_exception(
-            etype=type(exception), value=exception, tb=exception.__traceback__
-        )
-    )
+lambda_client = boto3.client('lambda', region_name='eu-west-2')
 
 
 def lambda_handler(event, context):
+    current_module = "Aggregation CalculateEnterpriseRef - Method"
+    logger = logging.getLogger("Entref")
+    error_message = ""
+    log_message = ""
+
     try:
+        logger.info("Starting Method " + current_module)
+
         input_json = event
 
         input_dataframe = pd.DataFrame(input_json)
@@ -43,17 +26,27 @@ def lambda_handler(event, context):
 
         output_json = agg_by_region_output.to_json(orient='records')
 
-    except Exception as exc:
-        # Invoke error handler lambda
-        # lambda_client.invoke(
-        #     FunctionName=error_handler_arn,
-        #     InvocationType='Event',
-        #     Payload=json.loads(_get_traceback(exc))
-        # )
+    except KeyError as e:
+        error_message = "Key Error in " \
+                        + current_module + " |- " \
+                        + str(e.args) + " | Request ID: " \
+                        + str(context['aws_request_id'])
 
-        return {
-            "success": False,
-            "error": "Unexpected Wrangler exception {}".format(_get_traceback(exc))
-        }
+        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
 
-    return output_json
+    except Exception as e:
+        error_message = "General Error in " \
+                        + current_module + " (" \
+                        + str(type(e)) + ") |- " \
+                        + str(e.args) + " | Request ID: " \
+                        + str(context['aws_request_id'])
+
+        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
+    finally:
+
+        if(len(error_message)) > 0:
+            logger.error(log_message)
+            return {"success": False, "error": error_message}
+        else:
+            logger.info("Successfully completed module: " + current_module)
+            return output_json
