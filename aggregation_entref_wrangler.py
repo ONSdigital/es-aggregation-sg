@@ -1,13 +1,12 @@
 import json
+import logging
 import os
 import random
 
 import boto3
 import pandas as pd
-import logging
+from botocore.exceptions import ClientError, IncompleteReadError
 from marshmallow import Schema, fields
-from botocore.exceptions import IncompleteReadError
-from botocore.exceptions import ClientError
 
 # Set up clients
 sqs = boto3.client('sqs', region_name='eu-west-2')
@@ -67,7 +66,7 @@ def lambda_handler(event, context):
         sns_topic_arn = config['sns_topic_arn']
         sqs_messageid_name = config['sqs_messageid_name']
         method_name = config['method_name']
-        period = config['period']
+        period = event['RuntimeVariables']['period']
 
         logger.info("Set-up environment configs")
 
@@ -175,11 +174,11 @@ def send_sqs_message(queue_url, message, output_message_id):
     """
     # MessageDeduplicationId is set to a random hash to overcome de-duplication,
     # otherwise modules could not be re-run in the space of 5 Minutes.
-    sqs.send_message(QueueUrl=queue_url,
-                     MessageBody=message,
-                     MessageGroupId=output_message_id,
-                     MessageDeduplicationId=str(random.getrandbits(128))
-                     )
+    return sqs.send_message(QueueUrl=queue_url,
+                            MessageBody=message,
+                            MessageGroupId=output_message_id,
+                            MessageDeduplicationId=str(random.getrandbits(128))
+                            )
 
 
 def send_sns_message(checkpoint, sns_topic_arn):

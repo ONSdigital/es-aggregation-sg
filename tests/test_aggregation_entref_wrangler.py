@@ -1,9 +1,8 @@
-import unittest
-import unittest as mock
 import json
+import unittest
 
-import mock
 import boto3
+import mock
 import pandas as pd
 from botocore.response import StreamingBody
 from moto import mock_s3, mock_sns, mock_sqs
@@ -13,29 +12,6 @@ import aggregation_entref_wrangler
 
 
 class TestStringMethods(unittest.TestCase):
-
-    # @classmethod
-    # def setup_class(cls):
-    #     cls.mock_boto_wrangler_patcher = mock.patch('aggregation_entref_wrangler.boto3')
-    #     cls.mock_boto_wrangler = cls.mock_boto_wrangler_patcher.start()
-    #
-    #     cls.mock_os_patcher = mock.patch.dict('os.environ', {
-    #         'bucket_name': 'some-bucket-name',
-    #         'file_name': 'file_to_get_from_s3.json',
-    #         'queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
-    #                      '82618934671237/SomethingURL.fifo',
-    #         'checkpoint': '3',
-    #         'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
-    #         'sqs_messageid_name': 'random',
-    #         'method_name': 'random',
-    #         'period': '201809'
-    #     })
-    #     cls.mock_os = cls.mock_os_patcher.start()
-    #
-    # @classmethod
-    # def teardown_class(cls):
-    #     cls.mock_boto_wrangler_patcher.stop()
-    #     cls.mock_os_patcher.stop()
 
     @mock.patch('aggregation_entref_wrangler.send_sns_message')
     @mock.patch('aggregation_entref_wrangler.send_sqs_message')
@@ -65,7 +41,7 @@ class TestStringMethods(unittest.TestCase):
                                                                               355)}
 
                 returned_value = aggregation_entref_wrangler.lambda_handler(
-                    None, {"aws_request_id": "666"}
+                    {"RuntimeVariables": {"period": 201809}}, {"aws_request_id": "666"}
                 )
 
             self.assertTrue(returned_value['success'])
@@ -87,11 +63,10 @@ class TestStringMethods(unittest.TestCase):
 
             with open('tests/fixtures/method_output.json', "rb") as file:
                 mock_lambda.return_value.invoke.return_value = {"Payload":
-                                                                StreamingBody(file,
-                                                                              355)}
+                                                                StreamingBody(file, 355)}
 
                 returned_value = aggregation_entref_wrangler.lambda_handler(
-                    None, {"aws_request_id": "666"}
+                    {"RuntimeVariables": {"period": 201809}}, {"aws_request_id": "666"}
                 )
 
             assert(returned_value['error'].__contains__("""Parameter validation error"""))
@@ -125,7 +100,7 @@ class TestStringMethods(unittest.TestCase):
                                                                 StreamingBody(file, 355)}
 
                 returned_value = aggregation_entref_wrangler.lambda_handler(
-                    None, {"aws_request_id": "666"}
+                    {"RuntimeVariables": {"period": 201809}}, {"aws_request_id": "666"}
                 )
 
             assert(returned_value['error'].__contains__("""Bad data encountered"""))
@@ -157,7 +132,7 @@ class TestStringMethods(unittest.TestCase):
                                                                 StreamingBody(file, 2)}
 
                 returned_value = aggregation_entref_wrangler.lambda_handler(
-                    None, {"aws_request_id": "666"}
+                    {"RuntimeVariables": {"period": 201809}}, {"aws_request_id": "666"}
                 )
 
             assert(returned_value['error'].__contains__("""Incomplete Lambda response"""))
@@ -180,39 +155,16 @@ class TestStringMethods(unittest.TestCase):
         ):
 
             returned_value = aggregation_entref_wrangler.lambda_handler(
-                None, {"aws_request_id": "666"}
+                {"RuntimeVariables": {"period": 201809}}, {"aws_request_id": "666"}
             )
 
             assert(returned_value['error'].__contains__("""General Error"""))
 
-    @mock.patch('aggregation_entref_wrangler.send_sns_message')
-    @mock.patch('aggregation_entref_wrangler.send_sqs_message')
-    @mock.patch('aggregation_entref_wrangler.boto3.client')
-    @mock.patch('aggregation_entref_wrangler.get_from_s3')
-    def test_client_error(self, mock_get_from_s3, mock_lambda, mock_sqs, mock_sns):
-        with mock.patch.dict(aggregation_entref_wrangler.os.environ, {
-            'bucket_name': 'some-bucket-name',
-            'file_name': 'file_to_get_from_s3.json',
-            'queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
-                         '82618934671237/SomethingURL.fifo',
-            'checkpoint': '3',
-            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
-            'sqs_messageid_name': 'random',
-            'method_name': 'random',
-            'period': '201809'
-            }
-        ):
-            returned_value = aggregation_entref_wrangler.lambda_handler(
-                None, {"aws_request_id": "666"}
-            )
 
-            assert(returned_value['error'].__contains__("""AWS Error"""))
-
-
-class MotoTests(unittest.TestCase):
+class TestMoto():
 
     @mock_s3
-    def test_get_and_save_data_from_to_s3(self):
+    def test_get_and_save_data_from_to_s3(self, s3):
 
         client = boto3.client(
             "s3",
@@ -227,10 +179,11 @@ class MotoTests(unittest.TestCase):
             s3.Object("TEMP", "123").put(Body=file)
 
         response = aggregation_entref_wrangler.get_from_s3("TEMP", "123")
-        self.assertIs(type(response), type(DataFrame()))
+
+        assert isinstance(response, type(DataFrame()))
 
     @mock_sns
-    def test_publish_sns(self):
+    def test_publish_sns(self, sns):
 
         sns = boto3.client('sns', region_name='eu-west-2')
         created = sns.create_topic(Name="some-topic")
@@ -241,19 +194,62 @@ class MotoTests(unittest.TestCase):
         assert (out['ResponseMetadata']['HTTPStatusCode'] == 200)
 
     @mock_sqs
-    def test_sqs_messages(self):
+    def test_sqs_messages(self, sqs):
         sqs = boto3.resource('sqs', region_name='eu-west-2')
 
         sqs.create_queue(QueueName="test_queue_test.fifo",
                          Attributes={'FifoQueue': 'true'})
 
-        queue_url = sqs.get_queue_by_name(QueueName="tests/test_queue_test.fifo").url
+        queue_url = sqs.get_queue_by_name(QueueName="test_queue_test.fifo").url
 
-        aggregation_entref_wrangler.send_sqs_message(queue_url, "{'Test': 'Message'}",
-                                                     "test_group_id")
+        response = aggregation_entref_wrangler.send_sqs_message(queue_url,
+                                                                "{'Test': 'Message'}",
+                                                                "test_group_id")
+        assert response['MessageId']
 
-        messages = sqs.receive_message(QueueUrl=queue_url)
+    @mock_sqs
+    def test_fail_to_get_from_sqs(self):
+        with mock.patch.dict(aggregation_entref_wrangler.os.environ, {
+            'bucket_name': 'some-bucket-name',
+            'file_name': 'file_to_get_from_s3.json',
+            'queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
+                         '82618934671237/SomethingURL.fifo',
+            'checkpoint': '3',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'sqs_messageid_name': 'random',
+            'method_name': 'random',
+            'period': '201809'
+            },
+        ):
+            response = aggregation_entref_wrangler.lambda_handler(
+                {"RuntimeVariables": {"period": 201809}}, {"aws_request_id": "666"}
+            )
 
-        # Response is a list if there is a message in the
-        # queue and a dict if no message is present.
-        assert messages['Messages'][0]['Body'] == "{'Test': 'Message'}"
+            assert "success" in response
+            assert response["success"] is False
+            assert response["error"].__contains__("""AWS Error""")
+
+    def test_client_error_exception(self):
+        with mock.patch.dict(aggregation_entref_wrangler.os.environ, {
+            'bucket_name': 'some-bucket-name',
+            'file_name': 'file_to_get_from_s3.json',
+            'queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
+                         '82618934671237/SomethingURL.fifo',
+            'checkpoint': '3',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'sqs_messageid_name': 'random',
+            'method_name': 'random',
+            'period': '201809'
+            },
+        ):
+            with mock.patch("aggregation_entref_wrangler.get_from_s3") as mock_s3:
+                with open("tests/fixtures/wrangler_input.json", "r") as file:
+                    mock_content = file.read()
+                    mock_s3.side_effect = KeyError()
+                    mock_s3.return_value = mock_content
+
+                response = aggregation_entref_wrangler.lambda_handler(
+                   {"RuntimeVariables": {"period": 201809}}, {"aws_request_id": "666"}
+                )
+
+            assert response['error'].__contains__("""Key Error""")

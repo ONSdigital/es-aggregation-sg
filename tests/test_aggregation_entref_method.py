@@ -1,5 +1,5 @@
-import unittest
 import json
+import unittest
 
 import aggregation_entref_method
 
