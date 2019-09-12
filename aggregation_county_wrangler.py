@@ -8,24 +8,34 @@ import marshmallow
 import pandas as pd
 from botocore.exceptions import ClientError, IncompleteReadError
 
+# Clients
+sqs = boto3.client('sqs', region_name="eu-west-2")
+sns = boto3.client('sns', region_name="eu-west-2")
+s3 = boto3.resource('s3', region_name="eu-west-2")
+
 
 class InputSchema(marshmallow.Schema):
+    """
+    Schema to ensure that environment variables are present and in the correct format.
+    :return: None
+    """
     bucket_name = marshmallow.fields.Str(required=True)
     file_name = marshmallow.fields.Str(required=True)
     queue_url = marshmallow.fields.Str(required=True)
     checkpoint = marshmallow.fields.Str(required=True)
     sns_topic_arn = marshmallow.fields.Str(required=True)
-    error_handler_arn = marshmallow.fields.Str(required=True)
     sqs_messageid_name = marshmallow.fields.Str(required=True)
     method_name = marshmallow.fields.Str(required=True)
     period = marshmallow.fields.Str(required=True)
 
 
-class NoDataInQueueError(Exception):
-    pass
-
-
 def lambda_handler(event, context):
+    """
+    This method is used to prepare data for the calculation of county totals.
+    :param event: N/A
+    :param context: N/A
+    :return: Success - True/False & Checkpoint
+    """
     current_module = "Aggregation County - Wrangler"
     error_message = ""
     log_message = ""
@@ -34,23 +44,21 @@ def lambda_handler(event, context):
     try:
         logger.info("Aggregation county wrangler begun.")
 
-        # Set up clients
-        s3 = boto3.resource('s3')
-        sqs = boto3.client('sqs')
-        lambda_client = boto3.client('lambda')
+        # Needs to be declared inside the lambda_handler
+        lambda_client = boto3.client('lambda', region_name="eu-west-2")
 
         # ENV vars
         config, errors = InputSchema().load(os.environ)
+        bucket_name = config['bucket_name']
+        file_name = config['file_name']
         if errors:
             raise ValueError(f"Error validating environment params: {errors}")
 
         logger.info("Vaildated params.")
 
-        # Read from S3
-        object = s3.Object(config['bucket_name'], config['file_name'])
-        input_file = object.get()['Body'].read()
+        input_file = read_from_s3(bucket_name, file_name)
 
-        data = pd.DataFrame(json.loads(input_file))
+        data = pd.DataFrame(input_file)
 
         disaggregated_data = data[data.period == int(config['period'])]
 
@@ -63,26 +71,12 @@ def lambda_handler(event, context):
         )
         json_response = by_county.get('Payload').read().decode("utf-8")
 
-        sqs.send_message(
-            QueueUrl=config['queue_url'],
-            MessageBody=json.loads(json_response),
-            MessageGroupId=config['sqs_messageid_name'],
-            MessageDeduplicationId=str(random.getrandbits(128))
-        )
+        send_sqs_message(config['queue_url'], json_response, config['sqs_messageid_name'])
 
         logger.info("Successfully sent data to sqs.")
 
         send_sns_message()
 
-    except NoDataInQueueError as e:
-        error_message = (
-            "There was no data in sqs queue in:  "
-            + current_module
-            + " |-  | Request ID: "
-            + str(context["aws_request_id"])
-        )
-        log_message = error_message + " | Line: " + str(
-            e.__traceback__.tb_lineno)
     except AttributeError as e:
         error_message = (
             "Bad data encountered in "
@@ -159,35 +153,55 @@ def lambda_handler(event, context):
             return {"success": False, "error": error_message}
         else:
             logger.info("Successfully completed module: " + current_module)
-            return {"success": True, "checkpoint": config['checkpoint']}
+            return {"success": True, "checkpoint": 0}
 
 
-def send_sns_message(aggregation_run_type, checkpoint, sns, arn):
+def send_sns_message(checkpoint, sns_topic_arn):
     """
-    This function is responsible for sending notifications to the SNS Topic.
-    Notifications will be used to relay information to the BPM.
-    :param aggregation_run_type:
-    Message indicating status of run - Type: String.
-    :param checkpoint: Location of process - Type: String.
-    :param sns: boto3 SNS client - Type: boto3.client
-    :param arn: The Address of the SNS topic - Type: String.
-    :return: None.
+    This method is responsible for sending a notification to the specified arn,
+    so that it can be used to relay information for the BPM to use and handle.
+    :param checkpoint: The current checkpoint location - Type: String.
+    :param sns_topic_arn: The arn of the sns topic you are directing the message at -
+                          Type: String.
+    :return: None
     """
     sns_message = {
         "success": True,
         "module": "Aggregation",
         "checkpoint": checkpoint,
-        "message": aggregation_run_type,
+        "message": ""
     }
 
-    sns.publish(TargetArn=arn, Message=json.dumps(sns_message))
+    return sns.publish(TargetArn=sns_topic_arn, Message=json.dumps(sns_message))
 
 
-def get_sqs_message(queue_url):
+def send_sqs_message(queue_url, message, output_message_id):
     """
-    Retrieves message from the SQS queue.
-    :param queue_url: The url of the SQS queue. - Type: String.
-    :return: Message from queue - Type: String.
+    This method is responsible for sending data to the SQS queue and deleting the
+    left-over data.
+    :param queue_url: The url of the SQS queue. - Type: String
+    :param message: The message/data you wish to send to the SQS queue - Type: String
+    :param output_message_id: The label of the record in the SQS queue - Type: String
+    :return: None
     """
-    sqs = boto3.client("sqs", region_name="eu-west-2")
-    return sqs.receive_message(QueueUrl=queue_url)
+    # MessageDeduplicationId is set to a random hash to overcome de-duplication,
+    # otherwise modules could not be re-run in the space of 5 Minutes.
+    return sqs.send_message(QueueUrl=queue_url,
+                            MessageBody=message,
+                            MessageGroupId=output_message_id,
+                            MessageDeduplicationId=str(random.getrandbits(128))
+                            )
+
+
+def read_from_s3(bucket_name, file_name):
+    """
+    Given the name of the bucket and the filename(key), this function will
+    return a file. File is JSON format.
+    :param bucket_name: Name of the S3 bucket - Type: String
+    :param file_name: Name of the file - Type: String
+    :return: input_file: The JSON file in S3 - Type: JSON
+    """
+    object = s3.Object(bucket_name, file_name)
+    input_file = object.get()['Body'].read()
+
+    return input_file
