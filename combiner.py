@@ -1,10 +1,11 @@
 import json
-import random
-import boto3
-import pandas as pd
-import os
-import marshmallow
 import logging
+import os
+import random
+
+import boto3
+import marshmallow
+import pandas as pd
 from botocore.exceptions import ClientError
 
 
@@ -12,6 +13,7 @@ class EnvironSchema(marshmallow.Schema):
     """
     Class to set up the environment variables schema.
     """
+
     arn = marshmallow.fields.Str(required=True)
     queue_url = marshmallow.fields.Str(required=True)
     checkpoint = marshmallow.fields.Str(required=True)
@@ -47,18 +49,18 @@ def get_from_s3(bucket_name, file_name):
     :param file_name: The file you wish to import.
     :return: imp_file: - JSON.
     """
-    s3 = boto3.resource('s3', 'eu-west-2')
+    s3 = boto3.resource("s3", "eu-west-2")
     object = s3.Object(bucket_name, file_name)
-    imp_file = object.get()['Body'].read()
+    imp_file = object.get()["Body"].read()
     return imp_file
 
 
 def lambda_handler(event, context):
     logger = logging.getLogger("Combininator")
     logger.setLevel(logging.INFO)
-    current_module = 'Aggregation_Combiner'
-    error_message = ''
-    log_message = ''
+    current_module = "Aggregation_Combiner"
+    error_message = ""
+    log_message = ""
     try:
         logger.info("Combiner Begun")
 
@@ -70,16 +72,16 @@ def lambda_handler(event, context):
 
         logger.info("Validated params")
         # Enviroment variables
-        queue_url = config['queue_url']
-        bucket_name = config['bucket_name']
-        file_name = config['file_name']
-        sqs_messageid_name = config['sqs_messageid_name']
-        checkpoint = config['checkpoint']
-        arn = config['arn']
+        queue_url = config["queue_url"]
+        bucket_name = config["bucket_name"]
+        file_name = config["file_name"]
+        sqs_messageid_name = config["sqs_messageid_name"]
+        checkpoint = config["checkpoint"]
+        arn = config["arn"]
 
         # Clients
 
-        sqs = boto3.client('sqs', 'eu-west-2')
+        sqs = boto3.client("sqs", "eu-west-2")
 
         # Get file from s3
         imp_file = get_from_s3(bucket_name, file_name)
@@ -91,12 +93,13 @@ def lambda_handler(event, context):
         response = get_sqs_message(sqs, queue_url, 3)
         if "Messages" not in response:
             raise NoDataInQueueError("No Messages in queue")
-        if len(response['Messages']) < 3:
-            raise DoNotHaveAllDataError("Only "
-                                        + str(len(response['Messages'])) + " recieved")
+        if len(response["Messages"]) < 3:
+            raise DoNotHaveAllDataError(
+                "Only " + str(len(response["Messages"])) + " recieved"
+            )
         logger.info("Successfully retrieved data from sqs")
-        for message in response['Messages']:
-            data.append(message['Body'])
+        for message in response["Messages"]:
+            data.append(message["Body"])
 
         sqs.purge_queue(QueueUrl=queue_url)
         logger.info("Successfully deleted input data from sqs")
@@ -110,15 +113,18 @@ def lambda_handler(event, context):
         third_agg_df = pd.DataFrame(third_agg)
 
         # merge the imputation output from s3 with the 3 aggregation outputs
-        first_merge = pd.merge(imp_df, first_agg_df,
-                               on=['region', 'county', 'period'], how='left')
-        second_merge = pd.merge(first_merge, second_agg_df,
-                                on=['region', 'county', 'period'], how='left')
-        third_merge = pd.merge(second_merge, third_agg_df,
-                               on=['region', 'county', 'period'], how='left')
+        first_merge = pd.merge(
+            imp_df, first_agg_df, on=["region", "county", "period"], how="left"
+        )
+        second_merge = pd.merge(
+            first_merge, second_agg_df, on=["region", "county", "period"], how="left"
+        )
+        third_merge = pd.merge(
+            second_merge, third_agg_df, on=["region", "county", "period"], how="left"
+        )
         logger.info("Successfully merged dataframes")
         # convert output to json ready to return
-        final_output = third_merge.to_json(orient='records')
+        final_output = third_merge.to_json(orient="records")
 
         # send output onwards
         send_sqs_message(sqs, queue_url, final_output, sqs_messageid_name)
@@ -216,21 +222,17 @@ def send_sns_message(arn, checkpoint):
     :param checkpoint: Location of process - Type: String.
     :return: None.
     """
-    sns = boto3.client('sns', 'eu-west-2')
+    sns = boto3.client("sns", "eu-west-2")
 
     sns_message = {
         "success": True,
         "module": "Aggregation Combiner",
         "checkpoint": checkpoint,
         "anomalies": "",
-        "message": "Completed Aggregation Combiner"
-
+        "message": "Completed Aggregation Combiner",
     }
 
-    return sns.publish(
-        TargetArn=arn,
-        Message=json.dumps(sns_message)
-    )
+    return sns.publish(TargetArn=arn, Message=json.dumps(sns_message))
 
 
 def send_sqs_message(sqs, queue_url, message, output_message_id):
