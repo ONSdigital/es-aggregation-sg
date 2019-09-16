@@ -25,44 +25,37 @@ def lambda_handler(event, context):
         logger.info("JSON data converted to DataFrame.")
 
         county_agg = input_dataframe.groupby(['region', 'county', 'period'])
-        agg_by_county_output = county_agg.agg(
-            {'Q608_total': 'sum'}
-        ).reset_index()
+
+        agg_by_county_output = county_agg.agg({'Q608_total': 'sum'}).reset_index()
+
         agg_by_county_output.rename(
             columns={'Q608_total': 'county_total'},
             inplace=True
         )
 
-        logger.info("County totals succesfully calculated.")
+        logger.info("County totals successfully calculated.")
 
         output_json = agg_by_county_output.to_json(orient='records')
 
         logger.info("DataFrame converted to JSON for output.")
 
     except KeyError as e:
-        error_message = (
-            "Key Error in "
-            + current_module
-            + " |- "
-            + str(e.args)
-            + " | Request ID: "
-            + str(context["aws_request_id"])
-        )
-        log_message = error_message + " | Line: " + str(
-            e.__traceback__.tb_lineno)
+        error_message = ("Key Error in "
+                         + current_module + " |- "
+                         + str(e.args) + " | Request ID: "
+                         + str(context["aws_request_id"]))
+
+        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
+
     except Exception as e:
-        error_message = (
-            "General Error in "
-            + current_module
-            + " ("
-            + str(type(e))
-            + ") |- "
-            + str(e.args)
-            + " | Request ID: "
-            + str(context["aws_request_id"])
-        )
-        log_message = error_message + " | Line: " + str(
-            e.__traceback__.tb_lineno)
+        error_message = ("General Error in "
+                         + current_module + " ("
+                         + str(type(e)) + ") |- "
+                         + str(e.args) + " | Request ID: "
+                         + str(context["aws_request_id"]))
+
+        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
+
     finally:
         if (len(error_message)) > 0:
             logger.error(log_message)

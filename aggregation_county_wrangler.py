@@ -78,75 +78,55 @@ def lambda_handler(event, context):
         send_sns_message()
 
     except AttributeError as e:
-        error_message = (
-            "Bad data encountered in "
-            + current_module
-            + " |- "
-            + str(e.args)
-            + " | Request ID: "
-            + str(context["aws_request_id"])
-        )
-        log_message = error_message + " | Line: " + str(
-            e.__traceback__.tb_lineno)
+        error_message = ("Bad data encountered in "
+                         + current_module + " |- "
+                         + str(e.args) + " | Request ID: "
+                         + str(context["aws_request_id"]))
+
+        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
+
     except ValueError as e:
-        error_message = (
-            "Parameter validation error"
-            + current_module
-            + " |- "
-            + str(e.args)
-            + " | Request ID: "
-            + str(context["aws_request_id"])
-        )
-        log_message = error_message + " | Line: " + str(
-            e.__traceback__.tb_lineno)
+        error_message = ("Parameter validation error in "
+                         + current_module + " |- "
+                         + str(e.args) + " | Request ID: "
+                         + str(context["aws_request_id"]))
+
+        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
+
     except ClientError as e:
-        error_message = (
-            "AWS Error ("
-            + str(e.response["Error"]["Code"])
-            + ") "
-            + current_module
-            + " |- "
-            + str(e.args)
-            + " | Request ID: "
-            + str(context["aws_request_id"])
-        )
-        log_message = error_message + " | Line: " + str(
-            e.__traceback__.tb_lineno)
+        error_message = ("AWS Error in ("
+                         + str(e.response["Error"]["Code"]) + ") "
+                         + current_module + " |- "
+                         + str(e.args) + " | Request ID: "
+                         + str(context["aws_request_id"]))
+
+        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
+
     except KeyError as e:
-        error_message = (
-            "Key Error in "
-            + current_module
-            + " |- "
-            + str(e.args)
-            + " | Request ID: "
-            + str(context["aws_request_id"])
-        )
-        log_message = error_message + " | Line: " + str(
-            e.__traceback__.tb_lineno)
+        error_message = ("Key Error in "
+                         + current_module + " |- "
+                         + str(e.args) + " | Request ID: "
+                         + str(context["aws_request_id"]))
+
+        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
+
     except IncompleteReadError as e:
-        error_message = (
-            "Incomplete Lambda response encountered in "
-            + current_module
-            + " |- "
-            + str(e.args)
-            + " | Request ID: "
-            + str(context["aws_request_id"])
-        )
-        log_message = error_message + " | Line: " + str(
-            e.__traceback__.tb_lineno)
+        error_message = ("Incomplete Lambda response encountered in "
+                         + current_module + " |- "
+                         + str(e.args) + " | Request ID: "
+                         + str(context["aws_request_id"]))
+
+        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
+
     except Exception as e:
-        error_message = (
-            "General Error in "
-            + current_module
-            + " ("
-            + str(type(e))
-            + ") |- "
-            + str(e.args)
-            + " | Request ID: "
-            + str(context["aws_request_id"])
-        )
-        log_message = error_message + " | Line: " + str(
-            e.__traceback__.tb_lineno)
+        error_message = ("General Error in "
+                         + current_module + " ("
+                         + str(type(e)) + ") |- "
+                         + str(e.args) + " | Request ID: "
+                         + str(context["aws_request_id"]))
+
+        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
+
     finally:
         if (len(error_message)) > 0:
             logger.error(log_message)
