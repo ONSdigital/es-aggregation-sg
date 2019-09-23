@@ -66,7 +66,7 @@ def lambda_handler(event, context):
 
         :param event: N/A
         :param context: N/A
-        :return: Success - Dataframe, checkpoint
+        :return: Success - dataframe, checkpoint
     """
     current_module = "Aggregation Calc Top Two - Wrangler"
     logger = logging.getLogger()
@@ -97,7 +97,7 @@ def lambda_handler(event, context):
         method_name = config['method_name']
 
         # Read from S3 bucket
-        data_json = read_data_from_s3(bucket_name, s3_file)
+        data_json = get_from_s3(bucket_name, s3_file)
         logger.info("Completed reading data from s3")
 
         # Convert to dataframe
@@ -125,12 +125,10 @@ def lambda_handler(event, context):
         top2 = lambda_client.invoke(FunctionName=method_name, Payload=prepared_data)
         json_response = top2.get('Payload').read().decode("utf-8")
 
-        # Sending output to sql
+        # Sending output to SQS, notice to SNS
         logger.info("Sending function response downstream.")
-        sqs.send_message(QueueUrl=queue_url, MessageBody=json.loads(json_response), MessageGroupId=sqs_message_id_name,
-                         MessageDeduplicationId=str(random.getrandbits(128)))
+        send_sqs_message(queue_url=queue_url, message=json.loads(json_response), output_message_id=sqs_message_id_name)
         logger.info("Successfully sent the data to SQS")
-
         send_sns_message(checkpoint, arn)
         logger.info("Successfully sent the SNS message")
 
@@ -219,7 +217,7 @@ def send_sns_message(checkpoint, arn):
     return sns.publish(TargetArn=arn, Message=json.dumps(sns_message))
 
 
-def read_data_from_s3(bucket_name, s3_file):
+def get_from_s3(bucket_name, s3_file):
     """
     This method is used to retrieve data from an s3 bucket.
     :param bucket_name: The name of the bucket you are accessing.
@@ -231,3 +229,21 @@ def read_data_from_s3(bucket_name, s3_file):
     data_json = json.loads(data_content)
 
     return data_json
+
+
+def send_sqs_message(queue_url, message, output_message_id):
+    """
+    This method is responsible for sending data to the SQS queue and deleting the
+    left-over data.
+    :param queue_url: The url of the SQS queue. - Type: String
+    :param message: The message/data you wish to send to the SQS queue - Type: String
+    :param output_message_id: The label of the record in the SQS queue - Type: String
+    :return: None
+    """
+    # MessageDeduplicationId is set to a random hash to overcome de-duplication,
+    # otherwise modules could not be re-run in the space of 5 Minutes.
+    return sqs.send_message(QueueUrl=queue_url,
+                            MessageBody=message,
+                            MessageGroupId=output_message_id,
+                            MessageDeduplicationId=str(random.getrandbits(128))
+                            )
