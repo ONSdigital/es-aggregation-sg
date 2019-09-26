@@ -1,42 +1,28 @@
-import os
 import json
+import logging
+import os
 import random
 
 import boto3
+import numpy as np
 import pandas as pd
-import logging
-
+from botocore.exceptions import ClientError, IncompleteReadError
 from marshmallow import Schema, fields
-from botocore.exceptions import IncompleteReadError, ClientError
 
 
 class EnvironSchema(Schema):
     """
-    Schema to ensure that environment variables are present and in the correct format.
+    Schema to ensure that environment variables are present and in the
+    correct format.
     :return: None
     """
     s3_file = fields.Str(required=True)
     bucket_name = fields.Str(required=True)
     queue_url = fields.Str(required=True)
-    sqs_message_id_name = fields.Str(required=True)
+    sqs_messageid_name = fields.Str(required=True)
     checkpoint = fields.Str(required=True)
     arn = fields.Str(required=True)
     method_name = fields.Str(required=True)
-    time = fields.Str(required=True)
-    response_type = fields.Str(required=True)
-    questions_list = fields.Str(required=True)
-    output_file = fields.Str(required=True)
-    reference = fields.Str(required=True)
-    segmentation = fields.Str(required=True)
-    stored_segmentation = fields.Str(required=True)
-    current_time = fields.Str(required=True)
-    previous_time = fields.Str(required=True)
-    current_segmentation = fields.Str(required=True)
-    previous_segmentation = fields.Str(required=True)
-
-
-class NoDataInQueueError(Exception):
-    pass
 
 
 # Set up clients
@@ -47,8 +33,9 @@ sns = boto3.client('sns', region_name='eu-west-2')
 
 def lambda_handler(event, context):
     """
-        This wrangler is used to prepare data for the calculate top two statistical method.
-        The method requires a dataframe which must contain the input columns...
+        This wrangler is used to prepare data for the calculate top two
+        statistical method.
+        The method requires a dataframe which must contain the input columns:
          - period
          - county
          - Q608_total
@@ -58,11 +45,12 @@ def lambda_handler(event, context):
 
         The wrangler:
           - converts the data from json to dataframe,
-          - ensures the mandatory columns are present
+          - ensures the mandatory columns are present and correctly typed
           - appends the output columns
           - sends the dataframe to the function
           - ensures the new columns are present in the returned dataframe
-          - sends the data on ??????
+          - sends the data on via SQS
+          - Notifies via SNS
 
         :param event: N/A
         :param context: N/A
@@ -91,7 +79,7 @@ def lambda_handler(event, context):
         s3_file = config['s3_file']
         bucket_name = config['bucket_name']
         queue_url = config['queue_url']
-        sqs_message_id_name = config['sqs_messageid_name']
+        sqs_messageid_name = config['sqs_messageid_name']
         checkpoint = config['checkpoint']
         arn = config['arn']
         method_name = config['method_name']
@@ -103,13 +91,26 @@ def lambda_handler(event, context):
         # Convert to dataframe
         data = pd.DataFrame(data_json)
 
-        # Ensure mandatory columns are present
-        logger.info("Checking required data columns are present.")
+        # Ensure mandatory columns are present and have the correct
+        # type of content
+        msg = "Checking required data columns are present "
+        msg += "and correctly typed."
+        logger.info(msg)
         req_col_list = ['period', 'county', 'Q608_total']
         for req_col in req_col_list:
             if req_col not in data.columns:
-                err_msg = 'Required column ' + req_col + ' not found in dataframe.'
+                err_msg = 'Required column "' + req_col
+                err_msg += '" not found in dataframe.'
                 raise IndexError(err_msg)
+            idx = 0
+            for row in data.to_records():
+                if not isinstance(row[req_col], np.int64):
+                    err_msg = 'Required column "' + req_col
+                    err_msg += '" has wrong data type ('
+                    err_msg += str(type(row[req_col]))
+                    err_msg += ' at row index ' + str(idx) + '.'
+                    raise TypeError(err_msg)
+                idx += 1
 
         # Add output columns
         logger.info("Appending two further required columns.")
@@ -122,30 +123,40 @@ def lambda_handler(event, context):
 
         # Invoke aggregation top2 method
         logger.info("Invoking the statistical method.")
-        top2 = lambda_client.invoke(FunctionName=method_name, Payload=prepared_data)
+        top2 = lambda_client.invoke(FunctionName=method_name,
+                                    Payload=prepared_data)
         json_response = top2.get('Payload').read().decode("utf-8")
+
+        # Ensure appended columns are present in output and have the
+        # correct type of content
+        msg = "Checking required output columns are present "
+        msg += "and correctly typed."
+        logger.info(msg)
+        ret_data = pd.read_json(json_response, orient='records')
+        req_col_list = ['largest_contributor', 'second_largest_contributor']
+        for req_col in req_col_list:
+            if req_col not in ret_data.columns:
+                err_msg = 'Required column "' + req_col
+                err_msg += '" not found in output data.'
+                raise IndexError(err_msg)
+            idx = 0
+            for row in ret_data.to_records():
+                if not isinstance(row[req_col], np.int64):
+                    err_msg = 'Output column "' + req_col
+                    err_msg += '" has wrong data type ('
+                    err_msg += str(type(row[req_col]))
+                    err_msg += ' at row index ' + str(idx) + '.'
+                    raise TypeError(err_msg)
+                idx += 1
 
         # Sending output to SQS, notice to SNS
         logger.info("Sending function response downstream.")
-        send_sqs_message(queue_url=queue_url, message=json.loads(json_response), output_message_id=sqs_message_id_name)
+        send_sqs_message(queue_url=queue_url,
+                         message=json.loads(json_response),
+                         output_message_id=sqs_messageid_name)
         logger.info("Successfully sent the data to SQS")
         send_sns_message(checkpoint, arn)
         logger.info("Successfully sent the SNS message")
-
-    except NoDataInQueueError as e:
-        error_message = "There was no data in sqs queue in:  " \
-                        + current_module + " |-  | Request ID: " \
-                        + str(context['aws_request_id'])
-
-        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
-
-    except AttributeError as e:
-        error_message = "Bad data encountered in " \
-                        + current_module + " |- " \
-                        + str(e.args) + " | Request ID: " \
-                        + str(context['aws_request_id'])
-
-        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
 
     except IndexError as e:
         error_message = "Required columns missing from input data in " \
@@ -153,7 +164,17 @@ def lambda_handler(event, context):
                         + str(e.args) + " | Request ID: " \
                         + str(context['aws_request_id'])
 
-        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
+        log_message = error_message
+        log_message += " | Line: " + str(e.__traceback__.tb_lineno)
+
+    except TypeError as e:
+        error_message = "Bad data encountered in " \
+                        + current_module + " |- " \
+                        + str(e.args) + " | Request ID: " \
+                        + str(context['aws_request_id'])
+
+        log_message = error_message
+        log_message += " | Line: " + str(e.__traceback__.tb_lineno)
 
     except ValueError as e:
         error_message = "Parameter validation error" \
@@ -161,7 +182,8 @@ def lambda_handler(event, context):
                         + str(e.args) + " | Request ID: " \
                         + str(context['aws_request_id'])
 
-        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
+        log_message = error_message
+        log_message += " | Line: " + str(e.__traceback__.tb_lineno)
 
     except ClientError as e:
         error_message = "AWS Error (" \
@@ -170,7 +192,8 @@ def lambda_handler(event, context):
                         + str(e.args) + " | Request ID: " \
                         + str(context['aws_request_id'])
 
-        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
+        log_message = error_message
+        log_message += " | Line: " + str(e.__traceback__.tb_lineno)
 
     except KeyError as e:
         error_message = "Key Error in " \
@@ -178,7 +201,8 @@ def lambda_handler(event, context):
                         + str(e.args) + " | Request ID: " \
                         + str(context['aws_request_id'])
 
-        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
+        log_message = error_message
+        log_message += " | Line: " + str(e.__traceback__.tb_lineno)
 
     except IncompleteReadError as e:
         error_message = "Incomplete Lambda response encountered in " \
@@ -186,7 +210,8 @@ def lambda_handler(event, context):
                         + str(e.args) + " | Request ID: " \
                         + str(context['aws_request_id'])
 
-        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
+        log_message = error_message
+        log_message += " | Line: " + str(e.__traceback__.tb_lineno)
 
     except Exception as e:
         error_message = "General Error in " \
@@ -195,7 +220,8 @@ def lambda_handler(event, context):
                         + str(e.args) + " | Request ID: " \
                         + str(context['aws_request_id'])
 
-        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
+        log_message = error_message
+        log_message += " | Line: " + str(e.__traceback__.tb_lineno)
 
     finally:
         if(len(error_message)) > 0:
@@ -217,31 +243,34 @@ def send_sns_message(checkpoint, arn):
     return sns.publish(TargetArn=arn, Message=json.dumps(sns_message))
 
 
-def get_from_s3(bucket_name, s3_file):
+def get_from_s3(bucket_name, file_name):
     """
-    This method is used to retrieve data from an s3 bucket.
-    :param bucket_name: The name of the bucket you are accessing.
-    :param s3_file: The file you wish to import.
-    :return: data_json - Type: JSON.
+    Given the name of the bucket and the filename(key), this function will
+    return a DataFrame. File to get MUST be json format.
+    :param bucket_name: Name of the s3 bucket - Type: String
+    :param file_name: Name of the file - Type: String
+    :return: data: DataFrame created from the json file in s3 - Type: DataFrame
     """
-    data_object = s3.Object(bucket_name, s3_file)
-    data_content = data_object.get()['Body'].read()
-    data_json = json.loads(data_content)
+    s3 = boto3.resource('s3', region_name="eu-west-2")
+    content_object = s3.Object(bucket_name, file_name)
+    file_content = content_object.get()['Body'].read()
+    data = pd.DataFrame(json.loads(file_content))
 
-    return data_json
+    return data
 
 
 def send_sqs_message(queue_url, message, output_message_id):
     """
-    This method is responsible for sending data to the SQS queue and deleting the
-    left-over data.
-    :param queue_url: The url of the SQS queue. - Type: String
-    :param message: The message/data you wish to send to the SQS queue - Type: String
-    :param output_message_id: The label of the record in the SQS queue - Type: String
+    This method is responsible for sending data to the SQS queue and
+    deleting the left-over data.
+    :param queue_url: The url of the SQS queue. (String)
+    :param message: The payload sent to the SQS queue. (String)
+    :param output_message_id: The label of the record in the
+           SQS queue. (String)
     :return: None
     """
-    # MessageDeduplicationId is set to a random hash to overcome de-duplication,
-    # otherwise modules could not be re-run in the space of 5 Minutes.
+    # MessageDeduplicationId is set to a random hash to overcome
+    # de-duplication, otherwise modules could not be re-run for 5 Minutes.
     return sqs.send_message(QueueUrl=queue_url,
                             MessageBody=message,
                             MessageGroupId=output_message_id,
