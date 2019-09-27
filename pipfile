@@ -4,29 +4,29 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-pytest = "*"
-pytest-cov = "*"
-ipython = "*"
-ipdb = "*"
+awscli = "*"
 bandit = "*"
-safety ="*"
-sphinx = "*"
-flake8 = "*"
-pep8-naming = "*"
 black = "==19.3b0"
 boto3 = "*"
-awscli = "*"
-moto = "*"
-marshmallow = "*"
-isort = "*"
+flake8 = "*"
+flake8-breakpoint = "*"
 flake8-builtins-unleashed = "*"
 flake8-eradicate = "*"
-flake8-breakpoint = "*"
 flake8-isort = "*"
+ipdb = "*"
+ipython = "*"
+isort = "*"
+marshmallow = "*"
+moto = "*"
+pep8-naming = "*"
+pytest = "*"
+pytest-cov = "*"
+safety = "*"
+sphinx = "*"
 
 [packages]
+marshmallow = "==2.19.5"
 pandas = "*"
 
 [requires]
 python_version = "3.7"
-c
