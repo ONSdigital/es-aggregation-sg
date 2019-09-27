@@ -33,28 +33,28 @@ sns = boto3.client('sns', region_name='eu-west-2')
 
 def lambda_handler(event, context):
     """
-        This wrangler is used to prepare data for the calculate top two
-        statistical method.
-        The method requires a dataframe which must contain the input columns:
-         - period
-         - county
-         - Q608_total
-        ... and the two output columns...
-         - largest_contributor
-         - second_largest contributor
+    This wrangler is used to prepare data for the calculate top two
+    statistical method.
+    The method requires a dataframe which must contain the input columns:
+     - period
+     - county
+     - Q608_total
+    ... and the two output columns...
+     - largest_contributor
+     - second_largest contributor
 
-        The wrangler:
-          - converts the data from json to dataframe,
-          - ensures the mandatory columns are present and correctly typed
-          - appends the output columns
-          - sends the dataframe to the function
-          - ensures the new columns are present in the returned dataframe
-          - sends the data on via SQS
-          - Notifies via SNS
+    The wrangler:
+      - converts the data from json to dataframe,
+      - ensures the mandatory columns are present and correctly typed
+      - appends the output columns
+      - sends the dataframe to the function
+      - ensures the new columns are present in the returned dataframe
+      - sends the data on via SQS
+      - Notifies via SNS
 
-        :param event: N/A
-        :param context: N/A
-        :return: Success - dataframe, checkpoint
+    :param event: N/A
+    :param context: N/A
+    :return: Success - dataframe, checkpoint
     """
     current_module = "Aggregation Calc Top Two - Wrangler"
     logger = logging.getLogger()
@@ -93,24 +93,21 @@ def lambda_handler(event, context):
 
         # Ensure mandatory columns are present and have the correct
         # type of content
-        msg = "Checking required data columns are present "
-        msg += "and correctly typed."
+        msg = "Checking required data columns are present and correctly typed."
         logger.info(msg)
         req_col_list = ['period', 'county', 'Q608_total']
         for req_col in req_col_list:
             if req_col not in data.columns:
-                err_msg = 'Required column "' + req_col
-                err_msg += '" not found in dataframe.'
+                err_msg = 'Required column "' + req_col + '" not found in dataframe.'
                 raise IndexError(err_msg)
-            idx = 0
+            row_index = 0
             for row in data.to_records():
                 if not isinstance(row[req_col], np.int64):
                     err_msg = 'Required column "' + req_col
-                    err_msg += '" has wrong data type ('
-                    err_msg += str(type(row[req_col]))
-                    err_msg += ' at row index ' + str(idx) + '.'
+                    err_msg += '" has wrong data type (' + str(type(row[req_col]))
+                    err_msg += ' at row index ' + str(row_index) + '.'
                     raise TypeError(err_msg)
-                idx += 1
+                row_index += 1
 
         # Add output columns
         logger.info("Appending two further required columns.")
@@ -123,31 +120,27 @@ def lambda_handler(event, context):
 
         # Invoke aggregation top2 method
         logger.info("Invoking the statistical method.")
-        top2 = lambda_client.invoke(FunctionName=method_name,
-                                    Payload=prepared_data)
+        top2 = lambda_client.invoke(FunctionName=method_name, Payload=prepared_data)
         json_response = top2.get('Payload').read().decode("utf-8")
 
         # Ensure appended columns are present in output and have the
         # correct type of content
-        msg = "Checking required output columns are present "
-        msg += "and correctly typed."
+        msg = "Checking required output columns are present and correctly typed."
         logger.info(msg)
         ret_data = pd.read_json(json_response, orient='records')
         req_col_list = ['largest_contributor', 'second_largest_contributor']
         for req_col in req_col_list:
             if req_col not in ret_data.columns:
-                err_msg = 'Required column "' + req_col
-                err_msg += '" not found in output data.'
+                err_msg = 'Required column "' + req_col + '" not found in output data.'
                 raise IndexError(err_msg)
-            idx = 0
+            row_index = 0
             for row in ret_data.to_records():
                 if not isinstance(row[req_col], np.int64):
                     err_msg = 'Output column "' + req_col
-                    err_msg += '" has wrong data type ('
-                    err_msg += str(type(row[req_col]))
-                    err_msg += ' at row index ' + str(idx) + '.'
+                    err_msg += '" has wrong data type (' + str(type(row[req_col]))
+                    err_msg += ' at row index ' + str(row_index) + '.'
                     raise TypeError(err_msg)
-                idx += 1
+                row_index += 1
 
         # Sending output to SQS, notice to SNS
         logger.info("Sending function response downstream.")
@@ -159,66 +152,66 @@ def lambda_handler(event, context):
         logger.info("Successfully sent the SNS message")
 
     except IndexError as e:
-        error_message = "Required columns missing from input data in " \
-                        + current_module + " |- " \
-                        + str(e.args) + " | Request ID: " \
-                        + str(context['aws_request_id'])
+        error_message = ("Required columns missing from input data in "
+                         + current_module + " |- "
+                         + str(e.args) + " | Request ID: "
+                         + str(context['aws_request_id']))
 
         log_message = error_message
         log_message += " | Line: " + str(e.__traceback__.tb_lineno)
 
     except TypeError as e:
-        error_message = "Bad data encountered in " \
-                        + current_module + " |- " \
-                        + str(e.args) + " | Request ID: " \
-                        + str(context['aws_request_id'])
+        error_message = ("Bad data encountered in "
+                         + current_module + " |- "
+                         + str(e.args) + " | Request ID: "
+                         + str(context['aws_request_id']))
 
         log_message = error_message
         log_message += " | Line: " + str(e.__traceback__.tb_lineno)
 
     except ValueError as e:
-        error_message = "Parameter validation error" \
-                        + current_module + " |- " \
-                        + str(e.args) + " | Request ID: " \
-                        + str(context['aws_request_id'])
+        error_message = ("Parameter validation error"
+                         + current_module + " |- "
+                         + str(e.args) + " | Request ID: "
+                         + str(context['aws_request_id']))
 
         log_message = error_message
         log_message += " | Line: " + str(e.__traceback__.tb_lineno)
 
     except ClientError as e:
-        error_message = "AWS Error (" \
-                        + str(e.response['Error']['Code']) + ") " \
-                        + current_module + " |- " \
-                        + str(e.args) + " | Request ID: " \
-                        + str(context['aws_request_id'])
+        error_message = ("AWS Error ("
+                         + str(e.response['Error']['Code']) + ") "
+                         + current_module + " |- "
+                         + str(e.args) + " | Request ID: "
+                         + str(context['aws_request_id']))
 
         log_message = error_message
         log_message += " | Line: " + str(e.__traceback__.tb_lineno)
 
     except KeyError as e:
-        error_message = "Key Error in " \
-                        + current_module + " |- " \
-                        + str(e.args) + " | Request ID: " \
-                        + str(context['aws_request_id'])
+        error_message = ("Key Error in "
+                         + current_module + " |- "
+                         + str(e.args) + " | Request ID: "
+                         + str(context['aws_request_id']))
 
         log_message = error_message
         log_message += " | Line: " + str(e.__traceback__.tb_lineno)
 
     except IncompleteReadError as e:
-        error_message = "Incomplete Lambda response encountered in " \
-                        + current_module + " |- " \
-                        + str(e.args) + " | Request ID: " \
-                        + str(context['aws_request_id'])
+        error_message = ("Incomplete Lambda response encountered in "
+                         + current_module + " |- "
+                         + str(e.args) + " | Request ID: "
+                         + str(context['aws_request_id']))
 
         log_message = error_message
         log_message += " | Line: " + str(e.__traceback__.tb_lineno)
 
     except Exception as e:
-        error_message = "General Error in " \
-                        + current_module + " (" \
-                        + str(type(e)) + ") |- " \
-                        + str(e.args) + " | Request ID: " \
-                        + str(context['aws_request_id'])
+        error_message = ("General Error in "
+                         + current_module + " ("
+                         + str(type(e)) + ") |- "
+                         + str(e.args) + " | Request ID: "
+                         + str(context['aws_request_id']))
 
         log_message = error_message
         log_message += " | Line: " + str(e.__traceback__.tb_lineno)
@@ -230,17 +223,6 @@ def lambda_handler(event, context):
         else:
             logger.info("Successfully completed module: " + current_module)
             return {"success": True, "checkpoint": checkpoint}
-
-
-def send_sns_message(checkpoint, arn):
-    sns_message = {
-        "success": True,
-        "module": "Calculate Top Two Wrangler",
-        "checkpoint": checkpoint,
-        "message": "Completed Top Two"
-    }
-
-    return sns.publish(TargetArn=arn, Message=json.dumps(sns_message))
 
 
 def get_from_s3(bucket_name, file_name):
@@ -257,6 +239,25 @@ def get_from_s3(bucket_name, file_name):
     data = pd.DataFrame(json.loads(file_content))
 
     return data
+
+
+def send_sns_message(checkpoint, arn):
+    """
+    This method is responsible for sending a notification to the specified arn,
+    so that it can be used to relay information for the BPM to use and handle.
+    :param checkpoint: The current checkpoint location - Type: String.
+    :param sns_topic_arn: The arn of the sns topic you are directing the message at -
+                          Type: String.
+    :return: None
+    """
+    sns_message = {
+        "success": True,
+        "module": "Calculate Top Two Wrangler",
+        "checkpoint": checkpoint,
+        "message": "Completed Top Two"
+    }
+
+    return sns.publish(TargetArn=arn, Message=json.dumps(sns_message))
 
 
 def send_sqs_message(queue_url, message, output_message_id):

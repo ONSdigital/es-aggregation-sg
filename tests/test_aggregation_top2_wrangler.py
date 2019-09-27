@@ -10,7 +10,7 @@ from moto import mock_s3, mock_sns, mock_sqs
 import aggregation_top2_wrangler
 
 
-class TestStringMethods(unittest.TestCase):
+class TestAggregationTop2Wrangler(unittest.TestCase):
 
     @mock.patch('aggregation_top2_wrangler.send_sns_message')
     @mock.patch('aggregation_top2_wrangler.send_sqs_message')
@@ -19,7 +19,7 @@ class TestStringMethods(unittest.TestCase):
     def test_wrangler_happy_path(self, mock_get_from_s3, mock_lambda,
                                  mock_sqs, mock_sns):
         """
-            Tests a correct run produces the correct success flags.
+        Tests a correct run produces the correct success flags.
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
             's3_file': 'file_to_get_from_s3.json',
@@ -38,8 +38,9 @@ class TestStringMethods(unittest.TestCase):
             mock_get_from_s3.return_value = pd.DataFrame(input_data)
 
             with open('tests/fixtures/top2_method_output.json', "rb") as file:
-                mock_lambda.return_value.invoke.return_value = \
+                mock_lambda.return_value.invoke.return_value = (
                     {"Payload": StreamingBody(file, 4372)}
+                )
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {"period": 201809}},
@@ -48,8 +49,6 @@ class TestStringMethods(unittest.TestCase):
 
             self.assertTrue(returned_value['success'])
 
-    # ========================================================================
-
     @mock.patch('aggregation_top2_wrangler.send_sns_message')
     @mock.patch('aggregation_top2_wrangler.send_sqs_message')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
@@ -57,9 +56,9 @@ class TestStringMethods(unittest.TestCase):
     def test_missing_environment_variable(self, mock_get_from_s3, mock_lambda,
                                           mock_sqs, mock_sns):
         """
-            Tests that the error message contains "parameter validation error"
-            if a required parameter is missing.
-            (ValueError)
+        Tests that the error message contains "parameter validation error"
+        if a required parameter is missing.
+        (ValueError)
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
             'bucket_name': 'some-bucket-name',
@@ -71,8 +70,9 @@ class TestStringMethods(unittest.TestCase):
             mock_get_from_s3.return_value = pd.DataFrame(input_data)
 
             with open('tests/fixtures/top2_method_output.json', "rb") as file:
-                mock_lambda.return_value.invoke.return_value = \
+                mock_lambda.return_value.invoke.return_value = (
                     {"Payload": StreamingBody(file, 355)}
+                )
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {"period": 201809}},
@@ -81,8 +81,6 @@ class TestStringMethods(unittest.TestCase):
 
             assert("Parameter validation error" in returned_value['error'])
 
-    # =======================================================================
-
     @mock.patch('aggregation_top2_wrangler.send_sns_message')
     @mock.patch('aggregation_top2_wrangler.send_sqs_message')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
@@ -90,9 +88,9 @@ class TestStringMethods(unittest.TestCase):
     def test_missing_column_on_input(self, mock_get_from_s3,
                                      mock_lambda, mock_sqs, mock_sns):
         """
-            Tests that the error message contains "Required columns missing" if
-            any of the required columns are missing.
-            (IndexError)
+        Tests that the error message contains "Required columns missing" if
+        any of the required columns are missing.
+        (IndexError)
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
             's3_file': 'file_to_get_from_s3.json',
@@ -113,8 +111,9 @@ class TestStringMethods(unittest.TestCase):
             mock_get_from_s3.return_value = pd.DataFrame(input_data)
 
             with open('tests/fixtures/top2_method_output.json', "rb") as file:
-                mock_lambda.return_value.invoke.return_value = \
+                mock_lambda.return_value.invoke.return_value = (
                     {"Payload": StreamingBody(file, 355)}
+                )
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {"period": 201809}},
@@ -123,8 +122,6 @@ class TestStringMethods(unittest.TestCase):
 
             assert ("Required columns missing" in returned_value['error'])
 
-    # ========================================================================
-
     @mock.patch('aggregation_top2_wrangler.send_sns_message')
     @mock.patch('aggregation_top2_wrangler.send_sqs_message')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
@@ -132,10 +129,10 @@ class TestStringMethods(unittest.TestCase):
     def test_bad_data_on_input(self, mock_get_from_s3, mock_lambda,
                                mock_sqs, mock_sns):
         """
-            Tests that the error message contains "Bad data encountered"
-            if any of the values within the required columns are of the
-            wrong data type.
-            (TypeError)
+        Tests that the error message contains "Bad data encountered"
+        if any of the values within the required columns are of the
+        wrong data type.
+        (TypeError)
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
             's3_file': 'file_to_get_from_s3.json',
@@ -145,16 +142,16 @@ class TestStringMethods(unittest.TestCase):
             'sqs_messageid_name': 'random',
             'checkpoint': '3',
             'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
-            'method_name': 'random',
-        }
-                             ):
+            'method_name': 'random'}
+        ):
             with open("tests/fixtures/top2_wrangler_input_err.json") as file:
                 input_data = json.load(file)
                 mock_get_from_s3.return_value = pd.DataFrame(input_data)
 
             with open('tests/fixtures/top2_method_output.json', "rb") as file:
-                mock_lambda.return_value.invoke.return_value = \
+                mock_lambda.return_value.invoke.return_value = (
                     {"Payload": StreamingBody(file, 4389)}
+                )
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {"period": 201809}},
@@ -163,18 +160,16 @@ class TestStringMethods(unittest.TestCase):
 
             assert ("Bad data encountered" in returned_value['error'])
 
-    # ========================================================================
-
     @mock.patch('aggregation_top2_wrangler.send_sns_message')
     @mock.patch('aggregation_top2_wrangler.send_sqs_message')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
     @mock.patch('aggregation_top2_wrangler.get_from_s3')
-    def test_missing_column_on_output(self, mock_get_from_s3,
-                                      mock_lambda, mock_sqs, mock_sns):
+    def test_missing_column_on_output(self, mock_get_from_s3, mock_lambda,
+                                      mock_sqs, mock_sns):
         """
-            Tests that the error message contains "Required columns missing"
-            if any of the appended columns are missing.
-            (IndexError)
+        Tests that the error message contains "Required columns missing"
+        if any of the appended columns are missing.
+        (IndexError)
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
             's3_file': 'file_to_get_from_s3.json',
@@ -194,8 +189,9 @@ class TestStringMethods(unittest.TestCase):
 
             err_file = 'tests/fixtures/top2_method_output_err_index.json'
             with open(err_file, "rb") as file:
-                mock_lambda.return_value.invoke.return_value = \
+                mock_lambda.return_value.invoke.return_value = (
                     {"Payload": StreamingBody(file, 4182)}
+                )
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {"period": 201809}},
@@ -204,19 +200,16 @@ class TestStringMethods(unittest.TestCase):
 
             assert ("Required columns missing" in returned_value['error'])
 
-    # ========================================================================
-
     @mock.patch('aggregation_top2_wrangler.send_sns_message')
     @mock.patch('aggregation_top2_wrangler.send_sqs_message')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
     @mock.patch('aggregation_top2_wrangler.get_from_s3')
-    def test_bad_data_on_output(self, mock_get_from_s3, mock_lambda,
-                                mock_sqs, mock_sns):
+    def test_bad_data_on_output(self, mock_get_from_s3, mock_lambda, mock_sqs, mock_sns):
         """
-            Tests that the error message contains "Bad data encountered" if
-            any of the values within the appended columns are of the wrong
-            data type.
-            (TypeError)
+        Tests that the error message contains "Bad data encountered" if
+        any of the values within the appended columns are of the wrong
+        data type.
+        (TypeError)
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
             's3_file': 'file_to_get_from_s3.json',
@@ -236,8 +229,9 @@ class TestStringMethods(unittest.TestCase):
 
             err_file = 'tests/fixtures/top2_method_output_err_type.json'
             with open(err_file, "rb") as file:
-                mock_lambda.return_value.invoke.return_value = \
+                mock_lambda.return_value.invoke.return_value = (
                     {"Payload": StreamingBody(file, 4391)}
+                )
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {"period": 201809}},
@@ -246,18 +240,15 @@ class TestStringMethods(unittest.TestCase):
 
             assert ("Bad data encountered" in returned_value['error'])
 
-    # ========================================================================
-
     @mock.patch('aggregation_top2_wrangler.send_sns_message')
     @mock.patch('aggregation_top2_wrangler.send_sqs_message')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
     @mock.patch('aggregation_top2_wrangler.get_from_s3')
-    def test_incomplete_json(self, mock_get_from_s3, mock_lambda,
-                             mock_sqs, mock_sns):
+    def test_incomplete_json(self, mock_get_from_s3, mock_lambda, mock_sqs, mock_sns):
         """
-            Tests that the error message contains "Incomplete Lambda response"
-            if a partial response received from the Lambda.
-            (IncompleteReadError)
+        Tests that the error message contains "Incomplete Lambda response"
+        if a partial response received from the Lambda.
+        (IncompleteReadError)
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
             's3_file': 'file_to_get_from_s3.json',
@@ -276,8 +267,9 @@ class TestStringMethods(unittest.TestCase):
             mock_get_from_s3.return_value = pd.DataFrame(input_data)
 
             with open('tests/fixtures/top2_method_output.json', "rb") as file:
-                mock_lambda.return_value.invoke.return_value = \
+                mock_lambda.return_value.invoke.return_value = (
                     {"Payload": StreamingBody(file, 2)}
+                )
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {"period": 201809}},
@@ -286,17 +278,14 @@ class TestStringMethods(unittest.TestCase):
 
             assert ("Incomplete Lambda response" in returned_value['error'])
 
-    # =======================================================================
-
     @mock.patch('aggregation_top2_wrangler.send_sns_message')
     @mock.patch('aggregation_top2_wrangler.send_sqs_message')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
     @mock.patch('aggregation_top2_wrangler.get_from_s3')
-    def test_general_error(self, mock_get_from_s3, mock_lambda,
-                           mock_sqs, mock_sns):
+    def test_general_error(self, mock_get_from_s3, mock_lambda, mock_sqs, mock_sns):
         """
-            Tests that the fallthrough for unclassified exceptions is working.
-            (Exception)
+        Tests that the fallthrough for unclassified exceptions is working.
+        (Exception)
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
             's3_file': 'file_to_get_from_s3.json',
@@ -315,8 +304,9 @@ class TestStringMethods(unittest.TestCase):
             mock_get_from_s3.side_effect = Exception("Whoops")
 
             with open('tests/fixtures/top2_method_output.json', "rb") as file:
-                mock_lambda.return_value.invoke.return_value = \
+                mock_lambda.return_value.invoke.return_value = (
                     {"Payload": StreamingBody(file, 4389)}
+                )
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {"period": 201809}},
@@ -365,11 +355,9 @@ class TestMoto:
         sqs.create_queue(QueueName="test_queue_test.fifo",
                          Attributes={'FifoQueue': 'true'})
 
-        queue_url = \
-            sqs.get_queue_by_name(QueueName="test_queue_test.fifo").url
+        queue_url = sqs.get_queue_by_name(QueueName="test_queue_test.fifo").url
 
-        response = \
-            aggregation_top2_wrangler.send_sqs_message(queue_url,
+        response = aggregation_top2_wrangler.send_sqs_message(queue_url,
                                                        "{'Test': 'Message'}",
                                                        "test_group_id")
         assert response['MessageId']
@@ -408,10 +396,8 @@ class TestMoto:
             'method_name': 'random',
             },
         ):
-            with mock.patch("aggregation_top2_wrangler.get_from_s3") \
-                    as mock_s3:
-                with open("tests/fixtures/top2_wrangler_input.json", "r") \
-                        as file:
+            with mock.patch("aggregation_top2_wrangler.get_from_s3") as mock_s3:
+                with open("tests/fixtures/top2_wrangler_input.json", "r") as file:
                     mock_content = file.read()
                     mock_s3.side_effect = KeyError()
                     mock_s3.return_value = mock_content

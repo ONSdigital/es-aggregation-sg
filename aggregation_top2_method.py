@@ -18,20 +18,21 @@ lambda_client = boto3.client('lambda', region_name="eu-west-2")
 
 def lambda_handler(event, context):
     """
-        This method requires a dataframe which must contain the input columns:
-         - period
-         - county
-         - Q608_total
-        ... and the two output columns...
-         - largest_contributor
-         - second_largest contributor
+    This method requires a dataframe which must contain the input columns:
+     - period
+     - county
+     - Q608_total
+    ... and the two output columns...
+     - largest_contributor
+     - second_largest contributor
 
-        It loops through each county (by period) and records largest & second
-        largest value against each record in the group.
+    It loops through each county (by period) and records largest & second
+    largest value against each record in the group.
 
-        :param event: N/A
-        :param context: N/A
-        :return: Success - Dataframe, checkpoint
+    :param event: N/A
+    :param context: N/A
+    :return:    Success - response_json (json serialised pandas dataframe)
+                Failure - success (string, bool), error (string)
     """
     current_module = "Aggregation Calc Top Two - Method"
     logger = logging.getLogger()
@@ -55,16 +56,12 @@ def lambda_handler(event, context):
         response_json = response.to_json(orient='records')
 
     except Exception as e:
-        # If the wrangler has done its job, the data has that calc_top_two
-        # utilises has already been cleansed and validated on top of the
-        # validation in previous areas. Therefore, there is not much that we
-        # can honestly anticipate needing to trap, so a general failure will
-        # suffice.
-        error_message = "There was an error processing the method itself: " \
-                        + current_module + " (" \
-                        + str(type(e)) + ") |- " \
-                        + str(e.args) + " | Request ID: " \
-                        + str(context['aws_request_id'])
+        # Catch anything unforseen that wrangler has missed.
+        error_message = ("There was an error processing the method itself: "
+                         + current_module + " ("
+                         + str(type(e)) + ") |- "
+                         + str(e.args) + " | Request ID: "
+                         + str(context['aws_request_id']))
 
         log_message = (error_message + " | Line: "
                        + str(e.__traceback__.tb_lineno))
@@ -91,10 +88,7 @@ def calc_top_two(data):
     # Ensure additional columns are zeroed (Belt n Braces)
     data['largest_contributor'] = 0
     data['second_largest_contributor'] = 0
-    data['largest_contributor'] = \
-        data['largest_contributor'].astype(np.int64)
-    data['second_largest_contributor'] = \
-        data['second_largest_contributor'].astype(np.int64)
+
     secondary_value = 0
 
     # Create unique list of periods in data
@@ -103,8 +97,7 @@ def calc_top_two(data):
     # Get unique periods
     for period in period_list:
         county_list = []
-        temp_county_list = \
-            data.loc[(data['period'] == period)]['county'].tolist()
+        temp_county_list = data.loc[(data['period'] == period)]['county'].tolist()
         logger.info("Processing period " + str(period))
 
         # Make County unique
@@ -141,10 +134,10 @@ def calc_top_two(data):
                          'second_largest_contributor'] = secondary_value
 
     # Ensure additional columns are type cast correctly (Belt n Braces)
-    data['largest_contributor'] = \
-        data['largest_contributor'].astype(np.int64)
-    data['second_largest_contributor'] = \
-        data['second_largest_contributor'].astype(np.int64)
+    data['largest_contributor'] = (data['largest_contributor']
+                                   .astype(np.int64))
+    data['second_largest_contributor'] = (data['second_largest_contributor']
+                                          .astype(np.int64))
 
     logger.info("Returning the output data")
     logger.info("Successfully completed function: calc_top_two")
