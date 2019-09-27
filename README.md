@@ -43,7 +43,7 @@ Steps performed:
 
 **Name of Lambda:** aggregation_county_method
 
-**Summary:** Generates a JSON dataset, grouped by region, county and period, with the Q608 totals (sum) as a new
+**Summary:** Generates a JSON dataset, grouped by region, county and period, with the Q608 totals added together and appended in a new
 column called 'county_total'.
 
 **Inputs:** This method requires the data that is output from imputation but filtered by the current period (done by wrangler)
