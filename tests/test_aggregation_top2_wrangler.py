@@ -357,9 +357,11 @@ class TestMoto:
 
         queue_url = sqs.get_queue_by_name(QueueName="test_queue_test.fifo").url
 
-        response = aggregation_top2_wrangler.send_sqs_message(queue_url,
-                                                       "{'Test': 'Message'}",
-                                                       "test_group_id")
+        response = aggregation_top2_wrangler.send_sqs_message(
+            queue_url,
+            "{'Test': 'Message'}",
+            "test_group_id"
+        )
         assert response['MessageId']
 
     @mock_sqs
