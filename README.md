@@ -33,15 +33,16 @@ The wrangler is responsible for preparing the data, invoking the method lambda a
 the respective notification messages (SNS).
 
 Steps performed:   
-      - Retrieves data from S3 bucket
-      - Converts the data from json to dataframe,
-      - Ensures the mandatory columns are present and correctly typed
-      - Appends the new output columns in zero state
-      - Sends the dataframe to the method
-      - Ensures the new columns are still present and correctly typed in the returned dataframe
-      - Serialises the dataframe back to json
-      - sends the data on via SQS
-      - Notifies via SNS   
+
+    - Retrieves data from S3 bucket
+    - Converts the data from json to dataframe,
+    - Ensures the mandatory columns are present and correctly typed
+    - Appends the new output columns in zero state
+    - Sends the dataframe to the method
+    - Ensures the new columns are still present and correctly typed in the returned dataframe
+    - Serialises the dataframe back to json
+    - sends the data on via SQS
+    - Notifies via SNS   
 
 ## Methods
 
