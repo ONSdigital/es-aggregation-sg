@@ -88,3 +88,6 @@ The combiner is used to join the outputs from the 3 aggregations back onto the o
   queue. It joins these all together and sends onwards. The result of which is that the
    next module(disclosure) has the granular input data with the addition of aggregations 
    merged on.
+   
+   
+   sausages
