@@ -3,5 +3,5 @@
 cd aggregation-deploy-repository
 echo Packaging serverless bundle...
 serverless package --package pkg
-find ./pkg
+echo Deploying to AWS...
 serverless deploy --verbose;
