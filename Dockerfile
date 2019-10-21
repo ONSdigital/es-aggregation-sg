@@ -10,3 +10,4 @@ RUN apt-get update -y &&\
     node -v &&\
     npm -v &&\
     npm install -g serverless
+
