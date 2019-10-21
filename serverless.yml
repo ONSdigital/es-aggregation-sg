@@ -1,0 +1,147 @@
+---
+service: es-aggregation-sg
+provider:
+  name: aws
+  role: arn:aws:iam::014669633018:role/lambda_invoke_lambda
+  vpc:
+    securityGroupIds:
+      - ${file(../json_outputs/security_groups_output.json):SecurityGroups.0.GroupId}
+    subnetIds:
+      - ${file(../json_outputs/subnets_output.json):Subnets.0.SubnetId}
+      - ${file(../json_outputs/subnets_output.json):Subnets.1.SubnetId}
+  runtime: python3.7
+  region: eu-west-2
+  package:
+    individually: true
+
+functions:
+  deploy-county-wrangler:
+    name: es-aggregation-county-wrangler
+    handler: aggregation_county_wrangler.lambda_handler
+    package:
+      include:
+        - aggregation_county_wrangler.py
+      exclude:
+        - ./**
+    layers:
+      - arn:aws:lambda:eu-west-2:014669633018:layer:es_python_layer:10
+      - arn:aws:lambda:eu-west-2:014669633018:layer:es_python_marshmallow:2
+    tags:
+      app: results
+    environment:
+      bucket_name: results-tf-vpc-s3
+      file_name: imp_output_test.json
+      queue_url: https://sqs.eu-west-2.amazonaws.com/014669633018/BMI_Results.fifo
+      checkpoint: 4
+      sns_topic_arn: arn:aws:sns:eu-west-2:014669633018:BMIResults
+      sqs_messageid_name: byCountyAgg
+      method_name: es-aggregation_county_method
+      period: 201809
+
+  deploy-county-method:
+    name: es-aggregation_county_method
+    handler: aggregation_county_method.lambda_handler
+    package:
+      include:
+        - aggregation_county_method.py
+      exclude:
+        - ./**
+    layers:
+      - arn:aws:lambda:eu-west-2:014669633018:layer:es_python_layer:10
+      - arn:aws:lambda:eu-west-2:014669633018:layer:es_python_marshmallow:2
+    tags:
+      app: results
+
+  deploy-entref-wrangler:
+    name: es-aggregation-entref-wrangler
+    handler: es-aggregation-entref-wrangler.lambda_handler
+    package:
+      include:
+        - aggregation_entref_wrangler.py
+      exclude:
+        - ./**
+    layers:
+      - arn:aws:lambda:eu-west-2:014669633018:layer:es_python_layer:10
+      - arn:aws:lambda:eu-west-2:014669633018:layer:es_python_marshmallow:2
+    tags:
+      app: results
+    environment:
+      bucket_name: results-tf-vpc-s3
+      file_name: imp_output_test.json
+      queue_url: https://sqs.eu-west-2.amazonaws.com/014669633018/BMI_Results.fifo
+      checkpoint: 4
+      sns_topic_arn: arn:aws:sns:eu-west-2:014669633018:BMIResults
+      sqs_messageid_name: byEntRefAgg
+      method_name: es-aggregation_entref_method
+      period: 201809
+
+  deploy-entref-method:
+    name: es-aggregation-entref-method
+    handler: es-aggregation-entref-method.lambda_handler
+    package:
+      include:
+        - aggregation_entref_method.py
+      exclude:
+        - ./**
+    layers:
+      - arn:aws:lambda:eu-west-2:014669633018:layer:es_python_layer:10
+      - arn:aws:lambda:eu-west-2:014669633018:layer:es_python_marshmallow:2
+    tags:
+      app: results
+
+  deploy-top2-wrangler:
+    name: es-aggregation-top2-wrangler
+    handler: es-aggregation-top2-wrangler.lambda_handler
+    package:
+      include:
+        - aggregation_top2_wrangler.py
+      exclude:
+        - ./**
+    layers:
+      - arn:aws:lambda:eu-west-2:014669633018:layer:es_python_layer:10
+      - arn:aws:lambda:eu-west-2:014669633018:layer:es_python_marshmallow:2
+    tags:
+      app: results
+    environment:
+      bucket_name: results-tf-vpc-s3
+      s3_file: imp_output_test.json
+      queue_url: https://sqs.eu-west-2.amazonaws.com/014669633018/BMI_Results.fifo
+      checkpoint: 4
+      arn: arn:aws:sns:eu-west-2:014669633018:BMIResults
+      sqs_messageid_name: byCountyAgg
+      method_name: es-aggregation_county_method
+
+  deploy-top2-method:
+    name: es-aggregation-top2-method
+    handler: es-aggregation-top2-wrangler.lambda_handler
+    package:
+      include:
+        - aggregation_top2_method.py
+      exclude:
+        - ./**
+    layers:
+      - arn:aws:lambda:eu-west-2:014669633018:layer:es_python_layer:10
+      - arn:aws:lambda:eu-west-2:014669633018:layer:es_python_marshmallow:2
+    tags:
+      app: results
+
+  deploy-combiner:
+    name: es-aggregation-combiner
+    handler: combiner.lambda_handler
+    package:
+      include:
+        - combiner.py
+      exclude:
+        - ./**
+    layers:
+      - arn:aws:lambda:eu-west-2:014669633018:layer:es_python_layer:10
+      - arn:aws:lambda:eu-west-2:014669633018:layer:es_python_marshmallow:2
+    tags:
+      app: results
+    environment:
+      arn: arn:aws:sns:eu-west-2:014669633018:BMIResults
+      bucket_name: results-tf-vpc-s3
+      checkpoint: 4
+      file_name: imp_output_test.json
+      queue_url: https://sqs.eu-west-2.amazonaws.com/014669633018/BMI_Results.fifo
+      sqs_messageid_name: agg_combiner
