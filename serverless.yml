@@ -124,3 +124,24 @@ functions:
       - arn:aws:lambda:eu-west-2:014669633018:layer:es_python_marshmallow:2
     tags:
       app: results
+
+  deploy-combiner:
+    name: es-aggregation-combiner
+    handler: combiner.lambda_handler
+    package:
+      include:
+        - combiner.py
+      exclude:
+        - ./**
+    layers:
+      - arn:aws:lambda:eu-west-2:014669633018:layer:es_python_layer:10
+      - arn:aws:lambda:eu-west-2:014669633018:layer:es_python_marshmallow:2
+    tags:
+      app: results
+    environment:
+      arn: arn:aws:sns:eu-west-2:014669633018:BMIResults
+      bucket_name: results-tf-vpc-s3
+      checkpoint: 4
+      file_name: imp_output_test.json
+      queue_url: https://sqs.eu-west-2.amazonaws.com/014669633018/BMI_Results.fifo
+      sqs_messageid_name: agg_combiner
