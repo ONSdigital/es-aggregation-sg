@@ -1,25 +1,26 @@
 import json
 import logging
 import os
-import random
 
 import boto3
-import marshmallow
 import pandas as pd
 from botocore.exceptions import ClientError
+from esawsfunctions import funk
+from marshmallow import Schema, fields
 
 
-class EnvironSchema(marshmallow.Schema):
+class EnvironSchema(Schema):
     """
     Class to set up the environment variables schema.
     """
 
-    arn = marshmallow.fields.Str(required=True)
-    queue_url = marshmallow.fields.Str(required=True)
-    checkpoint = marshmallow.fields.Str(required=True)
-    file_name = marshmallow.fields.Str(required=True)
-    bucket_name = marshmallow.fields.Str(required=True)
-    sqs_messageid_name = marshmallow.fields.Str(required=True)
+    arn = fields.Str(required=True)
+    queue_url = fields.Str(required=True)
+    checkpoint = fields.Str(required=True)
+    s3_file = fields.Str(required=True)
+    bucket_name = fields.Str(required=True)
+    sqs_messageid_name = fields.Str(required=True)
+    file_name = fields.Str(required=True)
 
 
 class NoDataInQueueError(Exception):
@@ -28,31 +29,6 @@ class NoDataInQueueError(Exception):
 
 class DoNotHaveAllDataError(Exception):
     pass
-
-
-def get_sqs_message(sqs, queue_url, num_messages):
-    """
-    Retrieves messages from the SQS queue.
-    :param sqs: SQS object
-    :param queue_url: The url of the SQS queue. - Type: String.
-    :param num_messages: The number of messages to receive(usually 3)
-                        - Type: Int.
-    :return: Message from queue - Type: String.
-    """
-    return sqs.receive_message(QueueUrl=queue_url, MaxNumberOfMessages=num_messages)
-
-
-def get_from_s3(bucket_name, file_name):
-    """
-    This method is used to retrieve data from an s3 bucket.
-    :param bucket_name: The name of the bucket you are accessing.
-    :param file_name: The file you wish to import.
-    :return: imp_file: - JSON.
-    """
-    s3 = boto3.resource("s3", "eu-west-2")
-    object = s3.Object(bucket_name, file_name)
-    imp_file = object.get()["Body"].read()
-    return imp_file
 
 
 def lambda_handler(event, context):
@@ -74,23 +50,23 @@ def lambda_handler(event, context):
         # Enviroment variables
         queue_url = config["queue_url"]
         bucket_name = config["bucket_name"]
-        file_name = config["file_name"]
+        s3_file = config["file_name"]
         sqs_messageid_name = config["sqs_messageid_name"]
         checkpoint = config["checkpoint"]
         arn = config["arn"]
-
+        file_name = config['file_name']
         # Clients
 
         sqs = boto3.client("sqs", "eu-west-2")
 
         # Get file from s3
-        imp_file = get_from_s3(bucket_name, file_name)
-        imp_df = pd.DataFrame(json.loads(imp_file))
+        imp_df = funk.read_dataframe_from_s3(bucket_name, s3_file)
+
         logger.info("Successfully retrieved data from s3")
         data = []
 
         # Receive the 3 aggregation outputs
-        response = get_sqs_message(sqs, queue_url, 3)
+        response = funk.get_sqs_message(queue_url, 3)
         if "Messages" not in response:
             raise NoDataInQueueError("No Messages in queue")
         if len(response["Messages"]) < 3:
@@ -127,10 +103,11 @@ def lambda_handler(event, context):
         final_output = third_merge.to_json(orient="records")
 
         # send output onwards
-        send_sqs_message(sqs, queue_url, final_output, sqs_messageid_name)
+        funk.save_data(bucket_name, file_name,
+                       final_output, queue_url, sqs_messageid_name)
         logger.info("Successfully sent data to sqs")
 
-        send_sns_message(arn, checkpoint)
+        funk.send_sns_message(checkpoint, arn, "Combiner completed succesfully")
         logger.info("Successfully sent data to sns")
 
     except NoDataInQueueError as e:
@@ -211,43 +188,3 @@ def lambda_handler(event, context):
         else:
             logger.info("Successfully completed module: " + current_module)
             return {"success": True, "checkpoint": checkpoint}
-
-
-def send_sns_message(arn, checkpoint):
-    """
-    This function is responsible for sending notifications to the SNS Topic.
-    Notifications will be used to relay information to the BPM.
-
-    :param arn: The Address of the SNS topic - Type: String.
-    :param checkpoint: Location of process - Type: String.
-    :return: None.
-    """
-    sns = boto3.client("sns", "eu-west-2")
-
-    sns_message = {
-        "success": True,
-        "module": "Aggregation Combiner",
-        "checkpoint": checkpoint,
-        "anomalies": "",
-        "message": "Completed Aggregation Combiner",
-    }
-
-    return sns.publish(TargetArn=arn, Message=json.dumps(sns_message))
-
-
-def send_sqs_message(sqs, queue_url, message, output_message_id):
-    """
-    This method is responsible for sending data to the SQS queue.
-    :param sqs: SQS client for use in interacting with sqs  - Boto3 client(SQS)
-    :param queue_url: The url of the SQS queue. - String.
-    :param message: The message/data you wish to send to the SQS queue - String.
-    :param output_message_id: The label of the record in the SQS queue - String.
-    :return: None
-    """
-
-    sqs.send_message(
-        QueueUrl=queue_url,
-        MessageBody=message,
-        MessageGroupId=output_message_id,
-        MessageDeduplicationId=str(random.getrandbits(128)),
-    )
