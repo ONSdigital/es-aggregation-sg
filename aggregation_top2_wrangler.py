@@ -1,12 +1,11 @@
-import json
 import logging
 import os
-import random
 
 import boto3
 import numpy as np
 import pandas as pd
 from botocore.exceptions import ClientError, IncompleteReadError
+from esawsfunctions import funk
 from marshmallow import Schema, fields
 
 
@@ -23,12 +22,8 @@ class EnvironSchema(Schema):
     checkpoint = fields.Str(required=True)
     arn = fields.Str(required=True)
     method_name = fields.Str(required=True)
-
-
-# Set up clients
-s3 = boto3.resource('s3')
-sqs = boto3.client('sqs', region_name='eu-west-2')
-sns = boto3.client('sns', region_name='eu-west-2')
+    incoming_message_group = fields.Str(required=True)
+    file_name = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -83,13 +78,10 @@ def lambda_handler(event, context):
         checkpoint = config['checkpoint']
         arn = config['arn']
         method_name = config['method_name']
-
+        file_name = config['file_name']
         # Read from S3 bucket
-        data_json = get_from_s3(bucket_name, s3_file)
+        data = funk.read_dataframe_from_s3(bucket_name, s3_file)
         logger.info("Completed reading data from s3")
-
-        # Convert to dataframe
-        data = pd.DataFrame(data_json)
 
         # Ensure mandatory columns are present and have the correct
         # type of content
@@ -144,11 +136,10 @@ def lambda_handler(event, context):
 
         # Sending output to SQS, notice to SNS
         logger.info("Sending function response downstream.")
-        send_sqs_message(queue_url=queue_url,
-                         message=json.loads(json_response),
-                         output_message_id=sqs_messageid_name)
+        funk.save_data(bucket_name, file_name,
+                       json_response, queue_url, sqs_messageid_name)
         logger.info("Successfully sent the data to SQS")
-        send_sns_message(checkpoint, arn)
+        funk.send_sns_message(checkpoint, arn, "Top 2 completed successfully")
         logger.info("Successfully sent the SNS message")
 
     except IndexError as e:
@@ -223,57 +214,3 @@ def lambda_handler(event, context):
         else:
             logger.info("Successfully completed module: " + current_module)
             return {"success": True, "checkpoint": checkpoint}
-
-
-def get_from_s3(bucket_name, file_name):
-    """
-    Given the name of the bucket and the filename(key), this function will
-    return a DataFrame. File to get MUST be json format.
-    :param bucket_name: Name of the s3 bucket - Type: String
-    :param file_name: Name of the file - Type: String
-    :return: data: DataFrame created from the json file in s3 - Type: DataFrame
-    """
-    s3 = boto3.resource('s3', region_name="eu-west-2")
-    content_object = s3.Object(bucket_name, file_name)
-    file_content = content_object.get()['Body'].read()
-    data = pd.DataFrame(json.loads(file_content))
-
-    return data
-
-
-def send_sns_message(checkpoint, arn):
-    """
-    This method is responsible for sending a notification to the specified arn,
-    so that it can be used to relay information for the BPM to use and handle.
-    :param checkpoint: The current checkpoint location - Type: String.
-    :param sns_topic_arn: The arn of the sns topic you are directing the message at -
-                          Type: String.
-    :return: None
-    """
-    sns_message = {
-        "success": True,
-        "module": "Calculate Top Two Wrangler",
-        "checkpoint": checkpoint,
-        "message": "Completed Top Two"
-    }
-
-    return sns.publish(TargetArn=arn, Message=json.dumps(sns_message))
-
-
-def send_sqs_message(queue_url, message, output_message_id):
-    """
-    This method is responsible for sending data to the SQS queue and
-    deleting the left-over data.
-    :param queue_url: The url of the SQS queue. (String)
-    :param message: The payload sent to the SQS queue. (String)
-    :param output_message_id: The label of the record in the
-           SQS queue. (String)
-    :return: None
-    """
-    # MessageDeduplicationId is set to a random hash to overcome
-    # de-duplication, otherwise modules could not be re-run for 5 Minutes.
-    return sqs.send_message(QueueUrl=queue_url,
-                            MessageBody=message,
-                            MessageGroupId=output_message_id,
-                            MessageDeduplicationId=str(random.getrandbits(128))
-                            )

@@ -1,21 +1,20 @@
 import json
 import unittest
 
-import boto3
 import mock
 import pandas as pd
 from botocore.response import StreamingBody
-from moto import mock_s3, mock_sns, mock_sqs
+from moto import mock_sqs
 
 import aggregation_top2_wrangler
 
 
 class TestAggregationTop2Wrangler(unittest.TestCase):
 
-    @mock.patch('aggregation_top2_wrangler.send_sns_message')
-    @mock.patch('aggregation_top2_wrangler.send_sqs_message')
+    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.funk.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
-    @mock.patch('aggregation_top2_wrangler.get_from_s3')
+    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
     def test_wrangler_happy_path(self, mock_get_from_s3, mock_lambda,
                                  mock_sqs, mock_sns):
         """
@@ -30,6 +29,8 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'checkpoint': '3',
             'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
+            'incoming_message_group': 'Grooop',
+            'file_name': 'bob'
             }
         ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -49,10 +50,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
             self.assertTrue(returned_value['success'])
 
-    @mock.patch('aggregation_top2_wrangler.send_sns_message')
-    @mock.patch('aggregation_top2_wrangler.send_sqs_message')
+    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.funk.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
-    @mock.patch('aggregation_top2_wrangler.get_from_s3')
+    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
     def test_missing_environment_variable(self, mock_get_from_s3, mock_lambda,
                                           mock_sqs, mock_sns):
         """
@@ -81,10 +82,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
             assert("Parameter validation error" in returned_value['error'])
 
-    @mock.patch('aggregation_top2_wrangler.send_sns_message')
-    @mock.patch('aggregation_top2_wrangler.send_sqs_message')
+    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.funk.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
-    @mock.patch('aggregation_top2_wrangler.get_from_s3')
+    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
     def test_missing_column_on_input(self, mock_get_from_s3,
                                      mock_lambda, mock_sqs, mock_sns):
         """
@@ -101,6 +102,8 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'checkpoint': '3',
             'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
+            'incoming_message_group': "Gruppe",
+            'file_name': "boris"
             }
         ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -122,10 +125,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
             assert ("Required columns missing" in returned_value['error'])
 
-    @mock.patch('aggregation_top2_wrangler.send_sns_message')
-    @mock.patch('aggregation_top2_wrangler.send_sqs_message')
+    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.funk.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
-    @mock.patch('aggregation_top2_wrangler.get_from_s3')
+    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
     def test_bad_data_on_input(self, mock_get_from_s3, mock_lambda,
                                mock_sqs, mock_sns):
         """
@@ -142,7 +145,9 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'sqs_messageid_name': 'random',
             'checkpoint': '3',
             'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
-            'method_name': 'random'}
+            'method_name': 'random',
+            'incoming_message_group': "Gruppe",
+            'file_name': "boris"}
         ):
             with open("tests/fixtures/top2_wrangler_input_err.json") as file:
                 input_data = json.load(file)
@@ -160,10 +165,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
             assert ("Bad data encountered" in returned_value['error'])
 
-    @mock.patch('aggregation_top2_wrangler.send_sns_message')
-    @mock.patch('aggregation_top2_wrangler.send_sqs_message')
+    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.funk.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
-    @mock.patch('aggregation_top2_wrangler.get_from_s3')
+    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
     def test_missing_column_on_output(self, mock_get_from_s3, mock_lambda,
                                       mock_sqs, mock_sns):
         """
@@ -180,6 +185,8 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'checkpoint': '3',
             'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
+            'incoming_message_group': "Gruppe",
+            'file_name': "boris"
             }
         ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -200,10 +207,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
             assert ("Required columns missing" in returned_value['error'])
 
-    @mock.patch('aggregation_top2_wrangler.send_sns_message')
-    @mock.patch('aggregation_top2_wrangler.send_sqs_message')
+    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.funk.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
-    @mock.patch('aggregation_top2_wrangler.get_from_s3')
+    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
     def test_bad_data_on_output(self, mock_get_from_s3, mock_lambda, mock_sqs, mock_sns):
         """
         Tests that the error message contains "Bad data encountered" if
@@ -220,6 +227,8 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'checkpoint': '3',
             'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
+            'incoming_message_group': "Gruppe",
+            'file_name': "boris"
         }
                              ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -240,10 +249,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
             assert ("Bad data encountered" in returned_value['error'])
 
-    @mock.patch('aggregation_top2_wrangler.send_sns_message')
-    @mock.patch('aggregation_top2_wrangler.send_sqs_message')
+    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.funk.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
-    @mock.patch('aggregation_top2_wrangler.get_from_s3')
+    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
     def test_incomplete_json(self, mock_get_from_s3, mock_lambda, mock_sqs, mock_sns):
         """
         Tests that the error message contains "Incomplete Lambda response"
@@ -259,6 +268,8 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'checkpoint': '3',
             'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
+            'incoming_message_group': "Gruppe",
+            'file_name': "boris"
             }
         ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -278,10 +289,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
             assert ("Incomplete Lambda response" in returned_value['error'])
 
-    @mock.patch('aggregation_top2_wrangler.send_sns_message')
-    @mock.patch('aggregation_top2_wrangler.send_sqs_message')
+    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.funk.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
-    @mock.patch('aggregation_top2_wrangler.get_from_s3')
+    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
     def test_general_error(self, mock_get_from_s3, mock_lambda, mock_sqs, mock_sns):
         """
         Tests that the fallthrough for unclassified exceptions is working.
@@ -295,7 +306,9 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'sqs_messageid_name': 'random',
             'checkpoint': '3',
             'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
-            'method_name': 'random'
+            'method_name': 'random',
+            'incoming_message_group': "Gruppe",
+            'file_name': "boris"
         }
                              ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -318,52 +331,6 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
 class TestMoto:
 
-    @mock_s3
-    def test_get_and_save_data_from_to_s3(self, s3):
-
-        client = boto3.client(
-            "s3",
-            region_name="eu-west-2",
-            aws_access_key_id="fake_access_key",
-            aws_secret_access_key="fake_secret_key",
-        )
-
-        client.create_bucket(Bucket="TEMP")
-        with open("tests/fixtures/s3_test_file.json", "rb") as file:
-            s3 = boto3.resource('s3', region_name="eu-west-2")
-            s3.Object("TEMP", "123").put(Body=file)
-
-        response = aggregation_top2_wrangler.get_from_s3("TEMP", "123")
-
-        assert isinstance(response, type(pd.DataFrame()))
-
-    @mock_sns
-    def test_publish_sns(self, sns):
-
-        sns = boto3.client('sns', region_name='eu-west-2')
-        created = sns.create_topic(Name="some-topic")
-        topic_arn = created['TopicArn']
-
-        out = aggregation_top2_wrangler.send_sns_message("3", topic_arn)
-
-        assert (out['ResponseMetadata']['HTTPStatusCode'] == 200)
-
-    @mock_sqs
-    def test_sqs_messages(self, sqs):
-        sqs = boto3.resource('sqs', region_name='eu-west-2')
-
-        sqs.create_queue(QueueName="test_queue_test.fifo",
-                         Attributes={'FifoQueue': 'true'})
-
-        queue_url = sqs.get_queue_by_name(QueueName="test_queue_test.fifo").url
-
-        response = aggregation_top2_wrangler.send_sqs_message(
-            queue_url,
-            "{'Test': 'Message'}",
-            "test_group_id"
-        )
-        assert response['MessageId']
-
     @mock_sqs
     def test_fail_to_get_from_sqs(self):
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
@@ -375,6 +342,8 @@ class TestMoto:
             'checkpoint': '3',
             'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
+            'incoming_message_group': "Gruppe",
+            'file_name': "boris"
             },
         ):
             response = aggregation_top2_wrangler.lambda_handler(
@@ -396,9 +365,12 @@ class TestMoto:
             'checkpoint': '3',
             'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
+            'incoming_message_group': "Gruppe",
+            'file_name': "boris"
             },
         ):
-            with mock.patch("aggregation_top2_wrangler.get_from_s3") as mock_s3:
+            with mock.patch("aggregation_top2_wrangler."
+                            "funk.read_dataframe_from_s3") as mock_s3:
                 with open("tests/fixtures/top2_wrangler_input.json", "r") as file:
                     mock_content = file.read()
                     mock_s3.side_effect = KeyError()
