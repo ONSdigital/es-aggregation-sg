@@ -34,7 +34,7 @@ functions:
     tags:
       app: results
     environment:
-      bucket_name: results-tf-vpc-s3
+      bucket_name: results-s3-bucket
       file_name: imp_output_test.json
       queue_url: https://sqs.eu-west-2.amazonaws.com/${self:custom.accountId}/BMI_Results.fifo
       checkpoint: 4
@@ -42,6 +42,9 @@ functions:
       sqs_messageid_name: byCountyAgg
       method_name: es-aggregation_county_method
       period: 201809
+      s3_file: imputation_apply_out.json
+      arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
+      incoming_message_group: apply_factors_out
 
   deploy-county-method:
     name: es-aggregation_county_method
@@ -59,7 +62,7 @@ functions:
 
   deploy-entref-wrangler:
     name: es-aggregation-entref-wrangler
-    handler: es-aggregation-entref-wrangler.lambda_handler
+    handler: aggregation_entref_wrangler.lambda_handler
     package:
       include:
         - aggregation_entref_wrangler.py
@@ -83,7 +86,7 @@ functions:
 
   deploy-entref-method:
     name: es-aggregation-entref-method
-    handler: es-aggregation-entref-method.lambda_handler
+    handler: aggregation_entref_method.lambda_handler
     package:
       include:
         - aggregation_entref_method.py
@@ -148,8 +151,9 @@ functions:
       app: results
     environment:
       arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
-      bucket_name: results-tf-vpc-s3
+      bucket_name: results-s3-bucket
       checkpoint: 4
       file_name: imp_output_test.json
       queue_url: https://sqs.eu-west-2.amazonaws.com/${self:custom.accountId}/BMI_Results.fifo
       sqs_messageid_name: agg_combiner
+      s3_file: county_out.json

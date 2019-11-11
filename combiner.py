@@ -37,7 +37,12 @@ def lambda_handler(event, context):
     current_module = "Aggregation_Combiner"
     error_message = ""
     log_message = ""
+    checkpoint = 0
     try:
+        placeholder = context.aws_request_id
+        context={}
+        context['aws_request_id'] = placeholder
+
         logger.info("Combiner Begun")
 
         # Set up Environment variables Schema.

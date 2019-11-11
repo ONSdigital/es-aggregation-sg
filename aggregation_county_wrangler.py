@@ -1,5 +1,6 @@
 import logging
 import os
+import json
 
 import boto3
 from botocore.exceptions import ClientError, IncompleteReadError
@@ -36,6 +37,10 @@ def lambda_handler(event, context):
     logger = logging.getLogger("Aggregation")
     logger.setLevel(10)
     try:
+        placeholder = context.aws_request_id
+        context={}
+        context['aws_request_id'] = placeholder
+
         logger.info("Aggregation county wrangler begun.")
 
         # Needs to be declared inside the lambda_handler
@@ -71,7 +76,7 @@ def lambda_handler(event, context):
             FunctionName=config['method_name'],
             Payload=formatted_data
         )
-        json_response = by_county.get('Payload').read().decode("utf-8")
+        json_response = json.loads(by_county.get('Payload').read().decode("utf-8"))
 
         funk.save_data(bucket_name, file_name,
                        json_response, queue_url, sqs_messageid_name)
