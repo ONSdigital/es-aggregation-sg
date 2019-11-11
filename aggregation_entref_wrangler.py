@@ -1,5 +1,6 @@
 import logging
 import os
+import json
 
 import boto3
 from botocore.exceptions import ClientError, IncompleteReadError
@@ -37,7 +38,10 @@ def lambda_handler(event, context):
     checkpoint = 0
 
     try:
-
+        placeholder = context.aws_request_id
+        context={}
+        context['aws_request_id'] = placeholder
+        
         logger.info("Starting " + current_module)
 
         schema = EnvironSchema()
@@ -50,7 +54,7 @@ def lambda_handler(event, context):
         lambda_client = boto3.client('lambda', region_name="eu-west-2")
 
         bucket_name = config['bucket_name']
-        s3_file = config['file_name']
+        s3_file = config['s3_file']
         queue_url = config['queue_url']
         checkpoint = config['checkpoint']
         arn = config['arn']
@@ -72,7 +76,7 @@ def lambda_handler(event, context):
         by_region = lambda_client.invoke(FunctionName=method_name, Payload=formatted_data)
         logger.info("Successfully invoked the method lambda")
 
-        json_response = by_region.get('Payload').read().decode("utf-8")
+        json_response = json.loads(by_region.get('Payload').read().decode("utf-8"))
 
         funk.save_data(bucket_name, file_name,
                        json_response, queue_url, sqs_messageid_name)

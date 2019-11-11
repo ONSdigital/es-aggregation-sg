@@ -35,7 +35,7 @@ functions:
       app: results
     environment:
       bucket_name: results-s3-bucket
-      file_name: imp_output_test.json
+      file_name: county_out.json
       queue_url: https://sqs.eu-west-2.amazonaws.com/${self:custom.accountId}/BMI_Results.fifo
       checkpoint: 4
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
@@ -75,14 +75,17 @@ functions:
     tags:
       app: results
     environment:
-      bucket_name: results-tf-vpc-s3
-      file_name: imp_output_test.json
+      bucket_name: results-s3-bucket
+      file_name: ent_ref_out.json
       queue_url: https://sqs.eu-west-2.amazonaws.com/${self:custom.accountId}/BMI_Results.fifo
       checkpoint: 4
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
       sqs_messageid_name: byEntRefAgg
-      method_name: es-aggregation_entref_method
+      method_name: aggregation_entref_method
       period: 201809
+      s3_file: imputation_apply_out.json
+      arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
+      incoming_message_group: apply_factors_out
 
   deploy-entref-method:
     name: es-aggregation-entref-method
@@ -113,13 +116,16 @@ functions:
     tags:
       app: results
     environment:
-      bucket_name: results-tf-vpc-s3
+      bucket_name: results-s3-bucket
       s3_file: imp_output_test.json
       queue_url: https://sqs.eu-west-2.amazonaws.com/${self:custom.accountId}/BMI_Results.fifo
       checkpoint: 4
       arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
       sqs_messageid_name: byCountyAgg
       method_name: es-aggregation_county_method
+      s3_file: imputation_apply_out.json
+      arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
+      incoming_message_group: apply_factors_out
 
   deploy-top2-method:
     name: es-aggregation-top2-method
