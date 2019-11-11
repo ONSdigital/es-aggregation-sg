@@ -159,7 +159,7 @@ functions:
       arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
       bucket_name: results-s3-bucket
       checkpoint: 4
-      file_name: imp_output_test.json
+      file_name: aggergation_out.json
       queue_url: https://sqs.eu-west-2.amazonaws.com/${self:custom.accountId}/BMI_Results.fifo
       sqs_messageid_name: agg_combiner
-      s3_file: county_out.json
+      s3_file: top2_out.json
