@@ -38,6 +38,7 @@ def lambda_handler(event, context):
     error_message = ""
     log_message = ""
     checkpoint = 0
+    
     try:
         placeholder = context.aws_request_id
         context={}
@@ -55,7 +56,7 @@ def lambda_handler(event, context):
         # Enviroment variables
         queue_url = config["queue_url"]
         bucket_name = config["bucket_name"]
-        s3_file = config["file_name"]
+        s3_file = config["s3_file"]
         sqs_messageid_name = config["sqs_messageid_name"]
         checkpoint = config["checkpoint"]
         arn = config["arn"]
