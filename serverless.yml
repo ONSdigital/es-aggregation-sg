@@ -103,7 +103,7 @@ functions:
 
   deploy-top2-wrangler:
     name: es-aggregation-top2-wrangler
-    handler: es-aggregation-top2-wrangler.lambda_handler
+    handler: aggregation_top2_wrangler.lambda_handler
     package:
       include:
         - aggregation_top2_wrangler.py
@@ -117,19 +117,19 @@ functions:
       app: results
     environment:
       bucket_name: results-s3-bucket
-      s3_file: imp_output_test.json
+      file_name: top2_out.json
       queue_url: https://sqs.eu-west-2.amazonaws.com/${self:custom.accountId}/BMI_Results.fifo
       checkpoint: 4
       arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
-      sqs_messageid_name: byCountyAgg
-      method_name: es-aggregation_county_method
+      sqs_messageid_name: byTop2Agg
+      method_name: aggregation_top2_method
       s3_file: imputation_apply_out.json
       arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
       incoming_message_group: apply_factors_out
 
   deploy-top2-method:
     name: es-aggregation-top2-method
-    handler: es-aggregation-top2-wrangler.lambda_handler
+    handler: aggregation_top2_wrangler.lambda_handler
     package:
       include:
         - aggregation_top2_method.py

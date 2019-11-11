@@ -1,6 +1,7 @@
 import logging
 import os
 
+import json
 import boto3
 import numpy as np
 import pandas as pd
@@ -57,9 +58,13 @@ def lambda_handler(event, context):
     log_message = ''
     checkpoint = 0
 
-    logger.info("Starting " + current_module)
-
     try:
+        placeholder = context.aws_request_id
+        context={}
+        context['aws_request_id'] = placeholder
+
+        logger.info("Starting " + current_module)
+
         # Import environment variables using marshmallow validation
         schema = EnvironSchema()
         config, errors = schema.load(os.environ)
@@ -113,7 +118,7 @@ def lambda_handler(event, context):
         # Invoke aggregation top2 method
         logger.info("Invoking the statistical method.")
         top2 = lambda_client.invoke(FunctionName=method_name, Payload=prepared_data)
-        json_response = top2.get('Payload').read().decode("utf-8")
+        json_response = json.loads(top2.get('Payload').read().decode("utf-8"))
 
         # Ensure appended columns are present in output and have the
         # correct type of content
