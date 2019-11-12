@@ -3,6 +3,10 @@ import unittest
 
 import aggregation_entref_method
 
+class mock_context():
+    aws_request_id = 66
+
+context_object = mock_context()
 
 class TestStringMethods(unittest.TestCase):
 
@@ -33,7 +37,7 @@ class TestStringMethods(unittest.TestCase):
             json_content = json.loads(content)
 
         returned_value = aggregation_entref_method.lambda_handler(
-            json_content, {"aws_request_id": "666"})
+            json_content, context_object)
 
         # If the method didn't produce an error it would mean the output is a string.
         self.assertIsNot(type(returned_value), str)
@@ -45,6 +49,6 @@ class TestStringMethods(unittest.TestCase):
             input_data = json.load(file)
 
         returned_value = aggregation_entref_method.lambda_handler(
-            str(input_data), {"aws_request_id": "666"})
+            str(input_data), context_object)
 
         assert "General Error" in returned_value["error"]

@@ -8,6 +8,10 @@ from moto import mock_sqs
 
 import aggregation_top2_wrangler
 
+class mock_context():
+    aws_request_id = 66
+
+context_object = mock_context()
 
 class TestAggregationTop2Wrangler(unittest.TestCase):
 
@@ -45,7 +49,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {"period": 201809}},
-                    {"aws_request_id": "666"}
+                    context_object
                 )
 
             self.assertTrue(returned_value['success'])
@@ -77,7 +81,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {"period": 201809}},
-                    {"aws_request_id": "666"}
+                    context_object
                 )
 
             assert("Parameter validation error" in returned_value['error'])
@@ -120,7 +124,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {"period": 201809}},
-                    {"aws_request_id": "666"}
+                    context_object
                 )
 
             assert ("Required columns missing" in returned_value['error'])
@@ -160,7 +164,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {"period": 201809}},
-                    {"aws_request_id": "666"}
+                    context_object
                 )
 
             assert ("Bad data encountered" in returned_value['error'])
@@ -202,7 +206,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {"period": 201809}},
-                    {"aws_request_id": "666"}
+                    context_object
                 )
 
             assert ("Required columns missing" in returned_value['error'])
@@ -244,7 +248,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {"period": 201809}},
-                    {"aws_request_id": "666"}
+                    context_object
                 )
 
             assert ("Bad data encountered" in returned_value['error'])
@@ -284,7 +288,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {"period": 201809}},
-                    {"aws_request_id": "666"}
+                    context_object
                 )
 
             assert ("Incomplete Lambda response" in returned_value['error'])
@@ -323,7 +327,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {"period": 201809}},
-                    {"aws_request_id": "666"}
+                    context_object
                 )
 
             assert ("General Error" in returned_value['error'])
@@ -348,7 +352,7 @@ class TestMoto:
         ):
             response = aggregation_top2_wrangler.lambda_handler(
                 {"RuntimeVariables": {"period": 201809}},
-                {"aws_request_id": "666"}
+                context_object
             )
 
             assert "success" in response
@@ -378,7 +382,7 @@ class TestMoto:
 
                 response = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {"period": 201809}},
-                    {"aws_request_id": "666"}
+                    context_object
                 )
 
             assert ("Key Error" in response['error'])

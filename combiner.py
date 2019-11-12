@@ -73,6 +73,7 @@ def lambda_handler(event, context):
 
         # Receive the 3 aggregation outputs
         response = funk.get_sqs_message(queue_url, 3)
+        logger.info(len(response["Messages"]))##K##
         if "Messages" not in response:
             raise NoDataInQueueError("No Messages in queue")
         if len(response["Messages"]) < 3:
@@ -121,7 +122,7 @@ def lambda_handler(event, context):
             "There was no data in sqs queue in:  "
             + current_module
             + " |-  | Request ID: "
-            + str(context["aws_request_id"])
+            + str(context.aws_request_id)
         )
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
     except DoNotHaveAllDataError as e:
@@ -129,7 +130,7 @@ def lambda_handler(event, context):
             "Did not recieve all 3 messages from queue in:  "
             + current_module
             + " |-  | Request ID: "
-            + str(context["aws_request_id"])
+            + str(context.aws_request_id)
         )
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
     except AttributeError as e:
@@ -139,7 +140,7 @@ def lambda_handler(event, context):
             + " |- "
             + str(e.args)
             + " | Request ID: "
-            + str(context["aws_request_id"])
+            + str(context.aws_request_id)
         )
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
     except ValueError as e:
@@ -149,7 +150,7 @@ def lambda_handler(event, context):
             + " |- "
             + str(e.args)
             + " | Request ID: "
-            + str(context["aws_request_id"])
+            + str(context.aws_request_id)
         )
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
     except ClientError as e:
@@ -161,7 +162,7 @@ def lambda_handler(event, context):
             + " |- "
             + str(e.args)
             + " | Request ID: "
-            + str(context["aws_request_id"])
+            + str(context.aws_request_id)
         )
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
     except KeyError as e:
@@ -171,7 +172,7 @@ def lambda_handler(event, context):
             + " |- "
             + str(e.args)
             + " | Request ID: "
-            + str(context["aws_request_id"])
+            + str(context.aws_request_id)
         )
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
     except Exception as e:
@@ -183,7 +184,7 @@ def lambda_handler(event, context):
             + ") |- "
             + str(e.args)
             + " | Request ID: "
-            + str(context["aws_request_id"])
+            + str(context.aws_request_id)
         )
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
     finally:

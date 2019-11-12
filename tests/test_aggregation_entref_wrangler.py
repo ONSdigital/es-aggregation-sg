@@ -8,6 +8,10 @@ from moto import mock_sqs
 
 import aggregation_entref_wrangler
 
+class mock_context():
+    aws_request_id = 66
+
+context_object = mock_context()
 
 class TestStringMethods(unittest.TestCase):
 
@@ -40,7 +44,7 @@ class TestStringMethods(unittest.TestCase):
                                                                               355)}
 
                 returned_value = aggregation_entref_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809}}, {"aws_request_id": "666"}
+                    {"RuntimeVariables": {"period": 201809}}, context_object
                 )
 
             self.assertTrue(returned_value['success'])
@@ -65,7 +69,7 @@ class TestStringMethods(unittest.TestCase):
                                                                 StreamingBody(file, 355)}
 
                 returned_value = aggregation_entref_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809}}, {"aws_request_id": "666"}
+                    {"RuntimeVariables": {"period": 201809}}, context_object
                 )
 
             assert(returned_value['error'].__contains__("""Parameter validation error"""))
@@ -100,7 +104,7 @@ class TestStringMethods(unittest.TestCase):
                                                                 StreamingBody(file, 355)}
 
                 returned_value = aggregation_entref_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809}}, {"aws_request_id": "666"}
+                    {"RuntimeVariables": {"period": 201809}}, context_object
                 )
 
             assert(returned_value['error'].__contains__("""Bad data encountered"""))
@@ -133,7 +137,7 @@ class TestStringMethods(unittest.TestCase):
                                                                 StreamingBody(file, 2)}
 
                 returned_value = aggregation_entref_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809}}, {"aws_request_id": "666"}
+                    {"RuntimeVariables": {"period": 201809}}, context_object
                 )
 
             assert(returned_value['error'].__contains__("""Incomplete Lambda response"""))
@@ -157,7 +161,7 @@ class TestStringMethods(unittest.TestCase):
         ):
 
             returned_value = aggregation_entref_wrangler.lambda_handler(
-                {"RuntimeVariables": {"period": 201809}}, {"aws_request_id": "666"}
+                {"RuntimeVariables": {"period": 201809}}, context_object
             )
 
             assert(returned_value['error'].__contains__("""General Error"""))
@@ -181,7 +185,7 @@ class TestMoto():
             },
         ):
             response = aggregation_entref_wrangler.lambda_handler(
-                {"RuntimeVariables": {"period": 201809}}, {"aws_request_id": "666"}
+                {"RuntimeVariables": {"period": 201809}}, context_object
             )
 
             assert "success" in response
@@ -210,7 +214,7 @@ class TestMoto():
                     mock_s3.return_value = mock_content
 
                 response = aggregation_entref_wrangler.lambda_handler(
-                   {"RuntimeVariables": {"period": 201809}}, {"aws_request_id": "666"}
+                   {"RuntimeVariables": {"period": 201809}}, context_object
                 )
 
             assert response['error'].__contains__("""Key Error""")

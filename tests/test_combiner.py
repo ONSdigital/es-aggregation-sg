@@ -8,6 +8,10 @@ from moto import mock_s3, mock_sns, mock_sqs
 
 import combiner  # noqa
 
+class mock_context():
+    aws_request_id = 66
+
+context_object = mock_context()
 
 class TestCombininator(unittest.TestCase):
     def test_missing_environment_variable(self):
@@ -22,7 +26,7 @@ class TestCombininator(unittest.TestCase):
                 "sqs_messageid_name": "Bob"
             },
         ):
-            out = combiner.lambda_handler("mike?", {"aws_request_id": "666"})
+            out = combiner.lambda_handler("mike?", context_object)
             assert not out["success"]
             assert "Error validating environment" in out["error"]
 
@@ -59,7 +63,7 @@ class TestCombininator(unittest.TestCase):
                 mock_funk.get_sqs_message.return_value = {
                             "Messages": [{"Body": agg1}, {"Body": agg2}, {"Body": agg3}]
                         }
-                out = combiner.lambda_handler("", {"aws_request_id": "666"})
+                out = combiner.lambda_handler("", context_object)
                 assert out["success"]
 
     @mock_sqs
@@ -84,7 +88,7 @@ class TestCombininator(unittest.TestCase):
                 s3_data = file.read()
             with mock.patch("combiner.funk.read_dataframe_from_s3") as mock_s3:
                 mock_s3.return_value = s3_data
-                out = combiner.lambda_handler("", {"aws_request_id": "666"})
+                out = combiner.lambda_handler("", context_object)
                 assert "There was no data in sqs queue" in out["error"]
 
     @mock_sqs
@@ -115,7 +119,8 @@ class TestCombininator(unittest.TestCase):
                 with mock.patch("combiner.funk.get_sqs_message") as mock_sqs:
 
                     mock_sqs.return_value = {"Messages": [{"Body": agg1}]}
-                    out = combiner.lambda_handler("", {"aws_request_id": "666"})
+                    out = combiner.lambda_handler("", context_object)
+                    print("Hello", out)
                     assert "Did not recieve all 3 messages" in out["error"]
 
     @mock_sqs
@@ -140,7 +145,7 @@ class TestCombininator(unittest.TestCase):
             with mock.patch("combiner.funk.read_dataframe_from_s3") as mock_bot:
                 mock_bot.side_effect = AttributeError("noo")
 
-                out = combiner.lambda_handler("", {"aws_request_id": "666"})
+                out = combiner.lambda_handler("", context_object)
                 assert "Bad data encountered in" in out["error"]
 
     @mock_sqs
@@ -163,7 +168,7 @@ class TestCombininator(unittest.TestCase):
             },
         ):
 
-            out = combiner.lambda_handler("", {"aws_request_id": "666"})
+            out = combiner.lambda_handler("", context_object)
             assert "AWS Error" in out["error"]
 
     @mock_sqs
@@ -201,7 +206,7 @@ class TestCombininator(unittest.TestCase):
                                 {"Boody": agg1},
                             ]
                         }
-                        out = combiner.lambda_handler("", {"aws_request_id": "666"})
+                        out = combiner.lambda_handler("", context_object)
                         assert "Key Error" in out["error"]
 
     @mock_sqs
@@ -226,5 +231,5 @@ class TestCombininator(unittest.TestCase):
             with mock.patch("combiner.funk.read_dataframe_from_s3") as mock_bot:
                 mock_bot.side_effect = Exception("noo")
 
-                out = combiner.lambda_handler("", {"aws_request_id": "666"})
+                out = combiner.lambda_handler("", context_object)
                 assert "General Error" in out["error"]
