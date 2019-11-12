@@ -22,11 +22,11 @@ class TestCombininator(unittest.TestCase):
             "os.environ",
             {
                 "checkpoint": "mock_checkpoint",
-                "arn": "not_an_arn",
-                "file_name": "mock_method",
-                "queue_url": "mock_queue",
+                "sns_topic_arn": "not_an_arn",
+                "out_file_name": "mock_method",
+                "sqs_queue_url": "mock_queue",
                 "bucket_name": "bertiebucket",
-                "sqs_messageid_name": "Bob"
+                "sqs_message_group_id": "Bob"
             },
         ):
             out = combiner.lambda_handler("mike?", context_object)
@@ -39,17 +39,17 @@ class TestCombininator(unittest.TestCase):
     def test_happy_path(self):
         sqs = boto3.resource("sqs", region_name="eu-west-2")
         sqs.create_queue(QueueName="test_queue")
-        queue_url = sqs.get_queue_by_name(QueueName="test_queue").url
+        sqs_queue_url = sqs.get_queue_by_name(QueueName="test_queue").url
         with mock.patch.dict(
             "os.environ",
             {
                 "checkpoint": "mock_checkpoint",
-                "arn": "not_an_arn",
-                "file_name": "mock_method",
-                "queue_url": queue_url,
+                "sns_topic_arn": "not_an_arn",
+                "out_file_name": "mock_method",
+                "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "mrsbucket",
-                "sqs_messageid_name": "Bob",
-                "s3_file": "sss"
+                "sqs_message_group_id": "Bob",
+                "in_file_name": "sss"
             },
         ):
             with open("tests/fixtures/factorsdata.json") as file:
@@ -79,17 +79,17 @@ class TestCombininator(unittest.TestCase):
     def test_no_data_in_queue(self):
         sqs = boto3.resource("sqs", region_name="eu-west-2")
         sqs.create_queue(QueueName="test_queue")
-        queue_url = sqs.get_queue_by_name(QueueName="test_queue").url
+        sqs_queue_url = sqs.get_queue_by_name(QueueName="test_queue").url
         with mock.patch.dict(
             "os.environ",
             {
                 "checkpoint": "mock_checkpoint",
-                "arn": "not_an_arn",
-                "file_name": "mock_method",
-                "queue_url": queue_url,
+                "sns_topic_arn": "not_an_arn",
+                "out_file_name": "mock_method",
+                "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "BertieBucket",
-                "sqs_messageid_name": "Bob",
-                "s3_file": "sss"
+                "sqs_message_group_id": "Bob",
+                "in_file_name": "sss"
             },
         ):
             with open("tests/fixtures/factorsdata.json") as file:
@@ -105,17 +105,17 @@ class TestCombininator(unittest.TestCase):
     def test_not_enough_data_in_queue(self):
         sqs = boto3.resource("sqs", region_name="eu-west-2")
         sqs.create_queue(QueueName="test_queue")
-        queue_url = sqs.get_queue_by_name(QueueName="test_queue").url
+        sqs_queue_url = sqs.get_queue_by_name(QueueName="test_queue").url
         with mock.patch.dict(
             "os.environ",
             {
                 "checkpoint": "mock_checkpoint",
-                "arn": "not_an_arn",
-                "file_name": "mock_method",
-                "queue_url": queue_url,
+                "sns_topic_arn": "not_an_arn",
+                "out_file_name": "mock_method",
+                "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "Bertie Bucket",
-                "sqs_messageid_name": "Bob",
-                "s3_file": "sss"
+                "sqs_message_group_id": "Bob",
+                "in_file_name": "sss"
             },
         ):
             with open("tests/fixtures/factorsdata.json") as file:
@@ -137,17 +137,17 @@ class TestCombininator(unittest.TestCase):
     def test_attribute_error(self):
         sqs = boto3.resource("sqs", region_name="eu-west-2")
         sqs.create_queue(QueueName="test_queue")
-        queue_url = sqs.get_queue_by_name(QueueName="test_queue").url
+        sqs_queue_url = sqs.get_queue_by_name(QueueName="test_queue").url
         with mock.patch.dict(
             "os.environ",
             {
                 "checkpoint": "mock_checkpoint",
-                "arn": "not_an_arn",
-                "file_name": "mock_method",
-                "queue_url": queue_url,
+                "sns_topic_arn": "not_an_arn",
+                "out_file_name": "mock_method",
+                "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "BertieBucket",
-                "sqs_messageid_name": "Bob",
-                "s3_file": "sss"
+                "sqs_message_group_id": "Bob",
+                "in_file_name": "sss"
             },
         ):
             with mock.patch("combiner.funk.read_dataframe_from_s3") as mock_bot:
@@ -162,17 +162,17 @@ class TestCombininator(unittest.TestCase):
     def test_client_error(self):
         sqs = boto3.resource("sqs", region_name="eu-west-2")
         sqs.create_queue(QueueName="test_queue")
-        queue_url = sqs.get_queue_by_name(QueueName="test_queue").url
+        sqs_queue_url = sqs.get_queue_by_name(QueueName="test_queue").url
         with mock.patch.dict(
             "os.environ",
             {
                 "checkpoint": "mock_checkpoint",
-                "arn": "not_an_arn",
-                "file_name": "mock_method",
-                "queue_url": queue_url,
+                "sns_topic_arn": "not_an_arn",
+                "out_file_name": "mock_method",
+                "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "BertieBucket",
-                "sqs_messageid_name": "Bob",
-                "s3_file": "sss"
+                "sqs_message_group_id": "Bob",
+                "in_file_name": "sss"
             },
         ):
 
@@ -185,17 +185,17 @@ class TestCombininator(unittest.TestCase):
     def test_key_error(self):
         sqs = boto3.resource("sqs", region_name="eu-west-2")
         sqs.create_queue(QueueName="test_queue")
-        queue_url = sqs.get_queue_by_name(QueueName="test_queue").url
+        sqs_queue_url = sqs.get_queue_by_name(QueueName="test_queue").url
         with mock.patch.dict(
             "os.environ",
             {
                 "checkpoint": "mock_checkpoint",
-                "arn": "not_an_arn",
-                "file_name": "mock_method",
-                "queue_url": queue_url,
+                "sns_topic_arn": "not_an_arn",
+                "out_file_name": "mock_method",
+                "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "Bertie Bucket",
-                "sqs_messageid_name": "Bob",
-                "s3_file": "sss"
+                "sqs_message_group_id": "Bob",
+                "in_file_name": "sss"
             },
         ):
             with open("tests/fixtures/factorsdata.json") as file:
@@ -223,17 +223,17 @@ class TestCombininator(unittest.TestCase):
     def test_general_error(self):
         sqs = boto3.resource("sqs", region_name="eu-west-2")
         sqs.create_queue(QueueName="test_queue")
-        queue_url = sqs.get_queue_by_name(QueueName="test_queue").url
+        sqs_queue_url = sqs.get_queue_by_name(QueueName="test_queue").url
         with mock.patch.dict(
             "os.environ",
             {
                 "checkpoint": "mock_checkpoint",
-                "arn": "not_an_arn",
-                "file_name": "mock_method",
-                "queue_url": queue_url,
+                "sns_topic_arn": "not_an_arn",
+                "out_file_name": "mock_method",
+                "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "BertieBucket",
-                "sqs_messageid_name": "Bob",
-                "s3_file": "sss"
+                "sqs_message_group_id": "Bob",
+                "in_file_name": "sss"
             },
         ):
             with mock.patch("combiner.funk.read_dataframe_from_s3") as mock_bot:

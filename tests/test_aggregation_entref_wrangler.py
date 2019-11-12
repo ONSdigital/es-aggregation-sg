@@ -25,15 +25,15 @@ class TestStringMethods(unittest.TestCase):
     def test_wrangler_happy_path(self, mock_get_from_s3, mock_lambda, mock_sqs, mock_sns):
         with mock.patch.dict(aggregation_entref_wrangler.os.environ, {
             'bucket_name': 'some-bucket-name',
-            'file_name': 'file_to_get_from_s3.json',
-            'queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
+            'out_file_name': 'file_to_get_from_s3.json',
+            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
                          '82618934671237/SomethingURL.fifo',
             'checkpoint': '3',
-            'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
-            'sqs_messageid_name': 'random',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
-            "s3_file": "moo"
+            "in_file_name": "moo"
             }
         ):
             with open("tests/fixtures/wrangler_input.json") as file:
@@ -84,15 +84,15 @@ class TestStringMethods(unittest.TestCase):
     def test_bad_data_exception(self, mock_get_from_s3, mock_lambda, mock_sqs, mock_sns):
         with mock.patch.dict(aggregation_entref_wrangler.os.environ, {
             'bucket_name': 'some-bucket-name',
-            'file_name': 'file_to_get_from_s3.json',
-            'queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
+            'out_file_name': 'file_to_get_from_s3.json',
+            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
                          '82618934671237/SomethingURL.fifo',
             'checkpoint': '3',
-            'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
-            'sqs_messageid_name': 'random',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
-            "s3_file": "moo"
+            "in_file_name": "moo"
             }
         ):
             with open("tests/fixtures/wrangler_input.json") as file:
@@ -119,15 +119,15 @@ class TestStringMethods(unittest.TestCase):
     def test_incomplete_json(self, mock_get_from_s3, mock_lambda, mock_sqs, mock_sns):
         with mock.patch.dict(aggregation_entref_wrangler.os.environ, {
             'bucket_name': 'some-bucket-name',
-            'file_name': 'file_to_get_from_s3.json',
-            'queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
+            'out_file_name': 'file_to_get_from_s3.json',
+            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
                          '82618934671237/SomethingURL.fifo',
             'checkpoint': '3',
-            'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
-            'sqs_messageid_name': 'random',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
-            "s3_file": "moo"
+            "in_file_name": "moo"
             }
         ):
             with open("tests/fixtures/wrangler_input.json") as file:
@@ -151,15 +151,15 @@ class TestStringMethods(unittest.TestCase):
     def test_general_error(self, mock_get_from_s3, mock_sqs, mock_sns):
         with mock.patch.dict(aggregation_entref_wrangler.os.environ, {
             'bucket_name': 'some-bucket-name',
-            'file_name': 'file_to_get_from_s3.json',
-            'queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
+            'out_file_name': 'file_to_get_from_s3.json',
+            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
                          '82618934671237/SomethingURL.fifo',
             'checkpoint': '3',
-            'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
-            'sqs_messageid_name': 'random',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
-            "s3_file": "moo"
+            "in_file_name": "moo"
             }
         ):
 
@@ -176,15 +176,15 @@ class TestMoto():
     def test_fail_to_get_from_sqs(self):
         with mock.patch.dict(aggregation_entref_wrangler.os.environ, {
             'bucket_name': 'some-bucket-name',
-            'file_name': 'file_to_get_from_s3.json',
-            'queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
+            'out_file_name': 'file_to_get_from_s3.json',
+            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
                          '82618934671237/SomethingURL.fifo',
             'checkpoint': '3',
-            'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
-            'sqs_messageid_name': 'random',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
-            "s3_file": "moo"
+            "in_file_name": "moo"
             },
         ):
             response = aggregation_entref_wrangler.lambda_handler(
@@ -198,15 +198,15 @@ class TestMoto():
     def test_client_error_exception(self):
         with mock.patch.dict(aggregation_entref_wrangler.os.environ, {
             'bucket_name': 'some-bucket-name',
-            'file_name': 'file_to_get_from_s3.json',
-            'queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
+            'out_file_name': 'file_to_get_from_s3.json',
+            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
                          '82618934671237/SomethingURL.fifo',
             'checkpoint': '3',
-            'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
-            'sqs_messageid_name': 'random',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
-            "s3_file": "moo"
+            "in_file_name": "moo"
             },
         ):
             with mock.patch("aggregation_entref_wrangler."

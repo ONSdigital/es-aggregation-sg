@@ -22,14 +22,14 @@ class TestCountyWranglerMethods():
             "os.environ",
             {
                 "bucket_name": "mock-bucket",
-                "file_name": "mock-file",
-                "queue_url": "mock-queue-url",
+                "out_file_name": "mock-file",
+                "sqs_queue_url": "mock-queue-url",
                 "checkpoint": "mockpoint",
-                "arn": "mock-topic-arn",
-                "sqs_messageid_name": "mock-message-id",
+                "sns_topic_arn": "mock-topic-arn",
+                "sqs_message_group_id": "mock-message-id",
                 "method_name": "mock-method",
                 "incoming_message_group": "yes",
-                's3_file': 'esFree'
+                'in_file_name': 'esFree'
             },
         )
 

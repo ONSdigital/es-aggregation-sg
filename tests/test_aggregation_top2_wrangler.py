@@ -28,16 +28,16 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
         Tests a correct run produces the correct success flags.
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
-            's3_file': 'file_to_get_from_s3.json',
+            'in_file_name': 'file_to_get_from_s3.json',
             'bucket_name': 'some-bucket-name',
-            'queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
+            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
                          '82618934671237/SomethingURL.fifo',
-            'sqs_messageid_name': 'random',
+            'sqs_message_group_id': 'random',
             'checkpoint': '3',
-            'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': 'Grooop',
-            'file_name': 'bob'
+            'out_file_name': 'bob'
             }
         ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -101,16 +101,16 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
         (IndexError)
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
-            's3_file': 'file_to_get_from_s3.json',
+            'in_file_name': 'file_to_get_from_s3.json',
             'bucket_name': 'some-bucket-name',
-            'queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
+            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
                          '82618934671237/SomethingURL.fifo',
-            'sqs_messageid_name': 'random',
+            'sqs_message_group_id': 'random',
             'checkpoint': '3',
-            'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
-            'file_name': "boris"
+            'out_file_name': "boris"
             }
         ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -145,16 +145,16 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
         (TypeError)
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
-            's3_file': 'file_to_get_from_s3.json',
+            'in_file_name': 'file_to_get_from_s3.json',
             'bucket_name': 'some-bucket-name',
-            'queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
+            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
                          '82618934671237/SomethingURL.fifo',
-            'sqs_messageid_name': 'random',
+            'sqs_message_group_id': 'random',
             'checkpoint': '3',
-            'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
-            'file_name': "boris"}
+            'out_file_name': "boris"}
         ):
             with open("tests/fixtures/top2_wrangler_input_err.json") as file:
                 input_data = json.load(file)
@@ -184,16 +184,16 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
         (IndexError)
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
-            's3_file': 'file_to_get_from_s3.json',
+            'in_file_name': 'file_to_get_from_s3.json',
             'bucket_name': 'some-bucket-name',
-            'queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
+            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
                          '82618934671237/SomethingURL.fifo',
-            'sqs_messageid_name': 'random',
+            'sqs_message_group_id': 'random',
             'checkpoint': '3',
-            'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
-            'file_name': "boris"
+            'out_file_name': "boris"
             }
         ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -226,16 +226,16 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
         (TypeError)
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
-            's3_file': 'file_to_get_from_s3.json',
+            'in_file_name': 'file_to_get_from_s3.json',
             'bucket_name': 'some-bucket-name',
-            'queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
+            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
                          '82618934671237/SomethingURL.fifo',
-            'sqs_messageid_name': 'random',
+            'sqs_message_group_id': 'random',
             'checkpoint': '3',
-            'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
-            'file_name': "boris"
+            'out_file_name': "boris"
         }
                              ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -267,16 +267,16 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
         (IncompleteReadError)
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
-            's3_file': 'file_to_get_from_s3.json',
+            'in_file_name': 'file_to_get_from_s3.json',
             'bucket_name': 'some-bucket-name',
-            'queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
+            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
                          '82618934671237/SomethingURL.fifo',
-            'sqs_messageid_name': 'random',
+            'sqs_message_group_id': 'random',
             'checkpoint': '3',
-            'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
-            'file_name': "boris"
+            'out_file_name': "boris"
             }
         ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -306,16 +306,16 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
         (Exception)
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
-            's3_file': 'file_to_get_from_s3.json',
+            'in_file_name': 'file_to_get_from_s3.json',
             'bucket_name': 'some-bucket-name',
-            'queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
+            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
                          '82618934671237/SomethingURL.fifo',
-            'sqs_messageid_name': 'random',
+            'sqs_message_group_id': 'random',
             'checkpoint': '3',
-            'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
-            'file_name': "boris"
+            'out_file_name': "boris"
         }
                              ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -341,16 +341,16 @@ class TestMoto:
     @mock_sqs
     def test_fail_to_get_from_sqs(self):
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
-            's3_file': 'file_to_get_from_s3.json',
+            'in_file_name': 'file_to_get_from_s3.json',
             'bucket_name': 'some-bucket-name',
-            'queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
+            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
                          '82618934671237/SomethingURL.fifo',
-            'sqs_messageid_name': 'random',
+            'sqs_message_group_id': 'random',
             'checkpoint': '3',
-            'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
-            'file_name': "boris"
+            'out_file_name': "boris"
             },
         ):
             response = aggregation_top2_wrangler.lambda_handler(
@@ -364,16 +364,16 @@ class TestMoto:
 
     def test_client_error_exception(self):
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
-            's3_file': 'file_to_get_from_s3.json',
+            'in_file_name': 'file_to_get_from_s3.json',
             'bucket_name': 'some-bucket-name',
-            'queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
+            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
                          '82618934671237/SomethingURL.fifo',
-            'sqs_messageid_name': 'random',
+            'sqs_message_group_id': 'random',
             'checkpoint': '3',
-            'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
-            'file_name': "boris"
+            'out_file_name': "boris"
             },
         ):
             with mock.patch("aggregation_top2_wrangler."

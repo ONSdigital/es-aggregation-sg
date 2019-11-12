@@ -16,15 +16,14 @@ class EnvironSchema(Schema):
     correct format.
     :return: None
     """
-    s3_file = fields.Str(required=True)
-    bucket_name = fields.Str(required=True)
-    queue_url = fields.Str(required=True)
-    sqs_messageid_name = fields.Str(required=True)
     checkpoint = fields.Str(required=True)
-    arn = fields.Str(required=True)
+    bucket_name = fields.Str(required=True)
+    in_file_name = fields.Str(required=True)
     method_name = fields.Str(required=True)
-    incoming_message_group = fields.Str(required=True)
-    file_name = fields.Str(required=True)
+    out_file_name = fields.Str(required=True)
+    sns_topic_arn = fields.Str(required=True)
+    sqs_message_group_id = fields.Str(required=True)
+    sqs_queue_url = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -52,7 +51,7 @@ def lambda_handler(event, context):
     :param context: N/A
     :return: Success - dataframe, checkpoint
     """
-    current_module = "Aggregation Calc Top Two - Wrangler"
+    current_module = "Aggregation Calc Top Two - Wrangler."
     logger = logging.getLogger()
     error_message = ''
     log_message = ''
@@ -72,16 +71,17 @@ def lambda_handler(event, context):
 
         logger.info("Setting-up environment configs")
 
-        s3_file = config['s3_file']
-        bucket_name = config['bucket_name']
-        queue_url = config['queue_url']
-        sqs_messageid_name = config['sqs_messageid_name']
         checkpoint = config['checkpoint']
-        arn = config['arn']
+        bucket_name = config['bucket_name']
+        in_file_name = config['in_file_name']
         method_name = config['method_name']
-        file_name = config['file_name']
+        out_file_name = config['out_file_name']
+        sns_topic_arn = config['sns_topic_arn']
+        sqs_message_group_id = config['sqs_message_group_id']
+        sqs_queue_url = config['sqs_queue_url']
+
         # Read from S3 bucket
-        data = funk.read_dataframe_from_s3(bucket_name, s3_file)
+        data = funk.read_dataframe_from_s3(bucket_name, in_file_name)
         logger.info("Completed reading data from s3")
 
         # Ensure mandatory columns are present and have the correct
@@ -137,10 +137,10 @@ def lambda_handler(event, context):
 
         # Sending output to SQS, notice to SNS
         logger.info("Sending function response downstream.")
-        funk.save_data(bucket_name, file_name,
-                       json_response, queue_url, sqs_messageid_name)
-        logger.info("Successfully sent the data to SQS")
-        funk.send_sns_message(checkpoint, arn, "Top 2 completed successfully")
+        funk.save_data(bucket_name, out_file_name,
+                       json_response, sqs_queue_url, sqs_message_group_id)
+        logger.info("Successfully sent the data to S3")
+        funk.send_sns_message(checkpoint, sns_topic_arn, "Aggregation - Top 2.")
         logger.info("Successfully sent the SNS message")
 
     except IndexError as e:
@@ -162,7 +162,7 @@ def lambda_handler(event, context):
         log_message += " | Line: " + str(e.__traceback__.tb_lineno)
 
     except ValueError as e:
-        error_message = ("Parameter validation error"
+        error_message = ("Parameter validation error in "
                          + current_module + " |- "
                          + str(e.args) + " | Request ID: "
                          + str(context.aws_request_id))

@@ -13,15 +13,15 @@ class EnvironSchema(Schema):
     Schema to ensure that environment variables are present and in the correct format.
     :return: None
     """
-    bucket_name = fields.Str(required=True)
-    s3_file = fields.Str(required=True)
-    queue_url = fields.Str(required=True)
     checkpoint = fields.Str(required=True)
-    arn = fields.Str(required=True)
-    sqs_messageid_name = fields.Str(required=True)
-    method_name = fields.Str(required=True)
+    bucket_name = fields.Str(required=True)
+    in_file_name = fields.Str(required=True)
     incoming_message_group = fields.Str(required=True)
-    file_name = fields.Str(required=True)
+    method_name = fields.Str(required=True)
+    out_file_name = fields.Str(required=True)
+    sns_topic_arn = fields.Str(required=True)
+    sqs_message_group_id = fields.Str(required=True)
+    sqs_queue_url = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -31,7 +31,7 @@ def lambda_handler(event, context):
     :param context: N/A
     :return: Success - True/False & Checkpoint
     """
-    current_module = "Aggregation CalculateEnterpriseRef - Wrangler"
+    current_module = "Aggregation CalculateEnterpriseRef - Wrangler."
     logger = logging.getLogger()
     error_message = ''
     log_message = ''
@@ -49,20 +49,20 @@ def lambda_handler(event, context):
         # Needs to be declared inside of the lambda handler
         lambda_client = boto3.client('lambda', region_name="eu-west-2")
 
-        bucket_name = config['bucket_name']
-        s3_file = config['s3_file']
-        queue_url = config['queue_url']
         checkpoint = config['checkpoint']
-        arn = config['arn']
-        sqs_messageid_name = config['sqs_messageid_name']
+        bucket_name = config['bucket_name']
+        in_file_name = config['in_file_name']
         method_name = config['method_name']
+        out_file_name = config['out_file_name']
+        sns_topic_arn = config['sns_topic_arn']
+        sqs_message_group_id = config['sqs_message_group_id']
+        sqs_queue_url = config['sqs_queue_url']
         period = event['RuntimeVariables']['period']
-        file_name = config['file_name']
 
         logger.info("Set-up environment configs")
 
         # Read from S3 bucket
-        data = funk.read_dataframe_from_s3(bucket_name, s3_file)
+        data = funk.read_dataframe_from_s3(bucket_name, in_file_name)
         logger.info("Completed reading data from s3")
 
         disaggregated_data = data[data.period == int(period)]
@@ -74,11 +74,11 @@ def lambda_handler(event, context):
 
         json_response = json.loads(by_region.get('Payload').read().decode("utf-8"))
 
-        funk.save_data(bucket_name, file_name,
-                       json_response, queue_url, sqs_messageid_name)
+        funk.save_data(bucket_name, out_file_name,
+                       json_response, sqs_queue_url, sqs_message_group_id)
         logger.info("Successfully sent the data to SQS")
 
-        funk.send_sns_message(checkpoint, arn, "Ent Ref Count completed successfully")
+        funk.send_sns_message(checkpoint, sns_topic_arn, "Aggregation - Ent Ref Count.")
         logger.info("Successfully sent the SNS message")
 
     except AttributeError as e:
