@@ -7,10 +7,13 @@ from moto import mock_sqs
 
 import aggregation_county_wrangler
 
-class mock_context():
+
+class MockContext():
     aws_request_id = 66
 
-context_object = mock_context()
+
+context_object = MockContext()
+
 
 class TestCountyWranglerMethods():
     @classmethod
@@ -41,10 +44,15 @@ class TestCountyWranglerMethods():
     @mock.patch("aggregation_county_wrangler.boto3.client")
     @mock.patch("aggregation_county_wrangler.funk.read_dataframe_from_s3")
     def test_happy_path(self, mock_s3_return, mock_lambda, mock_sqs):
+        invoke_data = ''
+        with open("tests/fixtures/imp_output_test.json", 'rb') as input_file:
+            invoke_data = input_file.read()
         with open("tests/fixtures/imp_output_test.json") as input_file:
             input_data = json.load(input_file)
-            mock_s3_return.return_value = pd.DataFrame(input_data)
 
+            mock_s3_return.return_value = pd.DataFrame(input_data)
+            mock_lambda.return_value.invoke.return_value.get.return_value.read.\
+                return_value = invoke_data
             returned_value = aggregation_county_wrangler.\
                 lambda_handler({"RuntimeVariables": {"period": 6666}},
                                context_object)

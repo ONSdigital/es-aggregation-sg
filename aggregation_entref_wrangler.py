@@ -1,7 +1,7 @@
+import json
 import logging
 import os
 
-import json
 import boto3
 from botocore.exceptions import ClientError, IncompleteReadError
 from esawsfunctions import funk
@@ -38,10 +38,6 @@ def lambda_handler(event, context):
     checkpoint = 0
 
     try:
-        placeholder = context.aws_request_id
-        context={}
-        context['aws_request_id'] = placeholder
-        
         logger.info("Starting " + current_module)
 
         schema = EnvironSchema()

@@ -8,10 +8,13 @@ from moto import mock_sqs
 
 import aggregation_top2_wrangler
 
-class mock_context():
+
+class MockContext():
     aws_request_id = 66
 
-context_object = mock_context()
+
+context_object = MockContext()
+
 
 class TestAggregationTop2Wrangler(unittest.TestCase):
 

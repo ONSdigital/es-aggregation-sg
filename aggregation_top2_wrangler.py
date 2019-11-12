@@ -1,7 +1,7 @@
+import json
 import logging
 import os
 
-import json
 import boto3
 import numpy as np
 import pandas as pd
@@ -59,10 +59,6 @@ def lambda_handler(event, context):
     checkpoint = 0
 
     try:
-        placeholder = context.aws_request_id
-        context={}
-        context['aws_request_id'] = placeholder
-
         logger.info("Starting " + current_module)
 
         # Import environment variables using marshmallow validation
@@ -124,7 +120,7 @@ def lambda_handler(event, context):
         # correct type of content
         msg = "Checking required output columns are present and correctly typed."
         logger.info(msg)
-        ret_data = pd.read_json(json_response, orient='records')
+        ret_data = pd.DataFrame(json_response)
         req_col_list = ['largest_contributor', 'second_largest_contributor']
         for req_col in req_col_list:
             if req_col not in ret_data.columns:

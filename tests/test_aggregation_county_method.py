@@ -7,10 +7,13 @@ from pandas.util.testing import assert_frame_equal
 
 import aggregation_county_method
 
-class mock_context():
+
+class MockContext():
     aws_request_id = 66
 
-context_object = mock_context()
+
+context_object = MockContext()
+
 
 class TestCountyMethodMethods(unittest.TestCase):
     @classmethod

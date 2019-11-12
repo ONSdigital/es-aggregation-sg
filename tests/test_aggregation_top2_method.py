@@ -6,6 +6,13 @@ import mock
 import aggregation_top2_method
 
 
+class MockContext():
+    aws_request_id = 66
+
+
+context_object = MockContext()
+
+
 class TestAggregationTop2Method(unittest.TestCase):
 
     def test_method_happy_path(self):
@@ -42,6 +49,6 @@ class TestAggregationTop2Method(unittest.TestCase):
         mock_calc_top_two.side_effect = Exception("Whoops")
 
         returned_value = aggregation_top2_method.lambda_handler(input_data,
-                                                                {'aws_request_id': 666})
+                                                                context_object)
 
         assert("""processing the method""" in returned_value['error'])

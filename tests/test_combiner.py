@@ -8,10 +8,13 @@ from moto import mock_s3, mock_sns, mock_sqs
 
 import combiner  # noqa
 
-class mock_context():
+
+class MockContext():
     aws_request_id = 66
 
-context_object = mock_context()
+
+context_object = MockContext()
+
 
 class TestCombininator(unittest.TestCase):
     def test_missing_environment_variable(self):
@@ -58,12 +61,17 @@ class TestCombininator(unittest.TestCase):
             with open("tests/fixtures/agg3.json") as file:
                 agg3 = file.read()
             with mock.patch("combiner.funk") as mock_funk:
-                mock_funk.read_dataframe_from_s3.return_value = \
-                    pd.DataFrame(json.loads(s3_data))
+                mock_funk.read_dataframe_from_s3.side_effect = \
+                    [pd.DataFrame(json.loads(s3_data)), pd.DataFrame(json.loads(agg1)),
+                     pd.DataFrame(json.loads(agg2)), pd.DataFrame(json.loads(agg3))]
                 mock_funk.get_sqs_message.return_value = {
-                            "Messages": [{"Body": agg1}, {"Body": agg2}, {"Body": agg3}]
+                            "Messages": [
+                                {"Body": "{\"key\": \"kee\",\"bucket\":\"bouquet\"}"},
+                                {"Body": "{\"key\": \"kee\",\"bucket\":\"bouquet\"}"},
+                                {"Body": "{\"key\": \"kee\",\"bucket\":\"bouquet\"}"}]
                         }
                 out = combiner.lambda_handler("", context_object)
+                print(out)
                 assert out["success"]
 
     @mock_sqs

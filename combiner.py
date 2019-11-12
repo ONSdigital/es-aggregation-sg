@@ -38,12 +38,8 @@ def lambda_handler(event, context):
     error_message = ""
     log_message = ""
     checkpoint = 0
-    
-    try:
-        placeholder = context.aws_request_id
-        context={}
-        context['aws_request_id'] = placeholder
 
+    try:
         logger.info("Combiner Begun")
 
         # Set up Environment variables Schema.
@@ -73,7 +69,6 @@ def lambda_handler(event, context):
 
         # Receive the 3 aggregation outputs
         response = funk.get_sqs_message(queue_url, 3)
-        logger.info(len(response["Messages"]))##K##
         if "Messages" not in response:
             raise NoDataInQueueError("No Messages in queue")
         if len(response["Messages"]) < 3:
@@ -91,9 +86,12 @@ def lambda_handler(event, context):
         second_agg = json.loads(data[1])
         third_agg = json.loads(data[2])
 
-        first_agg_df = funk.read_dataframe_from_s3(first_agg['bucket'], first_agg['key'])
-        second_agg_df = funk.read_dataframe_from_s3(second_agg['bucket'], second_agg['key'])
-        third_agg_df = funk.read_dataframe_from_s3(third_agg['bucket'], third_agg['key'])
+        first_agg_df = funk.read_dataframe_from_s3(first_agg['bucket'],
+                                                   first_agg['key'])
+        second_agg_df = funk.read_dataframe_from_s3(second_agg['bucket'],
+                                                    second_agg['key'])
+        third_agg_df = funk.read_dataframe_from_s3(third_agg['bucket'],
+                                                   third_agg['key'])
 
         # merge the imputation output from s3 with the 3 aggregation outputs
         first_merge = pd.merge(

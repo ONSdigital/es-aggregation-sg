@@ -17,10 +17,6 @@ def lambda_handler(event, context):
     logger = logging.getLogger("Aggregation")
     output_json = ""
     try:
-        placeholder = context.aws_request_id
-        context={}
-        context['aws_request_id'] = placeholder
-        
         logger.info("Aggregation county method begun.")
 
         input_json = event
