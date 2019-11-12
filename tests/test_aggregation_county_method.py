@@ -8,6 +8,13 @@ from pandas.util.testing import assert_frame_equal
 import aggregation_county_method
 
 
+class MockContext():
+    aws_request_id = 66
+
+
+context_object = MockContext()
+
+
 class TestCountyMethodMethods(unittest.TestCase):
     @classmethod
     def setup_class(cls):
@@ -32,7 +39,7 @@ class TestCountyMethodMethods(unittest.TestCase):
             json_content = json.loads(file.read())
             output = aggregation_county_method.lambda_handler(
                 json_content,
-                {"aws_request_id": "666"}
+                context_object
             )
 
             expected_df = (
@@ -55,7 +62,7 @@ class TestCountyMethodMethods(unittest.TestCase):
                 mocked.side_effect = Exception("General exception")
                 response = aggregation_county_method.lambda_handler(
                     json_content,
-                    {"aws_request_id": "666"}
+                    context_object
                 )
 
                 assert "success" in response
@@ -66,6 +73,6 @@ class TestCountyMethodMethods(unittest.TestCase):
         # pass none value to trigger key index error
         response = aggregation_county_method.lambda_handler(
             None,
-            {"aws_request_id": "666"}
+            context_object
         )
         assert """Key Error""" in response["error"]

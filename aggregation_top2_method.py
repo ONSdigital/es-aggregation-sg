@@ -61,7 +61,7 @@ def lambda_handler(event, context):
                          + current_module + " ("
                          + str(type(e)) + ") |- "
                          + str(e.args) + " | Request ID: "
-                         + str(context['aws_request_id']))
+                         + str(context.aws_request_id))
 
         log_message = (error_message + " | Line: "
                        + str(e.__traceback__.tb_lineno))

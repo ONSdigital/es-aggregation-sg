@@ -9,6 +9,13 @@ from moto import mock_sqs
 import aggregation_entref_wrangler
 
 
+class MockContext():
+    aws_request_id = 66
+
+
+context_object = MockContext()
+
+
 class TestStringMethods(unittest.TestCase):
 
     @mock.patch('aggregation_entref_wrangler.funk.send_sns_message')
@@ -18,15 +25,15 @@ class TestStringMethods(unittest.TestCase):
     def test_wrangler_happy_path(self, mock_get_from_s3, mock_lambda, mock_sqs, mock_sns):
         with mock.patch.dict(aggregation_entref_wrangler.os.environ, {
             'bucket_name': 'some-bucket-name',
-            'file_name': 'file_to_get_from_s3.json',
-            'queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
-                         '82618934671237/SomethingURL.fifo',
+            'out_file_name': 'file_to_get_from_s3.json',
+            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
+                             '82618934671237/SomethingURL.fifo',
             'checkpoint': '3',
-            'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
-            'sqs_messageid_name': 'random',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
-            "s3_file": "moo"
+            "in_file_name": "moo"
             }
         ):
             with open("tests/fixtures/wrangler_input.json") as file:
@@ -40,7 +47,7 @@ class TestStringMethods(unittest.TestCase):
                                                                               355)}
 
                 returned_value = aggregation_entref_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809}}, {"aws_request_id": "666"}
+                    {"RuntimeVariables": {"period": 201809}}, context_object
                 )
 
             self.assertTrue(returned_value['success'])
@@ -65,7 +72,7 @@ class TestStringMethods(unittest.TestCase):
                                                                 StreamingBody(file, 355)}
 
                 returned_value = aggregation_entref_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809}}, {"aws_request_id": "666"}
+                    {"RuntimeVariables": {"period": 201809}}, context_object
                 )
 
             assert(returned_value['error'].__contains__("""Parameter validation error"""))
@@ -77,15 +84,15 @@ class TestStringMethods(unittest.TestCase):
     def test_bad_data_exception(self, mock_get_from_s3, mock_lambda, mock_sqs, mock_sns):
         with mock.patch.dict(aggregation_entref_wrangler.os.environ, {
             'bucket_name': 'some-bucket-name',
-            'file_name': 'file_to_get_from_s3.json',
-            'queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
-                         '82618934671237/SomethingURL.fifo',
+            'out_file_name': 'file_to_get_from_s3.json',
+            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
+                             '82618934671237/SomethingURL.fifo',
             'checkpoint': '3',
-            'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
-            'sqs_messageid_name': 'random',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
-            "s3_file": "moo"
+            "in_file_name": "moo"
             }
         ):
             with open("tests/fixtures/wrangler_input.json") as file:
@@ -100,7 +107,7 @@ class TestStringMethods(unittest.TestCase):
                                                                 StreamingBody(file, 355)}
 
                 returned_value = aggregation_entref_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809}}, {"aws_request_id": "666"}
+                    {"RuntimeVariables": {"period": 201809}}, context_object
                 )
 
             assert(returned_value['error'].__contains__("""Bad data encountered"""))
@@ -112,15 +119,15 @@ class TestStringMethods(unittest.TestCase):
     def test_incomplete_json(self, mock_get_from_s3, mock_lambda, mock_sqs, mock_sns):
         with mock.patch.dict(aggregation_entref_wrangler.os.environ, {
             'bucket_name': 'some-bucket-name',
-            'file_name': 'file_to_get_from_s3.json',
-            'queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
-                         '82618934671237/SomethingURL.fifo',
+            'out_file_name': 'file_to_get_from_s3.json',
+            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
+                             '82618934671237/SomethingURL.fifo',
             'checkpoint': '3',
-            'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
-            'sqs_messageid_name': 'random',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
-            "s3_file": "moo"
+            "in_file_name": "moo"
             }
         ):
             with open("tests/fixtures/wrangler_input.json") as file:
@@ -133,7 +140,7 @@ class TestStringMethods(unittest.TestCase):
                                                                 StreamingBody(file, 2)}
 
                 returned_value = aggregation_entref_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809}}, {"aws_request_id": "666"}
+                    {"RuntimeVariables": {"period": 201809}}, context_object
                 )
 
             assert(returned_value['error'].__contains__("""Incomplete Lambda response"""))
@@ -144,20 +151,20 @@ class TestStringMethods(unittest.TestCase):
     def test_general_error(self, mock_get_from_s3, mock_sqs, mock_sns):
         with mock.patch.dict(aggregation_entref_wrangler.os.environ, {
             'bucket_name': 'some-bucket-name',
-            'file_name': 'file_to_get_from_s3.json',
-            'queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
-                         '82618934671237/SomethingURL.fifo',
+            'out_file_name': 'file_to_get_from_s3.json',
+            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
+                             '82618934671237/SomethingURL.fifo',
             'checkpoint': '3',
-            'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
-            'sqs_messageid_name': 'random',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
-            "s3_file": "moo"
+            "in_file_name": "moo"
             }
         ):
 
             returned_value = aggregation_entref_wrangler.lambda_handler(
-                {"RuntimeVariables": {"period": 201809}}, {"aws_request_id": "666"}
+                {"RuntimeVariables": {"period": 201809}}, context_object
             )
 
             assert(returned_value['error'].__contains__("""General Error"""))
@@ -169,19 +176,19 @@ class TestMoto():
     def test_fail_to_get_from_sqs(self):
         with mock.patch.dict(aggregation_entref_wrangler.os.environ, {
             'bucket_name': 'some-bucket-name',
-            'file_name': 'file_to_get_from_s3.json',
-            'queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
-                         '82618934671237/SomethingURL.fifo',
+            'out_file_name': 'file_to_get_from_s3.json',
+            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
+                             '82618934671237/SomethingURL.fifo',
             'checkpoint': '3',
-            'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
-            'sqs_messageid_name': 'random',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
-            "s3_file": "moo"
+            "in_file_name": "moo"
             },
         ):
             response = aggregation_entref_wrangler.lambda_handler(
-                {"RuntimeVariables": {"period": 201809}}, {"aws_request_id": "666"}
+                {"RuntimeVariables": {"period": 201809}}, context_object
             )
 
             assert "success" in response
@@ -191,15 +198,15 @@ class TestMoto():
     def test_client_error_exception(self):
         with mock.patch.dict(aggregation_entref_wrangler.os.environ, {
             'bucket_name': 'some-bucket-name',
-            'file_name': 'file_to_get_from_s3.json',
-            'queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
-                         '82618934671237/SomethingURL.fifo',
+            'out_file_name': 'file_to_get_from_s3.json',
+            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
+                             '82618934671237/SomethingURL.fifo',
             'checkpoint': '3',
-            'arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
-            'sqs_messageid_name': 'random',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
-            "s3_file": "moo"
+            "in_file_name": "moo"
             },
         ):
             with mock.patch("aggregation_entref_wrangler."
@@ -210,7 +217,7 @@ class TestMoto():
                     mock_s3.return_value = mock_content
 
                 response = aggregation_entref_wrangler.lambda_handler(
-                   {"RuntimeVariables": {"period": 201809}}, {"aws_request_id": "666"}
+                   {"RuntimeVariables": {"period": 201809}}, context_object
                 )
 
             assert response['error'].__contains__("""Key Error""")

@@ -8,6 +8,13 @@ from moto import mock_sqs
 import aggregation_county_wrangler
 
 
+class MockContext():
+    aws_request_id = 66
+
+
+context_object = MockContext()
+
+
 class TestCountyWranglerMethods():
     @classmethod
     def setup_class(cls):
@@ -15,14 +22,14 @@ class TestCountyWranglerMethods():
             "os.environ",
             {
                 "bucket_name": "mock-bucket",
-                "file_name": "mock-file",
-                "queue_url": "mock-queue-url",
+                "out_file_name": "mock-file",
+                "sqs_queue_url": "mock-queue-url",
                 "checkpoint": "mockpoint",
-                "arn": "mock-topic-arn",
-                "sqs_messageid_name": "mock-message-id",
+                "sns_topic_arn": "mock-topic-arn",
+                "sqs_message_group_id": "mock-message-id",
                 "method_name": "mock-method",
                 "incoming_message_group": "yes",
-                's3_file': 'esFree'
+                'in_file_name': 'esFree'
             },
         )
 
@@ -37,13 +44,18 @@ class TestCountyWranglerMethods():
     @mock.patch("aggregation_county_wrangler.boto3.client")
     @mock.patch("aggregation_county_wrangler.funk.read_dataframe_from_s3")
     def test_happy_path(self, mock_s3_return, mock_lambda, mock_sqs):
+        invoke_data = ''
+        with open("tests/fixtures/imp_output_test.json", 'rb') as input_file:
+            invoke_data = input_file.read()
         with open("tests/fixtures/imp_output_test.json") as input_file:
             input_data = json.load(input_file)
-            mock_s3_return.return_value = pd.DataFrame(input_data)
 
+            mock_s3_return.return_value = pd.DataFrame(input_data)
+            mock_lambda.return_value.invoke.return_value.get.return_value.read.\
+                return_value = invoke_data
             returned_value = aggregation_county_wrangler.\
                 lambda_handler({"RuntimeVariables": {"period": 6666}},
-                               {"aws_request_id": "666"})
+                               context_object)
 
             mock_sqs.return_value = {"Messages": [{"Body": json.dumps(input_data),
                                                    "ReceiptHandle": "String"}]}
@@ -58,7 +70,7 @@ class TestCountyWranglerMethods():
         mock_s3_return.side_effect = Exception()
         response = aggregation_county_wrangler.lambda_handler(
             {"RuntimeVariables": {"period": 6666}},
-            {"aws_request_id": "666"}
+            context_object
         )
 
         assert "success" in response
@@ -72,7 +84,7 @@ class TestCountyWranglerMethods():
         """
         # Removing the strata_column to allow for test of missing parameter
         aggregation_county_wrangler.os.environ.pop("method_name")
-        response = aggregation_county_wrangler.lambda_handler({"RuntimeVariables": {"period": 6666}}, {"aws_request_id": "666"})  # noqa E501
+        response = aggregation_county_wrangler.lambda_handler({"RuntimeVariables": {"period": 6666}}, context_object)  # noqa E501
         aggregation_county_wrangler.os.environ["method_name"] = "mock_method"
         assert """Error validating environment params:""" in response["error"]
 
@@ -86,7 +98,7 @@ class TestCountyWranglerMethods():
             mock_s3_return.return_value = pd.DataFrame(input_data)
             response = aggregation_county_wrangler.lambda_handler(
                 {"RuntimeVariables": {"period": 6666}},
-                {"aws_request_id": "666"}
+                context_object
             )
 
             assert "success" in response
@@ -110,7 +122,7 @@ class TestCountyWranglerMethods():
                                                                 StreamingBody(file, 355)}
 
                 returned_value = aggregation_county_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 6666}}, {"aws_request_id": "666"}
+                    {"RuntimeVariables": {"period": 6666}}, context_object
                 )
 
                 assert(returned_value['error'].__contains__("""Bad data"""))
@@ -130,7 +142,7 @@ class TestCountyWranglerMethods():
             }
             response = aggregation_county_wrangler.lambda_handler(
                 {"RuntimeVariables": {"period": 6666}},
-                {"aws_request_id": "666"}
+                context_object
             )
 
             assert "success" in response
@@ -146,7 +158,7 @@ class TestCountyWranglerMethods():
                 mock_s3.return_value = mock_content
 
             response = aggregation_county_wrangler.lambda_handler(
-                {"RuntimeVariables": {"period": 6666}}, {"aws_request_id": "666"}
+                {"RuntimeVariables": {"period": 6666}}, context_object
             )
 
         assert response['error'].__contains__("""Key Error""")
@@ -154,7 +166,7 @@ class TestCountyWranglerMethods():
     @mock_sqs
     def test_fail_to_get_from_sqs(self):
         response = aggregation_county_wrangler.lambda_handler(
-            {"RuntimeVariables": {"period": 6666}}, {"aws_request_id": "666"}
+            {"RuntimeVariables": {"period": 6666}}, context_object
         )
 
         assert "success" in response

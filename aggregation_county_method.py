@@ -15,6 +15,7 @@ def lambda_handler(event, context):
     error_message = ""
     log_message = ""
     logger = logging.getLogger("Aggregation")
+    output_json = ""
     try:
         logger.info("Aggregation county method begun.")
 
@@ -43,7 +44,7 @@ def lambda_handler(event, context):
         error_message = ("Key Error in "
                          + current_module + " |- "
                          + str(e.args) + " | Request ID: "
-                         + str(context["aws_request_id"]))
+                         + str(context.aws_request_id))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
 
@@ -52,7 +53,7 @@ def lambda_handler(event, context):
                          + current_module + " ("
                          + str(type(e)) + ") |- "
                          + str(e.args) + " | Request ID: "
-                         + str(context["aws_request_id"]))
+                         + str(context.aws_request_id))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
 
