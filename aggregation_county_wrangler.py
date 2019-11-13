@@ -34,7 +34,7 @@ def lambda_handler(event, context):
     error_message = ""
     log_message = ""
     logger = logging.getLogger("Aggregation")
-    logger.setLevel(10)
+    logger.setLevel(0)
     try:
         logger.info("Started Aggregation County - Wrangler.")
 
@@ -57,7 +57,7 @@ def lambda_handler(event, context):
         sqs_message_group_id = config['sqs_message_group_id']
         sqs_queue_url = config['sqs_queue_url']
 
-        logger.info("Vaildated params.")
+        logger.info("Validated params.")
 
         # Read from S3 bucket
         data = funk.read_dataframe_from_s3(bucket_name, in_file_name)

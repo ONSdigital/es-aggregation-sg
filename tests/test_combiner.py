@@ -66,9 +66,9 @@ class TestCombininator(unittest.TestCase):
                      pd.DataFrame(json.loads(agg2)), pd.DataFrame(json.loads(agg3))]
                 mock_funk.get_sqs_message.return_value = {
                             "Messages": [
-                                {"Body": "{\"key\": \"kee\",\"bucket\":\"bouquet\"}"},
-                                {"Body": "{\"key\": \"kee\",\"bucket\":\"bouquet\"}"},
-                                {"Body": "{\"key\": \"kee\",\"bucket\":\"bouquet\"}"}]
+                                {"Body": "{\"key\": \"kee\",\"bucket\":\"bouquet\"}", "ReceiptHandle": '666'},
+                                {"Body": "{\"key\": \"kee\",\"bucket\":\"bouquet\"}", "ReceiptHandle": '666'},
+                                {"Body": "{\"key\": \"kee\",\"bucket\":\"bouquet\"}", "ReceiptHandle": '666'}]
                         }
                 out = combiner.lambda_handler("", context_object)
                 print(out)
