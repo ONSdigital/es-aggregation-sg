@@ -13,8 +13,8 @@ provider:
       - ${file(../json_outputs/subnets_output.json):Subnets.1.SubnetId}
   runtime: python3.7
   region: eu-west-2
-  memorySize: 1024 # optional, in MB, default is 1024
-  timeout: 10 # optional, in seconds, default is 6
+  memorySize: 1024
+  timeout: 10
   tracing:
     lambda: true
   package:
