@@ -47,10 +47,12 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
             with open('tests/fixtures/top2_method_output.json', "r") as file:
                 in_file = file.read()
-                #mock_lambda.return_value.invoke.return_value = (
-                 #   {"Payload": StreamingBody(file, 4372)}
-                #)
-                mock_lambda.return_value.invoke.return_value.get.return_value.read.return_value.decode.return_value = json.dumps(in_file)
+
+                mock_lambda.return_value.\
+                    invoke.return_value.\
+                    get.return_value.\
+                    read.return_value.\
+                    decode.return_value = json.dumps(in_file)
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {"period": 201809}},
                     context_object
@@ -205,11 +207,12 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             err_file = 'tests/fixtures/top2_method_output_err_index.json'
             with open(err_file, "r") as file:
                 lambda_return = file.read()
-                #mock_lambda.return_value.invoke.return_value = (
-                #    {"Payload": StreamingBody(file, 4182)}
-                #)
-                mock_lambda.return_value.invoke.return_value.get.return_value.read.return_value.decode.return_value = json.dumps(
-                    lambda_return)
+
+                mock_lambda.return_value.invoke.\
+                    return_value.get.\
+                    return_value.read.\
+                    return_value.decode.\
+                    return_value = json.dumps(lambda_return)
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {"period": 201809}},
                     context_object

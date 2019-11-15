@@ -81,7 +81,6 @@ def lambda_handler(event, context):
             receipt_handles.append(message['ReceiptHandle'])
             data.append(message["Body"])
 
-
         for handle in receipt_handles:
             sqs.delete_message(QueueUrl=sqs_queue_url, ReceiptHandle=handle)
 
@@ -112,7 +111,8 @@ def lambda_handler(event, context):
 
         # !temporary due to the size of our test data.
         # This means that cells that didn't have any responders
-        # to produce aggregations from, then the aggregations are not null(breaking things)
+        # to produce aggregations from, then the aggregations are not null
+        # (breaking things)
         third_merge.fillna(1, inplace=True, axis=1)
         # convert output to json ready to return
         final_output = third_merge.to_json(orient="records")
