@@ -16,7 +16,6 @@ class EnvironSchema(Schema):
     checkpoint = fields.Str(required=True)
     bucket_name = fields.Str(required=True)
     in_file_name = fields.Str(required=True)
-    incoming_message_group = fields.Str(required=True)
     method_name = fields.Str(required=True)
     out_file_name = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
@@ -35,7 +34,7 @@ def lambda_handler(event, context):
     logger = logging.getLogger()
     error_message = ''
     log_message = ''
-    checkpoint = 0
+    checkpoint = 4
 
     try:
         logger.info("Starting " + current_module)

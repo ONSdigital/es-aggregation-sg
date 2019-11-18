@@ -75,11 +75,15 @@ def lambda_handler(event, context):
             raise DoNotHaveAllDataError(
                 "Only " + str(len(response["Messages"])) + " recieved"
             )
+        receipt_handles = []
         logger.info("Successfully retrieved message from sqs")
         for message in response["Messages"]:
+            receipt_handles.append(message['ReceiptHandle'])
             data.append(message["Body"])
 
-        sqs.purge_queue(QueueUrl=sqs_queue_url)
+        for handle in receipt_handles:
+            sqs.delete_message(QueueUrl=sqs_queue_url, ReceiptHandle=handle)
+
         logger.info("Successfully deleted message from sqs")
         # convert the 3 outputs into dataframes
         first_agg = json.loads(data[0])
@@ -104,6 +108,12 @@ def lambda_handler(event, context):
             second_merge, third_agg_df, on=["region", "county", "period"], how="left"
         )
         logger.info("Successfully merged dataframes")
+
+        # !temporary due to the size of our test data.
+        # This means that cells that didn't have any responders
+        # to produce aggregations from, then the aggregations are not null
+        # (breaking things)
+        third_merge.fillna(1, inplace=True, axis=1)
         # convert output to json ready to return
         final_output = third_merge.to_json(orient="records")
 

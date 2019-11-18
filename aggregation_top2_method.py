@@ -51,7 +51,8 @@ def lambda_handler(event, context):
 
         logger.info("Invoking calc_top_two function on input dataframe")
         response = calc_top_two(input_dataframe)
-
+        response = response[["region", "county", "period",
+                             "largest_contributor", "second_largest_contributor"]]
         logger.info("Converting output dataframe to json")
         response_json = response.to_json(orient='records')
 

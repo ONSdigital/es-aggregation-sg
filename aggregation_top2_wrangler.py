@@ -53,6 +53,7 @@ def lambda_handler(event, context):
     """
     current_module = "Aggregation Calc Top Two - Wrangler."
     logger = logging.getLogger()
+    logger.setLevel(0)
     error_message = ''
     log_message = ''
     checkpoint = 0
@@ -105,7 +106,7 @@ def lambda_handler(event, context):
         # Add output columns
         logger.info("Appending two further required columns.")
         data['largest_contributor'] = 0
-        data['second_largest contributor'] = 0
+        data['second_largest_contributor'] = 0
 
         # Serialise data
         logger.info("Converting dataframe to json.")
@@ -120,7 +121,7 @@ def lambda_handler(event, context):
         # correct type of content
         msg = "Checking required output columns are present and correctly typed."
         logger.info(msg)
-        ret_data = pd.DataFrame(json_response)
+        ret_data = pd.DataFrame(json.loads(json_response))
         req_col_list = ['largest_contributor', 'second_largest_contributor']
         for req_col in req_col_list:
             if req_col not in ret_data.columns:

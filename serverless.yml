@@ -2,6 +2,8 @@
 service: es-aggregation-sg
 provider:
   name: aws
+  deploymentBucket:
+    name: com.serverless.${self:provider.region}.results.ons.deploys
   role: arn:aws:iam::${self:custom.accountId}:role/lambda_invoke_lambda
   vpc:
     securityGroupIds:
@@ -11,6 +13,10 @@ provider:
       - ${file(../json_outputs/subnets_output.json):Subnets.1.SubnetId}
   runtime: python3.7
   region: eu-west-2
+  memorySize: 1024
+  timeout: 10
+  tracing:
+    lambda: true
   package:
     individually: true
 
@@ -36,7 +42,7 @@ functions:
     environment:
       checkpoint: 4
       bucket_name: results-s3-bucket
-      in_file_name: apply_factors_out.json
+      in_file_name: imputation_apply_out.json
       out_file_name: aggregation_county_out.json
       method_name: es-aggregation-county-method
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
@@ -44,7 +50,7 @@ functions:
       sqs_queue_url: https://sqs.eu-west-2.amazonaws.com/${self:custom.accountId}/BMI_Results.fifo
 
   deploy-county-method:
-    name: es-aggregation_county_method
+    name: es-aggregation-county-method
     handler: aggregation_county_method.lambda_handler
     package:
       include:
@@ -74,7 +80,7 @@ functions:
     environment:
       checkpoint: 4
       bucket_name: results-s3-bucket
-      in_file_name: apply_factors_out.json
+      in_file_name: imputation_apply_out.json
       method_name: es-aggregation-entref-method
       out_file_name: ent_ref_out.json
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
@@ -112,8 +118,8 @@ functions:
     environment:
       checkpoint: 4
       bucket_name: results-s3-bucket
-      in_file_name: apply_factors_out.json
-      method_name: es-aggregation-top2-wrangler
+      in_file_name: imputation_apply_out.json
+      method_name: es-aggregation-top2-method
       out_file_name: top2_out.json
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
       sqs_message_group_id: aggregation-by-top2
@@ -121,7 +127,7 @@ functions:
 
   deploy-top2-method:
     name: es-aggregation-top2-method
-    handler: aggregation_top2_wrangler.lambda_handler
+    handler: aggregation_top2_method.lambda_handler
     package:
       include:
         - aggregation_top2_method.py
@@ -150,8 +156,8 @@ functions:
     environment:
       checkpoint: 4
       bucket_name: results-s3-bucket
-      in_file_name: top2_out.json
-      out_file_name: aggergation_out.json
+      in_file_name: non_responders_output.json
+      out_file_name: aggregation_out.json
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
       sqs_message_group_id: aggregation-combiner-out
       sqs_queue_url: https://sqs.eu-west-2.amazonaws.com/${self:custom.accountId}/BMI_Results.fifo
