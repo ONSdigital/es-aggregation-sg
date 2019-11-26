@@ -69,12 +69,12 @@ def lambda_handler(event, context):
         logger.info("Filtered disaggregated_data")
 
         by_region = lambda_client.invoke(FunctionName=method_name, Payload=formatted_data)
-        if str(type(by_region)) != "<class 'str'>":
-            raise funk.MethodFailure(by_region['error'])
-    
         logger.info("Successfully invoked the method lambda")
 
         json_response = json.loads(by_region.get('Payload').read().decode("utf-8"))
+
+        if str(type(json_response)) != "<class 'str'>":
+            raise funk.MethodFailure(json_response['error'])
 
         funk.save_data(bucket_name, out_file_name,
                        json_response, sqs_queue_url, sqs_message_group_id)
