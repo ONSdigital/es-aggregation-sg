@@ -117,6 +117,9 @@ def lambda_handler(event, context):
         top2 = lambda_client.invoke(FunctionName=method_name, Payload=prepared_data)
         json_response = json.loads(top2.get('Payload').read().decode("utf-8"))
 
+        if str(type(json_response)) != "<class 'str'>":
+            raise funk.MethodFailure(json_response['error'])
+        
         # Ensure appended columns are present in output and have the
         # correct type of content
         msg = "Checking required output columns are present and correctly typed."
@@ -143,6 +146,10 @@ def lambda_handler(event, context):
         logger.info("Successfully sent the data to S3")
         funk.send_sns_message(checkpoint, sns_topic_arn, "Aggregation - Top 2.")
         logger.info("Successfully sent the SNS message")
+
+    except funk.MethodFailure as e:
+        error_message = e.error_message
+        log_message = "Error in " + method_name + "."
 
     except IndexError as e:
         error_message = ("Required columns missing from input data in "
