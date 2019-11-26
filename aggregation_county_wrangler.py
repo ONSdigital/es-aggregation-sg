@@ -72,11 +72,11 @@ def lambda_handler(event, context):
             FunctionName=method_name,
             Payload=formatted_data
         )
-        if str(type(by_county)) != "<class 'str'>":
-            raise funk.MethodFailure(by_county['error'])
-
         json_response = json.loads(by_county.get('Payload').read().decode("utf-8"))
 
+        if str(type(json_response)) != "<class 'str'>":
+            raise funk.MethodFailure(json_response['error'])
+        
         funk.save_data(bucket_name, out_file_name,
                        json_response, sqs_queue_url, sqs_message_group_id)
 
