@@ -74,9 +74,9 @@ def lambda_handler(event, context):
         )
         json_response = json.loads(by_county.get('Payload').read().decode("utf-8"))
 
-        if str(type(json_response)) != "<class 'str'>":
+        if str(type(json_response)) != "<class 'list'>":
             raise funk.MethodFailure(json_response['error'])
-        
+
         funk.save_data(bucket_name, out_file_name,
                        json_response, sqs_queue_url, sqs_message_group_id)
 
@@ -85,10 +85,6 @@ def lambda_handler(event, context):
 
         funk.send_sns_message(checkpoint, sns_topic_arn, "Aggregation - County.")
         logger.info("Successfully sent the SNS message")
-
-    except funk.MethodFailure as e:
-        error_message = e.error_message
-        log_message = "Error in " + method_name + "."
 
     except AttributeError as e:
         error_message = ("Bad data encountered in "
@@ -140,6 +136,9 @@ def lambda_handler(event, context):
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
 
+    except funk.MethodFailure as e:
+        error_message = e.error_message
+        log_message = "Error in " + method_name + "."
     finally:
         if (len(error_message)) > 0:
             logger.error(log_message)
