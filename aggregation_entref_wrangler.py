@@ -69,6 +69,9 @@ def lambda_handler(event, context):
         logger.info("Filtered disaggregated_data")
 
         by_region = lambda_client.invoke(FunctionName=method_name, Payload=formatted_data)
+        if str(type(by_region)) != "<class 'str'>":
+            raise funk.MethodFailure(by_region['error'])
+    
         logger.info("Successfully invoked the method lambda")
 
         json_response = json.loads(by_region.get('Payload').read().decode("utf-8"))
@@ -79,6 +82,10 @@ def lambda_handler(event, context):
 
         funk.send_sns_message(checkpoint, sns_topic_arn, "Aggregation - Ent Ref Count.")
         logger.info("Successfully sent the SNS message")
+
+    except funk.MethodFailure as e:
+        error_message = e.error_message
+        log_message = "Error in " + method_name + "."
 
     except AttributeError as e:
         error_message = "Bad data encountered in " \
