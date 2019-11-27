@@ -8,14 +8,14 @@ from moto import mock_sqs
 import aggregation_county_wrangler
 
 
-class MockContext():
+class MockContext:
     aws_request_id = 66
 
 
 context_object = MockContext()
 
 
-class TestCountyWranglerMethods():
+class TestCountyWranglerMethods:
     @classmethod
     def setup_class(cls):
         cls.mock_os_patcher = mock.patch.dict(
@@ -172,3 +172,26 @@ class TestCountyWranglerMethods():
         assert "success" in response
         assert response["success"] is False
         assert response["error"].__contains__("""AWS Error""")
+
+    @mock.patch("aggregation_county_wrangler.funk.save_data")
+    @mock.patch("aggregation_county_wrangler.boto3.client")
+    @mock.patch("aggregation_county_wrangler.funk.read_dataframe_from_s3")
+    def test_method_error(self, mock_s3_return, mock_lambda, mock_sqs):
+
+        with open("tests/fixtures/imp_output_test.json") as input_file:
+            input_data = json.load(input_file)
+
+            mock_s3_return.return_value = pd.DataFrame(input_data)
+            mock_lambda.return_value.invoke.return_value.get.return_value \
+                .read.return_value.decode.return_value = \
+                '{"error": "This is an error message"}'
+            returned_value = aggregation_county_wrangler.\
+                lambda_handler({"RuntimeVariables": {"period": 6666}},
+                               context_object)
+
+            mock_sqs.return_value = {"Messages": [{"Body": json.dumps(input_data),
+                                                   "ReceiptHandle": "String"}]}
+
+            assert "success" in returned_value
+            assert returned_value["success"] is False
+            assert returned_value["error"].__contains__("""This is an error message""")
