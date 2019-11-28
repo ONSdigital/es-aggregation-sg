@@ -9,7 +9,7 @@ from moto import mock_sqs
 import aggregation_top2_wrangler
 
 
-class MockContext():
+class MockContext:
     aws_request_id = 66
 
 
@@ -340,6 +340,45 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                 )
 
             assert ("General Error" in returned_value['error'])
+
+    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.funk.save_data')
+    @mock.patch('aggregation_top2_wrangler.boto3.client')
+    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
+    def test_wrangler_method_error(self, mock_get_from_s3, mock_lambda,
+                                   mock_sqs, mock_sns):
+        """
+        Tests a correct run produces the correct success flags.
+        """
+        with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
+            'in_file_name': 'file_to_get_from_s3.json',
+            'bucket_name': 'some-bucket-name',
+            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
+                             '82618934671237/SomethingURL.fifo',
+            'sqs_message_group_id': 'random',
+            'checkpoint': '3',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'method_name': 'random',
+            'incoming_message_group': 'Grooop',
+            'out_file_name': 'bob'
+            }
+        ):
+            with open("tests/fixtures/top2_wrangler_input.json") as file:
+                input_data = json.load(file)
+
+            mock_get_from_s3.return_value = pd.DataFrame(input_data)
+
+            mock_lambda.return_value.invoke.return_value.get.return_value \
+                .read.return_value.decode.return_value = \
+                '{"error": "This is an error message"}'
+            returned_value = aggregation_top2_wrangler.lambda_handler(
+                {"RuntimeVariables": {"period": 201809}},
+                context_object
+            )
+
+            assert "success" in returned_value
+            assert returned_value["success"] is False
+            assert returned_value["error"].__contains__("""This is an error message""")
 
 
 class TestMoto:

@@ -9,7 +9,7 @@ from moto import mock_sqs
 import aggregation_entref_wrangler
 
 
-class MockContext():
+class MockContext:
     aws_request_id = 66
 
 
@@ -169,8 +169,44 @@ class TestStringMethods(unittest.TestCase):
 
             assert(returned_value['error'].__contains__("""General Error"""))
 
+    @mock.patch('aggregation_entref_wrangler.funk.send_sns_message')
+    @mock.patch('aggregation_entref_wrangler.funk.save_data')
+    @mock.patch('aggregation_entref_wrangler.boto3.client')
+    @mock.patch('aggregation_entref_wrangler.funk.read_dataframe_from_s3')
+    def test_wrangler_method_error(self, mock_get_from_s3, mock_lambda,
+                                   mock_sqs, mock_sns):
+        with mock.patch.dict(aggregation_entref_wrangler.os.environ, {
+            'bucket_name': 'some-bucket-name',
+            'out_file_name': 'file_to_get_from_s3.json',
+            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
+                             '82618934671237/SomethingURL.fifo',
+            'checkpoint': '3',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'sqs_message_group_id': 'random',
+            'method_name': 'random',
+            'incoming_message_group': 'jam',
+            "in_file_name": "moo"
+            }
+        ):
+            with open("tests/fixtures/wrangler_input.json") as file:
+                input_data = json.load(file)
 
-class TestMoto():
+            mock_get_from_s3.return_value = pd.DataFrame(input_data)
+
+            mock_lambda.return_value.invoke.return_value.get.return_value \
+                .read.return_value.decode.return_value = \
+                '{"error": "This is an error message"}'
+
+            returned_value = aggregation_entref_wrangler.lambda_handler(
+                {"RuntimeVariables": {"period": 201809}}, context_object
+                )
+
+            assert "success" in returned_value
+            assert returned_value["success"] is False
+            assert returned_value["error"].__contains__("""This is an error message""")
+
+
+class TestMoto:
 
     @mock_sqs
     def test_fail_to_get_from_sqs(self):
