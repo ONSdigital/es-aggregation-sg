@@ -21,7 +21,7 @@ class TestStringMethods(unittest.TestCase):
         returned_value = aggregation_entref_method.lambda_handler(input_data, None)
 
         file = open('tests/fixtures/produced_method_output', 'w')
-        file.write(returned_value)
+        file.write(json.dumps(returned_value))
         file.close()
 
         with open("tests/fixtures/method_output.json") as file:

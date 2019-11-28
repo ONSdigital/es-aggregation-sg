@@ -1,3 +1,4 @@
+import json
 import logging
 
 import pandas as pd
@@ -63,4 +64,4 @@ def lambda_handler(event, context):
             return {"success": False, "error": error_message}
         else:
             logger.info("Successfully completed module: " + current_module)
-            return output_json
+            return json.loads(output_json)

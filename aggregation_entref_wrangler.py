@@ -77,7 +77,7 @@ def lambda_handler(event, context):
             raise funk.MethodFailure(json_response['error'])
 
         funk.save_data(bucket_name, out_file_name,
-                       json_response, sqs_queue_url, sqs_message_group_id)
+                       json.dumps(json_response), sqs_queue_url, sqs_message_group_id)
         logger.info("Successfully sent the data to SQS")
 
         funk.send_sns_message(checkpoint, sns_topic_arn, "Aggregation - Ent Ref Count.")
