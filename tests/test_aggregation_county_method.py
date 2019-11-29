@@ -47,7 +47,7 @@ class TestCountyMethodMethods(unittest.TestCase):
             )
 
             response_df = (
-                pd.read_json(output)
+                pd.read_json(json.dumps(output))
             )
 
             response_df = response_df.round(5)
