@@ -1,8 +1,19 @@
 import json
 import logging
 
+import marshmallow
 import pandas as pd
 
+class EnvironSchema(marshmallow.Schema):
+    """
+    Class to set up the environment variables schema.
+    """
+    input_json = marshmallow.fields.Str(required=True)
+    total_column = marshmallow.fields.Str(required=True)
+    period_column = marshmallow.fields.Str(required=True)
+    region_column = marshmallow.fields.Str(required=True)
+    county_column = marshmallow.fields.Str(required=True)
+    cell_total_column = marshmallow.fields.Str(required=True)
 
 def lambda_handler(event, context):
     """
@@ -20,18 +31,29 @@ def lambda_handler(event, context):
     try:
         logger.info("Aggregation county method begun.")
 
-        input_json = event
+        # Set up Environment variables Schema.
+        schema = EnvironSchema(strict=False)
+        config, errors = schema.load(event)
+        if errors:
+            raise ValueError(f"Error validating environment parameters: {errors}")
+
+        input_json = json.loads(config["input_json"])
+        total_column = config["total_column"]
+        period_column = config["period_column"]
+        region_column = config["region_column"]
+        county_column = config["county_column"]
+        cell_total_column = config["cell_total_column"]
 
         input_dataframe = pd.DataFrame(input_json)
 
         logger.info("JSON data converted to DataFrame.")
 
-        county_agg = input_dataframe.groupby(['region', 'county', 'period'])
+        county_agg = input_dataframe.groupby([region_column, county_column, period_column])
 
-        agg_by_county_output = county_agg.agg({'Q608_total': 'sum'}).reset_index()
+        agg_by_county_output = county_agg.agg({total_column: 'sum'}).reset_index()
 
         agg_by_county_output.rename(
-            columns={'Q608_total': 'county_total'},
+            columns={total_column: cell_total_column},
             inplace=True
         )
 

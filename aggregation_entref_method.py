@@ -1,11 +1,22 @@
 import json
 import logging
 
+import marshmallow
 import boto3
 import pandas as pd
 
 lambda_client = boto3.client('lambda', region_name='eu-west-2')
 
+class EnvironSchema(marshmallow.Schema):
+    """
+    Class to set up the environment variables schema.
+    """
+    input_json = marshmallow.fields.Str(required=True)
+    ent_ref_column = marshmallow.fields.Str(required=True)
+    period_column = marshmallow.fields.Str(required=True)
+    region_column = marshmallow.fields.Str(required=True)
+    county_column = marshmallow.fields.Str(required=True)
+    cell_total_column = marshmallow.fields.Str(required=True)
 
 def lambda_handler(event, context):
     """
@@ -24,13 +35,24 @@ def lambda_handler(event, context):
     try:
         logger.info("Starting Method " + current_module)
 
-        input_json = event
+        # Set up Environment variables Schema.
+        schema = EnvironSchema(strict=False)
+        config, errors = schema.load(event)
+        if errors:
+            raise ValueError(f"Error validating environment parameters: {errors}")
+
+        input_json = json.loads(config["input_json"])
+        period_column = config["period_column"]
+        region_column = config["region_column"]
+        county_column = config["county_column"]
+        ent_ref_column = config["ent_ref_column"]
+        cell_total_column = config["cell_total_column"]
 
         input_dataframe = pd.DataFrame(input_json)
 
-        region_agg = input_dataframe.groupby(['county', 'region', 'period'])
-        agg_by_region_output = region_agg.agg({'enterprise_ref': 'nunique'}).reset_index()
-        agg_by_region_output.rename(columns={'enterprise_ref': 'ent_ref_count'},
+        region_agg = input_dataframe.groupby([county_column, region_column, period_column])
+        agg_by_region_output = region_agg.agg({ent_ref_column: 'nunique'}).reset_index()
+        agg_by_region_output.rename(columns={ent_ref_column: cell_total_column},
                                     inplace=True)
 
         output_json = agg_by_region_output.to_json(orient='records')

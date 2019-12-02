@@ -21,6 +21,11 @@ class EnvironSchema(Schema):
     sns_topic_arn = fields.Str(required=True)
     sqs_message_group_id = fields.Str(required=True)
     sqs_queue_url = fields.Str(required=True)
+    period_column = fields.Str(required=True)
+    region_column = fields.Str(required=True)
+    county_column = fields.Str(required=True)
+    ent_ref_column = fields.Str(required=True)
+    cell_total_column = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -48,6 +53,8 @@ def lambda_handler(event, context):
         # Needs to be declared inside of the lambda handler
         lambda_client = boto3.client('lambda', region_name="eu-west-2")
 
+        period = event['RuntimeVariables']['period']
+
         checkpoint = config['checkpoint']
         bucket_name = config['bucket_name']
         in_file_name = config['in_file_name']
@@ -56,7 +63,11 @@ def lambda_handler(event, context):
         sns_topic_arn = config['sns_topic_arn']
         sqs_message_group_id = config['sqs_message_group_id']
         sqs_queue_url = config['sqs_queue_url']
-        period = event['RuntimeVariables']['period']
+        period_column = config['period_column']
+        region_column = config['region_column']
+        county_column = config['county_column']
+        ent_ref_column = config['ent_ref_column']
+        cell_total_column = config ['cell_total_column']
 
         logger.info("Set-up environment configs")
 
@@ -68,7 +79,18 @@ def lambda_handler(event, context):
         formatted_data = disaggregated_data.to_json(orient='records')
         logger.info("Filtered disaggregated_data")
 
-        by_region = lambda_client.invoke(FunctionName=method_name, Payload=formatted_data)
+        json_payload = {
+            "input_json": formatted_data,
+            "period_column": period_column,
+            "region_column": region_column,
+            "county_column": county_column,
+            "ent_ref_column": ent_ref_column,
+            "cell_total_column": cell_total_column
+        }
+
+        by_region = lambda_client.invoke(FunctionName=method_name,
+                                         Payload=json.dumps(json_payload))
+
         logger.info("Successfully invoked the method lambda")
 
         json_response = json.loads(by_region.get('Payload').read().decode("utf-8"))

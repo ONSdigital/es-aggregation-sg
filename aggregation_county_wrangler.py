@@ -21,6 +21,11 @@ class InputSchema(Schema):
     sns_topic_arn = fields.Str(required=True)
     sqs_message_group_id = fields.Str(required=True)
     sqs_queue_url = fields.Str(required=True)
+    total_column = fields.Str(required=True)
+    period_column = fields.Str(required=True)
+    region_column = fields.Str(required=True)
+    county_column = fields.Str(required=True)
+    cell_total_column = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -56,6 +61,11 @@ def lambda_handler(event, context):
         sns_topic_arn = config['sns_topic_arn']
         sqs_message_group_id = config['sqs_message_group_id']
         sqs_queue_url = config['sqs_queue_url']
+        total_column = config['total_column']
+        period_column = config['period_column']
+        region_column = config['region_column']
+        county_column = config['county_column']
+        cell_total_column = config ['cell_total_column']
 
         logger.info("Validated params.")
 
@@ -67,18 +77,28 @@ def lambda_handler(event, context):
 
         formatted_data = disaggregated_data.to_json(orient='records')
 
+        json_payload = {
+            "input_json": formatted_data,
+            "total_column": total_column,
+            "period_column": period_column,
+            "region_column": region_column,
+            "county_column": county_column,
+            "cell_total_column": cell_total_column
+        }
+
         # Invoke by county method
         by_county = lambda_client.invoke(
             FunctionName=method_name,
-            Payload=formatted_data
+            Payload=json.dumps(json_payload)
         )
+
         json_response = json.loads(by_county.get('Payload').read().decode("utf-8"))
 
         if str(type(json_response)) != "<class 'list'>":
             raise funk.MethodFailure(json_response['error'])
 
-        funk.save_data(bucket_name, out_file_name,
-                       json.dumps(json_response), sqs_queue_url, sqs_message_group_id)
+        funk.save_data(bucket_name, out_file_name, json.dumps(json_response),
+                       sqs_queue_url, sqs_message_group_id)
 
         logger.info("Successfully sent the data to SQS")
         logger.info("Successfully sent data to sqs.")

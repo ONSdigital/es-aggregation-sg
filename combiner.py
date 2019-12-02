@@ -21,15 +21,15 @@ class EnvironSchema(Schema):
     sns_topic_arn = fields.Str(required=True)
     sqs_message_group_id = fields.Str(required=True)
     sqs_queue_url = fields.Str(required=True)
-
+    period_column = fields.Str(required=True)
+    region_column = fields.Str(required=True)
+    county_column = fields.Str(required=True)
 
 class NoDataInQueueError(Exception):
     pass
 
-
 class DoNotHaveAllDataError(Exception):
     pass
-
 
 def lambda_handler(event, context):
     logger = logging.getLogger("Combininator")
@@ -49,6 +49,7 @@ def lambda_handler(event, context):
             raise ValueError(f"Error validating environment parameters: {errors}")
 
         logger.info("Validated params")
+
         # Enviroment variables
         checkpoint = config["checkpoint"]
         bucket_name = config["bucket_name"]
@@ -57,8 +58,11 @@ def lambda_handler(event, context):
         sns_topic_arn = config["sns_topic_arn"]
         sqs_message_group_id = config["sqs_message_group_id"]
         sqs_queue_url = config["sqs_queue_url"]
-        # Clients
+        period_column = config['period_column']
+        region_column = config['region_column']
+        county_column = config['county_column']
 
+        # Clients
         sqs = boto3.client("sqs", "eu-west-2")
 
         # Get file from s3
@@ -99,14 +103,17 @@ def lambda_handler(event, context):
 
         # merge the imputation output from s3 with the 3 aggregation outputs
         first_merge = pd.merge(
-            imp_df, first_agg_df, on=["region", "county", "period"], how="left"
-        )
+            imp_df, first_agg_df, on=[region_column, county_column, period_column],
+            how="left")
+
         second_merge = pd.merge(
-            first_merge, second_agg_df, on=["region", "county", "period"], how="left"
-        )
+            first_merge, second_agg_df, on=[region_column, county_column, period_column],
+            how="left")
+
         third_merge = pd.merge(
-            second_merge, third_agg_df, on=["region", "county", "period"], how="left"
-        )
+            second_merge, third_agg_df, on=[region_column, county_column, period_column],
+            how="left")
+
         logger.info("Successfully merged dataframes")
 
         # !temporary due to the size of our test data.

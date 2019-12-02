@@ -1,13 +1,13 @@
+import json
 import logging
 
 import boto3
+import marshmallow
 import numpy as np
 import pandas as pd
 
-
 class MethodFailure(Exception):
     pass
-
 
 # Set up clients
 s3 = boto3.resource('s3')
@@ -15,6 +15,15 @@ sqs = boto3.client('sqs', region_name='eu-west-2')
 sns = boto3.client('sns', region_name='eu-west-2')
 lambda_client = boto3.client('lambda', region_name="eu-west-2")
 
+class EnvironSchema(marshmallow.Schema):
+    """
+    Class to set up the environment variables schema.
+    """
+    input_json = marshmallow.fields.Str(required=True)
+    total_column = marshmallow.fields.Str(required=True)
+    period_column = marshmallow.fields.Str(required=True)
+    region_column = marshmallow.fields.Str(required=True)
+    county_column = marshmallow.fields.Str(required=True)
 
 def lambda_handler(event, context):
     """
@@ -43,16 +52,30 @@ def lambda_handler(event, context):
     logger.info("Starting " + current_module)
 
     try:
-        # NB: No environ vars used at this time, so schema and marshmallow
-        # class removed.
+        # Set up Environment variables Schema.
+        schema = EnvironSchema(strict=False)
+        config, errors = schema.load(event)
+        if errors:
+            raise ValueError(f"Error validating environment parameters: {errors}")
+
         logger.info("Converting input json to dataframe")
-        input_json = event
+        input_json = json.loads(config["input_json"])
+        total_column = config["total_column"]
+        period_column = config["period_column"]
+        region_column = config["region_column"]
+        county_column = config["county_column"]
+
         input_dataframe = pd.DataFrame(input_json)
 
         logger.info("Invoking calc_top_two function on input dataframe")
-        response = calc_top_two(input_dataframe)
-        response = response[["region", "county", "period",
-                             "largest_contributor", "second_largest_contributor"]]
+
+        response = calc_top_two(input_dataframe, total_column,
+                                period_column, county_column)
+
+        response = response[[region_column, county_column, period_column,
+                             "largest_contributor",
+                             "second_largest_contributor"]]
+
         logger.info("Converting output dataframe to json")
         response_json = response.to_json(orient='records')
 
@@ -78,18 +101,15 @@ def lambda_handler(event, context):
     return response_json
 
 
-def calc_top_two(data):
-    # NB: No need for try/except as called from inside try clause in
-    # lambda_handler
+def calc_top_two(data, total_column, period_column, county_column,):
+    # NB: No need for try/except as called from inside try clause in lambda_handler.
 
-    # Set logger
     logger = logging.getLogger()
     logger.info("Executing function: calc_top_two")
 
     # Ensure additional columns are zeroed (Belt n Braces)
     data['largest_contributor'] = 0
     data['second_largest_contributor'] = 0
-
     secondary_value = 0
 
     # Create unique list of periods in data
@@ -98,7 +118,7 @@ def calc_top_two(data):
     # Get unique periods
     for period in period_list:
         county_list = []
-        temp_county_list = data.loc[(data['period'] == period)]['county'].tolist()
+        temp_county_list = data.loc[(data[period_column] == period)][county_column].tolist()
         logger.info("Processing period " + str(period))
 
         # Make County unique
@@ -111,32 +131,30 @@ def calc_top_two(data):
             for county in county_list:
                 logger.info("...Processing county " + str(county))
 
-                tot = data.loc[(data['period'] == period)][['Q608_total',
-                                                            'county']]
+                tot = data.loc[(data[period_column] == period)][[total_column, county_column]]
 
-                tot2 = tot.loc[(tot['county'] == county)]
+                tot2 = tot.loc[(tot[county_column] == county)]
 
-                sorted_dataframe = tot2.sort_values(by=['Q608_total'],
-                                                    ascending=False)
+                sorted_dataframe = tot2.sort_values(by=[total_column], ascending=False)
 
                 sorted_dataframe = sorted_dataframe.reset_index(drop=True)
 
                 top_two = sorted_dataframe.head(2)
 
-                primary_value = top_two['Q608_total'].iloc[0]
-                if top_two.shape[0] >= 2:
-                    secondary_value = top_two['Q608_total'].iloc[1]
+                primary_value = top_two[total_column].iloc[0]
 
-                data.loc[(data['county'] == county)
-                         & (data['period'] == period),
+                if top_two.shape[0] >= 2:
+                    secondary_value = top_two[total_column].iloc[1]
+
+                data.loc[(data[county_column] == county) & (data[period_column] == period),
                          'largest_contributor'] = primary_value
-                data.loc[(data['county'] == county)
-                         & (data['period'] == period),
+
+                data.loc[(data[county_column] == county) & (data[period_column] == period),
                          'second_largest_contributor'] = secondary_value
 
     # Ensure additional columns are type cast correctly (Belt n Braces)
-    data['largest_contributor'] = (data['largest_contributor']
-                                   .astype(np.int64))
+    data['largest_contributor'] = (data['largest_contributor'].astype(np.int64))
+
     data['second_largest_contributor'] = (data['second_largest_contributor']
                                           .astype(np.int64))
 
