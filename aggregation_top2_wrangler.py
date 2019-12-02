@@ -117,6 +117,9 @@ def lambda_handler(event, context):
         top2 = lambda_client.invoke(FunctionName=method_name, Payload=prepared_data)
         json_response = json.loads(top2.get('Payload').read().decode("utf-8"))
 
+        if str(type(json_response)) != "<class 'str'>":
+            raise funk.MethodFailure(json_response['error'])
+
         # Ensure appended columns are present in output and have the
         # correct type of content
         msg = "Checking required output columns are present and correctly typed."
@@ -198,6 +201,10 @@ def lambda_handler(event, context):
 
         log_message = error_message
         log_message += " | Line: " + str(e.__traceback__.tb_lineno)
+
+    except funk.MethodFailure as e:
+        error_message = e.error_message
+        log_message = "Error in " + method_name + "."
 
     except Exception as e:
         error_message = ("General Error in "
