@@ -14,7 +14,6 @@ class MockContext():
 
 context_object = MockContext()
 
-
 class TestCountyMethodMethods(unittest.TestCase):
     @classmethod
     def setup_class(cls):
@@ -36,9 +35,19 @@ class TestCountyMethodMethods(unittest.TestCase):
 
     def test_method_happy_path(self):
         with open("tests/fixtures/imp_output_test.json", "r") as file:
-            json_content = json.loads(file.read())
+            json_content = file.read()
+
+            json_payload = {
+                "input_json": json_content,
+                "total_column": "Q608_total",
+                "period_column": "period",
+                "region_column": "region",
+                "county_column": "county",
+                "cell_total_column": "county_total"
+            }
+
             output = aggregation_county_method.lambda_handler(
-                json_content,
+                json_payload,
                 context_object
             )
 
@@ -57,11 +66,21 @@ class TestCountyMethodMethods(unittest.TestCase):
 
     def test_method_general_exception(self):
         with open("tests/fixtures/imp_output_test.json", "r") as file:
-            json_content = json.loads(file.read())
+            json_content = file.read()
+
+            json_payload = {
+                "input_json": json_content,
+                "total_column": "Q608_total",
+                "period_column": "period",
+                "region_column": "region",
+                "county_column": "county",
+                "cell_total_column": "county_total"
+            }
+
             with mock.patch("aggregation_county_method.pd.DataFrame") as mocked:
                 mocked.side_effect = Exception("General exception")
                 response = aggregation_county_method.lambda_handler(
-                    json_content,
+                    json_payload,
                     context_object
                 )
 
@@ -71,8 +90,24 @@ class TestCountyMethodMethods(unittest.TestCase):
 
     def test_method_key_error(self):
         # pass none value to trigger key index error
-        response = aggregation_county_method.lambda_handler(
-            None,
-            context_object
-        )
-        assert """Key Error""" in response["error"]
+        with open("tests/fixtures/imp_output_test.json", "r") as file:
+            json_content = file.read()
+
+        json_payload = {
+            "input_json": json_content,
+            "total_column": "Q608_total",
+            "period_column": "period",
+            "region_column": "region",
+            "county_column": "county",
+            "cell_total_column": "county_total"
+        }
+
+        with mock.patch("aggregation_county_method.json.loads") as mocked:
+            mocked.side_effect = KeyError("Key Error")
+
+            response = aggregation_county_method.lambda_handler(
+                json_payload,
+                context_object
+            )
+
+            assert """Key Error""" in response["error"]

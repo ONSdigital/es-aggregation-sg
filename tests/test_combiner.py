@@ -12,9 +12,7 @@ import combiner  # noqa
 class MockContext():
     aws_request_id = 66
 
-
 context_object = MockContext()
-
 
 class TestCombininator(unittest.TestCase):
     def test_missing_environment_variable(self):
@@ -49,7 +47,10 @@ class TestCombininator(unittest.TestCase):
                 "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "mrsbucket",
                 "sqs_message_group_id": "Bob",
-                "in_file_name": "sss"
+                "in_file_name": "sss",
+                "period_column": "period",
+                "region_column": "region",
+                "county_column": "county"
             },
         ):
             with open("tests/fixtures/factorsdata.json") as file:
@@ -95,7 +96,10 @@ class TestCombininator(unittest.TestCase):
                 "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "BertieBucket",
                 "sqs_message_group_id": "Bob",
-                "in_file_name": "sss"
+                "in_file_name": "sss",
+                "period_column": "period",
+                "region_column": "region",
+                "county_column": "county"
             },
         ):
             with open("tests/fixtures/factorsdata.json") as file:
@@ -121,7 +125,10 @@ class TestCombininator(unittest.TestCase):
                 "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "Bertie Bucket",
                 "sqs_message_group_id": "Bob",
-                "in_file_name": "sss"
+                "in_file_name": "sss",
+                "period_column": "period",
+                "region_column": "region",
+                "county_column": "county"
             },
         ):
             with open("tests/fixtures/factorsdata.json") as file:
@@ -153,7 +160,10 @@ class TestCombininator(unittest.TestCase):
                 "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "BertieBucket",
                 "sqs_message_group_id": "Bob",
-                "in_file_name": "sss"
+                "in_file_name": "sss",
+                "period_column": "period",
+                "region_column": "region",
+                "county_column": "county"
             },
         ):
             with mock.patch("combiner.funk.read_dataframe_from_s3") as mock_bot:
@@ -178,7 +188,10 @@ class TestCombininator(unittest.TestCase):
                 "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "BertieBucket",
                 "sqs_message_group_id": "Bob",
-                "in_file_name": "sss"
+                "in_file_name": "sss",
+                "period_column": "period",
+                "region_column": "region",
+                "county_column": "county"
             },
         ):
 
@@ -201,7 +214,10 @@ class TestCombininator(unittest.TestCase):
                 "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "Bertie Bucket",
                 "sqs_message_group_id": "Bob",
-                "in_file_name": "sss"
+                "in_file_name": "sss",
+                "period_column": "period",
+                "region_column": "region",
+                "county_column": "county"
             },
         ):
             with open("tests/fixtures/factorsdata.json") as file:
@@ -239,7 +255,10 @@ class TestCombininator(unittest.TestCase):
                 "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "BertieBucket",
                 "sqs_message_group_id": "Bob",
-                "in_file_name": "sss"
+                "in_file_name": "sss",
+                "period_column": "period",
+                "region_column": "region",
+                "county_column": "county"
             },
         ):
             with mock.patch("combiner.funk.read_dataframe_from_s3") as mock_bot:
