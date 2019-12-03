@@ -33,7 +33,12 @@ class TestStringMethods(unittest.TestCase):
             'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
-            "in_file_name": "moo"
+            "in_file_name": "moo",
+            "period_column": "period",
+            "region_column": "region",
+            "county_column": "county",
+            "ent_ref_column": "enterprise_ref",
+            "cell_total_column": "ent_ref_count"
             }
         ):
             with open("tests/fixtures/wrangler_input.json") as file:
@@ -92,7 +97,12 @@ class TestStringMethods(unittest.TestCase):
             'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
-            "in_file_name": "moo"
+            "in_file_name": "moo",
+            "period_column": "period",
+            "region_column": "region",
+            "county_column": "county",
+            "ent_ref_column": "enterprise_ref",
+            "cell_total_column": "ent_ref_count"
             }
         ):
             with open("tests/fixtures/wrangler_input.json") as file:
@@ -127,7 +137,12 @@ class TestStringMethods(unittest.TestCase):
             'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
-            "in_file_name": "moo"
+            "in_file_name": "moo",
+            "period_column": "period",
+            "region_column": "region",
+            "county_column": "county",
+            "ent_ref_column": "enterprise_ref",
+            "cell_total_column": "ent_ref_count"
             }
         ):
             with open("tests/fixtures/wrangler_input.json") as file:
@@ -159,7 +174,12 @@ class TestStringMethods(unittest.TestCase):
             'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
-            "in_file_name": "moo"
+            "in_file_name": "moo",
+            "period_column": "period",
+            "region_column": "region",
+            "county_column": "county",
+            "ent_ref_column": "enterprise_ref",
+            "cell_total_column": "ent_ref_count"
             }
         ):
 
@@ -185,7 +205,12 @@ class TestStringMethods(unittest.TestCase):
             'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
-            "in_file_name": "moo"
+            "in_file_name": "moo",
+            "period_column": "period",
+            "region_column": "region",
+            "county_column": "county",
+            "ent_ref_column": "enterprise_ref",
+            "cell_total_column": "ent_ref_count"
             }
         ):
             with open("tests/fixtures/wrangler_input.json") as file:
@@ -220,7 +245,12 @@ class TestMoto:
             'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
-            "in_file_name": "moo"
+            "in_file_name": "moo",
+            "period_column": "period",
+            "region_column": "region",
+            "county_column": "county",
+            "ent_ref_column": "enterprise_ref",
+            "cell_total_column": "ent_ref_count"
             },
         ):
             response = aggregation_entref_wrangler.lambda_handler(
@@ -242,7 +272,12 @@ class TestMoto:
             'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
-            "in_file_name": "moo"
+            "in_file_name": "moo",
+            "period_column": "period",
+            "region_column": "region",
+            "county_column": "county",
+            "ent_ref_column": "enterprise_ref",
+            "cell_total_column": "ent_ref_count"
             },
         ):
             with mock.patch("aggregation_entref_wrangler."

@@ -37,7 +37,11 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': 'Grooop',
-            'out_file_name': 'bob'
+            'out_file_name': 'bob',
+            'total_column': 'Q608_total',
+            'period_column': 'period',
+            'region_column': 'region',
+            'county_column': 'county'
             }
         ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -113,7 +117,11 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
-            'out_file_name': "boris"
+            'out_file_name': "boris",
+            'total_column': 'Q608_total',
+            'period_column': 'period',
+            'region_column': 'region',
+            'county_column': 'county'
             }
         ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -157,7 +165,12 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
-            'out_file_name': "boris"}
+            'out_file_name': "boris",
+            'total_column': 'Q608_total',
+            'period_column': 'period',
+            'region_column': 'region',
+            'county_column': 'county'
+            }
         ):
             with open("tests/fixtures/top2_wrangler_input_err.json") as file:
                 input_data = json.load(file)
@@ -196,7 +209,11 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
-            'out_file_name': "boris"
+            'out_file_name': "boris",
+            'total_column': 'Q608_total',
+            'period_column': 'period',
+            'region_column': 'region',
+            'county_column': 'county'
             }
         ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -241,9 +258,13 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
-            'out_file_name': "boris"
-        }
-                             ):
+            'out_file_name': "boris",
+            'total_column': 'Q608_total',
+            'period_column': 'period',
+            'region_column': 'region',
+            'county_column': 'county'
+            }
+        ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
                 input_data = json.load(file)
 
@@ -282,7 +303,11 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
-            'out_file_name': "boris"
+            'out_file_name': "boris",
+            'total_column': 'Q608_total',
+            'period_column': 'period',
+            'region_column': 'region',
+            'county_column': 'county'
             }
         ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -321,7 +346,11 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
-            'out_file_name': "boris"
+            'out_file_name': "boris",
+            'total_column': 'Q608_total',
+            'period_column': 'period',
+            'region_column': 'region',
+            'county_column': 'county'
         }
                              ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -360,7 +389,11 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': 'Grooop',
-            'out_file_name': 'bob'
+            'out_file_name': 'bob',
+            'total_column': 'Q608_total',
+            'period_column': 'period',
+            'region_column': 'region',
+            'county_column': 'county'
             }
         ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -395,7 +428,11 @@ class TestMoto:
             'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
-            'out_file_name': "boris"
+            'out_file_name': "boris",
+            'total_column': 'Q608_total',
+            'period_column': 'period',
+            'region_column': 'region',
+            'county_column': 'county'
             },
         ):
             response = aggregation_top2_wrangler.lambda_handler(
@@ -418,7 +455,11 @@ class TestMoto:
             'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
-            'out_file_name': "boris"
+            'out_file_name': "boris",
+            'total_column': 'Q608_total',
+            'period_column': 'period',
+            'region_column': 'region',
+            'county_column': 'county'
             },
         ):
             with mock.patch("aggregation_top2_wrangler."

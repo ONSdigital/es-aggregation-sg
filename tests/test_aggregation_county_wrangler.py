@@ -29,7 +29,12 @@ class TestCountyWranglerMethods:
                 "sqs_message_group_id": "mock-message-id",
                 "method_name": "mock-method",
                 "incoming_message_group": "yes",
-                'in_file_name': 'esFree'
+                'in_file_name': 'esFree',
+                "total_column": "Q608_total",
+                "period_column": "period",
+                "region_column": "region",
+                "county_column": "county",
+                "cell_total_column": "county_total"
             },
         )
 
@@ -182,12 +187,13 @@ class TestCountyWranglerMethods:
             input_data = json.load(input_file)
 
             mock_s3_return.return_value = pd.DataFrame(input_data)
+
             mock_lambda.return_value.invoke.return_value.get.return_value \
                 .read.return_value.decode.return_value = \
                 '{"error": "This is an error message"}'
-            returned_value = aggregation_county_wrangler.\
-                lambda_handler({"RuntimeVariables": {"period": 6666}},
-                               context_object)
+
+            returned_value = aggregation_county_wrangler.lambda_handler({
+                "RuntimeVariables": {"period": 6666}}, context_object)
 
             mock_sqs.return_value = {"Messages": [{"Body": json.dumps(input_data),
                                                    "ReceiptHandle": "String"}]}
