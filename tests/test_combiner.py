@@ -12,7 +12,9 @@ import combiner  # noqa
 class MockContext():
     aws_request_id = 66
 
+
 context_object = MockContext()
+
 
 class TestCombininator(unittest.TestCase):
     def test_missing_environment_variable(self):

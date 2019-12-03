@@ -4,6 +4,7 @@ import logging
 import marshmallow
 import pandas as pd
 
+
 class EnvironSchema(marshmallow.Schema):
     """
     Class to set up the environment variables schema.
@@ -14,6 +15,7 @@ class EnvironSchema(marshmallow.Schema):
     region_column = marshmallow.fields.Str(required=True)
     county_column = marshmallow.fields.Str(required=True)
     cell_total_column = marshmallow.fields.Str(required=True)
+
 
 def lambda_handler(event, context):
     """
@@ -48,7 +50,8 @@ def lambda_handler(event, context):
 
         logger.info("JSON data converted to DataFrame.")
 
-        county_agg = input_dataframe.groupby([region_column, county_column, period_column])
+        county_agg = input_dataframe.groupby([region_column, county_column,
+                                              period_column])
 
         agg_by_county_output = county_agg.agg({total_column: 'sum'}).reset_index()
 

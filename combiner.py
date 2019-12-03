@@ -25,11 +25,14 @@ class EnvironSchema(Schema):
     region_column = fields.Str(required=True)
     county_column = fields.Str(required=True)
 
+
 class NoDataInQueueError(Exception):
     pass
 
+
 class DoNotHaveAllDataError(Exception):
     pass
+
 
 def lambda_handler(event, context):
     logger = logging.getLogger("Combininator")

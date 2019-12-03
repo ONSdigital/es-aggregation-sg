@@ -65,7 +65,7 @@ def lambda_handler(event, context):
         period_column = config['period_column']
         region_column = config['region_column']
         county_column = config['county_column']
-        cell_total_column = config ['cell_total_column']
+        cell_total_column = config['cell_total_column']
 
         logger.info("Validated params.")
 

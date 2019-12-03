@@ -6,14 +6,16 @@ import marshmallow
 import numpy as np
 import pandas as pd
 
-class MethodFailure(Exception):
-    pass
-
 # Set up clients
 s3 = boto3.resource('s3')
 sqs = boto3.client('sqs', region_name='eu-west-2')
 sns = boto3.client('sns', region_name='eu-west-2')
 lambda_client = boto3.client('lambda', region_name="eu-west-2")
+
+
+class MethodFailure(Exception):
+    pass
+
 
 class EnvironSchema(marshmallow.Schema):
     """
@@ -24,6 +26,7 @@ class EnvironSchema(marshmallow.Schema):
     period_column = marshmallow.fields.Str(required=True)
     region_column = marshmallow.fields.Str(required=True)
     county_column = marshmallow.fields.Str(required=True)
+
 
 def lambda_handler(event, context):
     """
@@ -118,7 +121,9 @@ def calc_top_two(data, total_column, period_column, county_column,):
     # Get unique periods
     for period in period_list:
         county_list = []
-        temp_county_list = data.loc[(data[period_column] == period)][county_column].tolist()
+        temp_county_list = data.loc[
+            (data[period_column] == period)][county_column].tolist()
+
         logger.info("Processing period " + str(period))
 
         # Make County unique
@@ -131,7 +136,8 @@ def calc_top_two(data, total_column, period_column, county_column,):
             for county in county_list:
                 logger.info("...Processing county " + str(county))
 
-                tot = data.loc[(data[period_column] == period)][[total_column, county_column]]
+                tot = data.loc[(data[period_column] == period)][[total_column,
+                                                                 county_column]]
 
                 tot2 = tot.loc[(tot[county_column] == county)]
 
@@ -146,10 +152,12 @@ def calc_top_two(data, total_column, period_column, county_column,):
                 if top_two.shape[0] >= 2:
                     secondary_value = top_two[total_column].iloc[1]
 
-                data.loc[(data[county_column] == county) & (data[period_column] == period),
+                data.loc[(data[county_column] == county) &
+                         (data[period_column] == period),
                          'largest_contributor'] = primary_value
 
-                data.loc[(data[county_column] == county) & (data[period_column] == period),
+                data.loc[(data[county_column] == county) &
+                         (data[period_column] == period),
                          'second_largest_contributor'] = secondary_value
 
     # Ensure additional columns are type cast correctly (Belt n Braces)

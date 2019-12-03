@@ -3,10 +3,13 @@ import unittest
 
 import aggregation_entref_method
 
+
 class MockContext():
     aws_request_id = 66
 
+
 context_object = MockContext()
+
 
 class TestStringMethods(unittest.TestCase):
 

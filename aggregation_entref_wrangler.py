@@ -67,7 +67,7 @@ def lambda_handler(event, context):
         region_column = config['region_column']
         county_column = config['county_column']
         ent_ref_column = config['ent_ref_column']
-        cell_total_column = config ['cell_total_column']
+        cell_total_column = config['cell_total_column']
 
         logger.info("Set-up environment configs")
 

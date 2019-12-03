@@ -7,6 +7,7 @@ import pandas as pd
 
 lambda_client = boto3.client('lambda', region_name='eu-west-2')
 
+
 class EnvironSchema(marshmallow.Schema):
     """
     Class to set up the environment variables schema.
@@ -17,6 +18,7 @@ class EnvironSchema(marshmallow.Schema):
     region_column = marshmallow.fields.Str(required=True)
     county_column = marshmallow.fields.Str(required=True)
     cell_total_column = marshmallow.fields.Str(required=True)
+
 
 def lambda_handler(event, context):
     """
@@ -50,7 +52,9 @@ def lambda_handler(event, context):
 
         input_dataframe = pd.DataFrame(input_json)
 
-        region_agg = input_dataframe.groupby([county_column, region_column, period_column])
+        region_agg = input_dataframe.groupby([county_column, region_column,
+                                              period_column])
+
         agg_by_region_output = region_agg.agg({ent_ref_column: 'nunique'}).reset_index()
         agg_by_region_output.rename(columns={ent_ref_column: cell_total_column},
                                     inplace=True)
