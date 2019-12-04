@@ -170,4 +170,4 @@ def lambda_handler(event, context):
             return {"success": False, "error": error_message}
         else:
             logger.info("Successfully completed module: " + current_module)
-            return {"success": True, "checkpoint": 0}
+            return {"success": True, "checkpoint": checkpoint}
