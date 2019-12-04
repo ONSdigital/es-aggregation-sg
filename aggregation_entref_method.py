@@ -1,8 +1,8 @@
 import json
 import logging
 
-import marshmallow
 import boto3
+import marshmallow
 import pandas as pd
 
 lambda_client = boto3.client('lambda', region_name='eu-west-2')
