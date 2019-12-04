@@ -79,7 +79,9 @@ class TestCombininator(unittest.TestCase):
                                          "\"bucket\":\"bouquet\"}",
                                  "ReceiptHandle": '666'}]
                         }
-                out = combiner.lambda_handler("", context_object)
+                out = combiner.lambda_handler(
+                    {"RuntimeVariables": {"aggregated_column": "county"}}, context_object)
+
                 print(out)
                 assert out["success"]
 
@@ -108,7 +110,8 @@ class TestCombininator(unittest.TestCase):
                 s3_data = file.read()
             with mock.patch("combiner.funk.read_dataframe_from_s3") as mock_s3:
                 mock_s3.return_value = s3_data
-                out = combiner.lambda_handler("", context_object)
+                out = combiner.lambda_handler(
+                    {"RuntimeVariables": {"aggregated_column": "county"}}, context_object)
                 assert "There was no data in sqs queue" in out["error"]
 
     @mock_sqs
@@ -142,7 +145,11 @@ class TestCombininator(unittest.TestCase):
                 with mock.patch("combiner.funk.get_sqs_message") as mock_sqs:
 
                     mock_sqs.return_value = {"Messages": [{"Body": agg1}]}
-                    out = combiner.lambda_handler("", context_object)
+                    out = combiner.lambda_handler({
+                        "RuntimeVariables": {
+                            "aggregated_column": "county"}
+                    }, context_object)
+
                     print("Hello", out)
                     assert "Did not recieve all 3 messages" in out["error"]
 
@@ -171,7 +178,8 @@ class TestCombininator(unittest.TestCase):
             with mock.patch("combiner.funk.read_dataframe_from_s3") as mock_bot:
                 mock_bot.side_effect = AttributeError("noo")
 
-                out = combiner.lambda_handler("", context_object)
+                out = combiner.lambda_handler(
+                    {"RuntimeVariables": {"aggregated_column": "county"}}, context_object)
                 assert "Bad data encountered in" in out["error"]
 
     @mock_sqs
@@ -197,7 +205,8 @@ class TestCombininator(unittest.TestCase):
             },
         ):
 
-            out = combiner.lambda_handler("", context_object)
+            out = combiner.lambda_handler(
+                    {"RuntimeVariables": {"aggregated_column": "county"}}, context_object)
             assert "AWS Error" in out["error"]
 
     @mock_sqs
@@ -219,7 +228,7 @@ class TestCombininator(unittest.TestCase):
                 "in_file_name": "sss",
                 "period_column": "period",
                 "region_column": "region",
-                "county_column": "county"
+                "aggregated_column": "county"
             },
         ):
             with open("tests/fixtures/factorsdata.json") as file:
@@ -238,7 +247,11 @@ class TestCombininator(unittest.TestCase):
                                 {"Boody": agg1},
                             ]
                         }
-                        out = combiner.lambda_handler("", context_object)
+                        out = combiner.lambda_handler({
+                            "RuntimeVariables": {
+                                "aggregated_column": "county"}
+                        }, context_object)
+
                         assert "Key Error" in out["error"]
 
     @mock_sqs
@@ -260,11 +273,12 @@ class TestCombininator(unittest.TestCase):
                 "in_file_name": "sss",
                 "period_column": "period",
                 "region_column": "region",
-                "county_column": "county"
+                "aggregated_column": "county"
             },
         ):
             with mock.patch("combiner.funk.read_dataframe_from_s3") as mock_bot:
                 mock_bot.side_effect = Exception("noo")
 
-                out = combiner.lambda_handler("", context_object)
+                out = combiner.lambda_handler(
+                    {"RuntimeVariables": {"aggregated_column": "county"}}, context_object)
                 assert "General Error" in out["error"]

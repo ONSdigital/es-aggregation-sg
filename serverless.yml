@@ -1,5 +1,5 @@
 ---
-service: es-aggregation-sg-test
+service: es-aggregation-sg
 provider:
   name: aws
   deploymentBucket:
@@ -25,8 +25,8 @@ custom:
   accountId: ${self:custom.accounts.account-id}
 
 functions:
-  deploy-column-wrangler-test:
-    name: es-aggregation-column-wrangler-test
+  deploy-column-wrangler:
+    name: es-aggregation-column-wrangler
     handler: aggregation_column_wrangler.lambda_handler
     package:
       include:
@@ -51,8 +51,8 @@ functions:
       period_column: period
       region_column: region
 
-  deploy-column-method-test:
-    name: es-aggregation-column-method-test
+  deploy-column-method:
+    name: es-aggregation-column-method
     handler: aggregation_column_method.lambda_handler
     package:
       include:
@@ -65,8 +65,8 @@ functions:
     tags:
       app: results
 
-  deploy-top2-wrangler-test:
-    name: es-aggregation-top2-wrangler-test
+  deploy-top2-wrangler:
+    name: es-aggregation-top2-wrangler
     handler: aggregation_top2_wrangler.lambda_handler
     package:
       include:
@@ -91,8 +91,8 @@ functions:
       period_column: period
       region_column: region
 
-  deploy-top2-method-test:
-    name: es-aggregation-top2-method-test
+  deploy-top2-method:
+    name: es-aggregation-top2-method
     handler: aggregation_top2_method.lambda_handler
     package:
       include:
@@ -105,8 +105,8 @@ functions:
     tags:
       app: results
 
-  deploy-combiner-test:
-    name: es-aggregation-combiner-test
+  deploy-combiner:
+    name: es-aggregation-combiner
     handler: combiner.lambda_handler
     package:
       include:
