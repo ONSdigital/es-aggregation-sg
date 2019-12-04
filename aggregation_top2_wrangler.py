@@ -24,10 +24,8 @@ class EnvironSchema(Schema):
     sns_topic_arn = fields.Str(required=True)
     sqs_message_group_id = fields.Str(required=True)
     sqs_queue_url = fields.Str(required=True)
-    total_column = fields.Str(required=True)
     period_column = fields.Str(required=True)
     region_column = fields.Str(required=True)
-    county_column = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -60,7 +58,7 @@ def lambda_handler(event, context):
     logger.setLevel(0)
     error_message = ''
     log_message = ''
-    checkpoint = 0
+    checkpoint = 4
 
     try:
         logger.info("Starting " + current_module)
@@ -84,10 +82,11 @@ def lambda_handler(event, context):
         sns_topic_arn = config['sns_topic_arn']
         sqs_message_group_id = config['sqs_message_group_id']
         sqs_queue_url = config['sqs_queue_url']
-        total_column = config['total_column']
         period_column = config['period_column']
         region_column = config['region_column']
-        county_column = config['county_column']
+
+        aggregated_column = event['RuntimeVariables']['aggregated_column']
+        total_column = event['RuntimeVariables']['total_column']
 
         # Read from S3 bucket
         data = funk.read_dataframe_from_s3(bucket_name, in_file_name)
@@ -97,7 +96,7 @@ def lambda_handler(event, context):
         # type of content
         msg = "Checking required data columns are present and correctly typed."
         logger.info(msg)
-        req_col_list = [period_column, county_column, total_column]
+        req_col_list = [period_column, aggregated_column, total_column]
         for req_col in req_col_list:
             if req_col not in data.columns:
                 err_msg = 'Required column "' + req_col + '" not found in dataframe.'
@@ -128,7 +127,7 @@ def lambda_handler(event, context):
             "total_column": total_column,
             "period_column": period_column,
             "region_column": region_column,
-            "county_column": county_column
+            "aggregated_column": aggregated_column
         }
 
         top2 = lambda_client.invoke(FunctionName=method_name,

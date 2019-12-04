@@ -5,7 +5,7 @@ import unittest.mock as mock
 import pandas as pd
 from pandas.util.testing import assert_frame_equal
 
-import aggregation_county_method
+import aggregation_column_method
 
 
 class MockContext():
@@ -43,11 +43,12 @@ class TestCountyMethodMethods(unittest.TestCase):
                 "total_column": "Q608_total",
                 "period_column": "period",
                 "region_column": "region",
-                "county_column": "county",
-                "cell_total_column": "county_total"
+                "aggregated_column": "county",
+                "cell_total_column": "county_total",
+                "aggregation_type": "sum"
             }
 
-            output = aggregation_county_method.lambda_handler(
+            output = aggregation_column_method.lambda_handler(
                 json_payload,
                 context_object
             )
@@ -74,13 +75,14 @@ class TestCountyMethodMethods(unittest.TestCase):
                 "total_column": "Q608_total",
                 "period_column": "period",
                 "region_column": "region",
-                "county_column": "county",
-                "cell_total_column": "county_total"
+                "aggregated_column": "county",
+                "cell_total_column": "county_total",
+                "aggregation_type": "sum"
             }
 
-            with mock.patch("aggregation_county_method.pd.DataFrame") as mocked:
+            with mock.patch("aggregation_column_method.pd.DataFrame") as mocked:
                 mocked.side_effect = Exception("General exception")
-                response = aggregation_county_method.lambda_handler(
+                response = aggregation_column_method.lambda_handler(
                     json_payload,
                     context_object
                 )
@@ -99,14 +101,15 @@ class TestCountyMethodMethods(unittest.TestCase):
             "total_column": "Q608_total",
             "period_column": "period",
             "region_column": "region",
-            "county_column": "county",
-            "cell_total_column": "county_total"
+            "aggregated_column": "county",
+            "cell_total_column": "county_total",
+            "aggregation_type": "sum"
         }
 
-        with mock.patch("aggregation_county_method.json.loads") as mocked:
+        with mock.patch("aggregation_column_method.json.loads") as mocked:
             mocked.side_effect = KeyError("Key Error")
 
-            response = aggregation_county_method.lambda_handler(
+            response = aggregation_column_method.lambda_handler(
                 json_payload,
                 context_object
             )

@@ -23,7 +23,7 @@ class EnvironSchema(Schema):
     sqs_queue_url = fields.Str(required=True)
     period_column = fields.Str(required=True)
     region_column = fields.Str(required=True)
-    county_column = fields.Str(required=True)
+    aggregated_column = fields.Str(required=True)
 
 
 class NoDataInQueueError(Exception):
@@ -63,7 +63,7 @@ def lambda_handler(event, context):
         sqs_queue_url = config["sqs_queue_url"]
         period_column = config['period_column']
         region_column = config['region_column']
-        county_column = config['county_column']
+        aggregated_column = config['aggregated_column']
 
         # Clients
         sqs = boto3.client("sqs", "eu-west-2")
@@ -106,15 +106,15 @@ def lambda_handler(event, context):
 
         # merge the imputation output from s3 with the 3 aggregation outputs
         first_merge = pd.merge(
-            imp_df, first_agg_df, on=[region_column, county_column, period_column],
+            imp_df, first_agg_df, on=[region_column, aggregated_column, period_column],
             how="left")
 
         second_merge = pd.merge(
-            first_merge, second_agg_df, on=[region_column, county_column, period_column],
+            first_merge, second_agg_df, on=[region_column, aggregated_column, period_column],
             how="left")
 
         third_merge = pd.merge(
-            second_merge, third_agg_df, on=[region_column, county_column, period_column],
+            second_merge, third_agg_df, on=[region_column, aggregated_column, period_column],
             how="left")
 
         logger.info("Successfully merged dataframes")

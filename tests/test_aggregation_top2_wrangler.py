@@ -58,9 +58,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                     read.return_value.\
                     decode.return_value = json.dumps(in_file)
                 returned_value = aggregation_top2_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809}},
-                    context_object
-                )
+                    {"RuntimeVariables": {"period": 201809,
+                                          "total_column": "Q608_total",
+                                          "aggregated_column": "county"}
+                     }, context_object)
 
             self.assertTrue(returned_value['success'])
 
@@ -90,9 +91,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                 )
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809}},
-                    context_object
-                )
+                    {"RuntimeVariables": {"period": 201809,
+                                          "total_column": "Q608_total",
+                                          "aggregated_column": "county"}
+                     }, context_object)
 
             assert("Parameter validation error" in returned_value['error'])
 
@@ -137,9 +139,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                 )
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809}},
-                    context_object
-                )
+                    {"RuntimeVariables": {"period": 201809,
+                                          "total_column": "Q608_total",
+                                          "aggregated_column": "county"}
+                     }, context_object)
 
             assert ("Required columns missing" in returned_value['error'])
 
@@ -166,10 +169,8 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
             'out_file_name': "boris",
-            'total_column': 'Q608_total',
             'period_column': 'period',
-            'region_column': 'region',
-            'county_column': 'county'
+            'region_column': 'region'
             }
         ):
             with open("tests/fixtures/top2_wrangler_input_err.json") as file:
@@ -182,9 +183,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                 )
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809}},
-                    context_object
-                )
+                    {"RuntimeVariables": {"period": 201809,
+                                          "total_column": "Q608_total",
+                                          "aggregated_column": "county"}
+                     }, context_object)
 
             assert ("Bad data encountered" in returned_value['error'])
 
@@ -210,10 +212,8 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
             'out_file_name': "boris",
-            'total_column': 'Q608_total',
             'period_column': 'period',
-            'region_column': 'region',
-            'county_column': 'county'
+            'region_column': 'region'
             }
         ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -231,9 +231,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                     return_value.decode.\
                     return_value = json.dumps(lambda_return)
                 returned_value = aggregation_top2_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809}},
-                    context_object
-                )
+                    {"RuntimeVariables": {"period": 201809,
+                                          "total_column": "Q608_total",
+                                          "aggregated_column": "county"}
+                     }, context_object)
 
             assert ("Required columns missing" in returned_value['error'])
 
@@ -259,10 +260,8 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
             'out_file_name': "boris",
-            'total_column': 'Q608_total',
             'period_column': 'period',
-            'region_column': 'region',
-            'county_column': 'county'
+            'region_column': 'region'
             }
         ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -277,9 +276,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                 )
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809}},
-                    context_object
-                )
+                    {"RuntimeVariables": {"period": 201809,
+                                          "total_column": "Q608_total",
+                                          "aggregated_column": "county"}
+                     }, context_object)
 
             assert ("Bad data encountered" in returned_value['error'])
 
@@ -304,10 +304,8 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
             'out_file_name': "boris",
-            'total_column': 'Q608_total',
             'period_column': 'period',
-            'region_column': 'region',
-            'county_column': 'county'
+            'region_column': 'region'
             }
         ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -321,9 +319,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                 )
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809}},
-                    context_object
-                )
+                    {"RuntimeVariables": {"period": 201809,
+                                          "total_column": "Q608_total",
+                                          "aggregated_column": "county"}
+                     }, context_object)
 
             assert ("Incomplete Lambda response" in returned_value['error'])
 
@@ -347,10 +346,8 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
             'out_file_name': "boris",
-            'total_column': 'Q608_total',
             'period_column': 'period',
-            'region_column': 'region',
-            'county_column': 'county'
+            'region_column': 'region'
         }
                              ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -364,9 +361,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                 )
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809}},
-                    context_object
-                )
+                    {"RuntimeVariables": {"period": 201809,
+                                          "total_column": "Q608_total",
+                                          "aggregated_column": "county"}
+                     }, context_object)
 
             assert ("General Error" in returned_value['error'])
 
@@ -388,12 +386,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'checkpoint': '3',
             'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
-            'incoming_message_group': 'Grooop',
-            'out_file_name': 'bob',
-            'total_column': 'Q608_total',
+            'incoming_message_group': "Gruppe",
+            'out_file_name': "boris",
             'period_column': 'period',
-            'region_column': 'region',
-            'county_column': 'county'
+            'region_column': 'region'
             }
         ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -405,9 +401,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                 .read.return_value.decode.return_value = \
                 '{"error": "This is an error message"}'
             returned_value = aggregation_top2_wrangler.lambda_handler(
-                {"RuntimeVariables": {"period": 201809}},
-                context_object
-            )
+                    {"RuntimeVariables": {"period": 201809,
+                                          "total_column": "Q608_total",
+                                          "aggregated_column": "county"}
+                     }, context_object)
 
             assert "success" in returned_value
             assert returned_value["success"] is False
@@ -429,16 +426,15 @@ class TestMoto:
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
             'out_file_name': "boris",
-            'total_column': 'Q608_total',
             'period_column': 'period',
-            'region_column': 'region',
-            'county_column': 'county'
+            'region_column': 'region'
             },
         ):
             response = aggregation_top2_wrangler.lambda_handler(
-                {"RuntimeVariables": {"period": 201809}},
-                context_object
-            )
+                    {"RuntimeVariables": {"period": 201809,
+                                          "total_column": "Q608_total",
+                                          "aggregated_column": "county"}
+                     }, context_object)
 
             assert "success" in response
             assert response["success"] is False
@@ -456,10 +452,8 @@ class TestMoto:
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
             'out_file_name': "boris",
-            'total_column': 'Q608_total',
             'period_column': 'period',
-            'region_column': 'region',
-            'county_column': 'county'
+            'region_column': 'region'
             },
         ):
             with mock.patch("aggregation_top2_wrangler."
@@ -470,8 +464,9 @@ class TestMoto:
                     mock_s3.return_value = mock_content
 
                 response = aggregation_top2_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809}},
-                    context_object
-                )
+                    {"RuntimeVariables": {"period": 201809,
+                                          "total_column": "Q608_total",
+                                          "aggregated_column": "county"}
+                     }, context_object)
 
             assert ("Key Error" in response['error'])
