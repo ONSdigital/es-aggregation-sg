@@ -5,7 +5,7 @@ import os
 import boto3
 import pandas as pd
 from botocore.exceptions import ClientError
-from esawsfunctions import funk
+from es_aws_functions import aws_functions, exception_classes
 from marshmallow import Schema, fields
 
 
@@ -56,23 +56,23 @@ def lambda_handler(event, context):
         sqs_queue_url = config["sqs_queue_url"]
 
         aggregated_column = event['RuntimeVariables']['aggregated_column']
-        additional_aggregated_column = event['RuntimeVariables']
-        ['additional_aggregated_column']
+        additional_aggregated_column =\
+            event['RuntimeVariables']['additional_aggregated_column']
         period_column = event['RuntimeVariables']['period_column']
 
         # Clients
         sqs = boto3.client("sqs", "eu-west-2")
 
         # Get file from s3
-        imp_df = funk.read_dataframe_from_s3(bucket_name, in_file_name)
+        imp_df = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
 
         logger.info("Successfully retrieved data from s3")
         data = []
 
         # Receive the 3 aggregation outputs
-        response = funk.get_sqs_message(sqs_queue_url, 3)
+        response = aws_functions.get_sqs_message(sqs_queue_url, 3)
         if "Messages" not in response:
-            raise funk.NoDataInQueueError("No Messages in queue")
+            raise exception_classes.NoDataInQueueError("No Messages in queue")
         if len(response["Messages"]) < 3:
             raise DoNotHaveAllDataError(
                 "Only " + str(len(response["Messages"])) + " recieved"
@@ -92,12 +92,12 @@ def lambda_handler(event, context):
         second_agg = json.loads(data[1])
         third_agg = json.loads(data[2])
 
-        first_agg_df = funk.read_dataframe_from_s3(first_agg['bucket'],
-                                                   first_agg['key'])
-        second_agg_df = funk.read_dataframe_from_s3(second_agg['bucket'],
-                                                    second_agg['key'])
-        third_agg_df = funk.read_dataframe_from_s3(third_agg['bucket'],
-                                                   third_agg['key'])
+        first_agg_df = aws_functions.read_dataframe_from_s3(first_agg['bucket'],
+                                                            first_agg['key'])
+        second_agg_df = aws_functions.read_dataframe_from_s3(second_agg['bucket'],
+                                                             second_agg['key'])
+        third_agg_df = aws_functions.read_dataframe_from_s3(third_agg['bucket'],
+                                                            third_agg['key'])
 
         # merge the imputation output from s3 with the 3 aggregation outputs
         first_merge = pd.merge(
@@ -126,14 +126,15 @@ def lambda_handler(event, context):
         final_output = third_merge.to_json(orient="records")
 
         # send output onwards
-        funk.save_data(bucket_name, out_file_name,
-                       final_output, sqs_queue_url, sqs_message_group_id)
+        aws_functions.save_data(bucket_name, out_file_name, final_output,
+                                sqs_queue_url, sqs_message_group_id)
         logger.info("Successfully sent message to sqs")
 
-        funk.send_sns_message(checkpoint, sns_topic_arn, "Aggregation - Combiner.")
+        aws_functions.send_sns_message(checkpoint, sns_topic_arn,
+                                       "Aggregation - Combiner.")
         logger.info("Successfully sent data to sns")
 
-    except funk.NoDataInQueueError as e:
+    except exception_classes.NoDataInQueueError as e:
         error_message = (
             "There was no data in sqs queue in:  "
             + current_module

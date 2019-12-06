@@ -6,7 +6,7 @@ import boto3
 import numpy as np
 import pandas as pd
 from botocore.exceptions import ClientError, IncompleteReadError
-from esawsfunctions import funk
+from es_aws_functions import aws_functions, exception_classes
 from marshmallow import Schema, fields
 
 
@@ -90,7 +90,7 @@ def lambda_handler(event, context):
         period_column = event['RuntimeVariables']['period_column']
 
         # Read from S3 bucket
-        data = funk.read_dataframe_from_s3(bucket_name, in_file_name)
+        data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
         logger.info("Completed reading data from s3")
 
         # Ensure mandatory columns are present and have the correct
@@ -137,7 +137,7 @@ def lambda_handler(event, context):
         json_response = json.loads(top2.get('Payload').read().decode("utf-8"))
 
         if not json_response['success']:
-            raise funk.MethodFailure(json_response['error'])
+            raise exception_classes.MethodFailure(json_response['error'])
 
         # Ensure appended columns are present in output and have the
         # correct type of content
@@ -160,10 +160,11 @@ def lambda_handler(event, context):
 
         # Sending output to SQS, notice to SNS
         logger.info("Sending function response downstream.")
-        funk.save_data(bucket_name, out_file_name,
-                       json_response["data"], sqs_queue_url, sqs_message_group_id)
+        aws_functions.save_data(bucket_name, out_file_name,
+                                json_response["data"], sqs_queue_url,
+                                sqs_message_group_id)
         logger.info("Successfully sent the data to S3")
-        funk.send_sns_message(checkpoint, sns_topic_arn, "Aggregation - Top 2.")
+        aws_functions.send_sns_message(checkpoint, sns_topic_arn, "Aggregation - Top 2.")
         logger.info("Successfully sent the SNS message")
 
     except IndexError as e:
@@ -221,7 +222,7 @@ def lambda_handler(event, context):
         log_message = error_message
         log_message += " | Line: " + str(e.__traceback__.tb_lineno)
 
-    except funk.MethodFailure as e:
+    except exception_classes.MethodFailure as e:
         error_message = e.error_message
         log_message = "Error in " + method_name + "."
 

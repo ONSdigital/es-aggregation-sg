@@ -60,7 +60,7 @@ class TestCombininator(unittest.TestCase):
                 agg2 = file.read()
             with open("tests/fixtures/agg3.json") as file:
                 agg3 = file.read()
-            with mock.patch("combiner.funk") as mock_funk:
+            with mock.patch("combiner.aws_functions") as mock_funk:
                 mock_funk.read_dataframe_from_s3.side_effect = \
                     [pd.DataFrame(json.loads(s3_data)), pd.DataFrame(json.loads(agg1)),
                      pd.DataFrame(json.loads(agg2)), pd.DataFrame(json.loads(agg3))]
@@ -81,7 +81,6 @@ class TestCombininator(unittest.TestCase):
                                           "additional_aggregated_column": "region",
                                           "period_column": "period"}}, context_object)
 
-                print(out)
                 assert out["success"]
 
     @mock_sqs
@@ -104,13 +103,13 @@ class TestCombininator(unittest.TestCase):
         ):
             with open("tests/fixtures/factorsdata.json") as file:
                 s3_data = file.read()
-            with mock.patch("combiner.funk.read_dataframe_from_s3") as mock_s3:
+            with mock.patch("combiner.aws_functions.read_dataframe_from_s3") as mock_s3:
                 mock_s3.return_value = s3_data
                 out = combiner.lambda_handler(
                     {"RuntimeVariables": {"aggregated_column": "county",
                                           "additional_aggregated_column": "region",
                                           "period_column": "period"}}, context_object)
-                print(out)
+
                 assert "There was no data in sqs queue" in out["error"]
 
     @mock_sqs
@@ -136,9 +135,9 @@ class TestCombininator(unittest.TestCase):
                 s3_data = file.read()
             with open("tests/fixtures/agg1.json") as file:
                 agg1 = file.read()
-            with mock.patch("combiner.funk.read_dataframe_from_s3") as mock_s3:
+            with mock.patch("combiner.aws_functions.read_dataframe_from_s3") as mock_s3:
                 mock_s3.return_value = s3_data
-                with mock.patch("combiner.funk.get_sqs_message") as mock_sqs:
+                with mock.patch("combiner.aws_functions.get_sqs_message") as mock_sqs:
 
                     mock_sqs.return_value = {"Messages": [{"Body": agg1}]}
                     out = combiner.lambda_handler(
@@ -146,7 +145,7 @@ class TestCombininator(unittest.TestCase):
                                               "additional_aggregated_column": "region",
                                               "period_column": "period"}}, context_object)
 
-                    print("Hello", out)
+
                     assert "Did not recieve all 3 messages" in out["error"]
 
     @mock_sqs
@@ -168,7 +167,7 @@ class TestCombininator(unittest.TestCase):
                 "in_file_name": "sss",
             },
         ):
-            with mock.patch("combiner.funk.read_dataframe_from_s3") as mock_bot:
+            with mock.patch("combiner.aws_functions.read_dataframe_from_s3") as mock_bot:
                 mock_bot.side_effect = AttributeError("noo")
 
                 out = combiner.lambda_handler(
@@ -226,10 +225,10 @@ class TestCombininator(unittest.TestCase):
                 s3_data = file.read()
             with open("tests/fixtures/agg1.json") as file:
                 agg1 = file.read()
-            with mock.patch("combiner.funk.read_dataframe_from_s3") as mock_s3:
+            with mock.patch("combiner.aws_functions.read_dataframe_from_s3") as mock_s3:
                 mock_s3.return_value = s3_data
-                with mock.patch("combiner.funk.get_sqs_message") as mock_sqs:
-                    with mock.patch("combiner.funk.send_sns_message") as mock_sns:  # noqa
+                with mock.patch("combiner.aws_functions.get_sqs_message") as mock_sqs:
+                    with mock.patch("combiner.aws_functions.send_sns_message") as mock_sns:  # noqa
 
                         mock_sqs.return_value = {
                             "Messages": [
@@ -265,7 +264,7 @@ class TestCombininator(unittest.TestCase):
                 "in_file_name": "sss",
             },
         ):
-            with mock.patch("combiner.funk.read_dataframe_from_s3") as mock_bot:
+            with mock.patch("combiner.aws_functions.read_dataframe_from_s3") as mock_bot:
                 mock_bot.side_effect = Exception("noo")
 
                 out = combiner.lambda_handler(

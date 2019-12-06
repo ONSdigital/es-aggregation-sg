@@ -4,7 +4,7 @@ import os
 
 import boto3
 from botocore.exceptions import ClientError, IncompleteReadError
-from esawsfunctions import funk
+from es_aws_functions import aws_functions, exception_classes
 from marshmallow import Schema, fields
 
 
@@ -71,7 +71,7 @@ def lambda_handler(event, context):
         out_file_name = cell_total_column + "_" + out_file_name
 
         # Read from S3 bucket
-        data = funk.read_dataframe_from_s3(bucket_name, in_file_name)
+        data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
         logger.info("Completed reading data from s3")
 
         disaggregated_data = data[data.period == int(period)]
@@ -97,15 +97,15 @@ def lambda_handler(event, context):
         logger.info("Successfully invoked the method lambda")
 
         if not json_response['success']:
-            raise funk.MethodFailure(json_response['error'])
+            raise exception_classes.MethodFailure(json_response['error'])
 
-        funk.save_data(bucket_name, out_file_name, json_response["data"],
-                       sqs_queue_url, sqs_message_group_id)
+        aws_functions.save_data(bucket_name, out_file_name, json_response["data"],
+                                sqs_queue_url, sqs_message_group_id)
         logger.info("Successfully sent the data to SQS")
 
-        funk.send_sns_message(checkpoint,
-                              sns_topic_arn,
-                              "Aggregation - " + aggregated_column + ".")
+        aws_functions.send_sns_message(checkpoint,
+                                       sns_topic_arn,
+                                       "Aggregation - " + aggregated_column + ".")
 
         logger.info("Successfully sent the SNS message")
 
@@ -150,7 +150,7 @@ def lambda_handler(event, context):
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
 
-    except funk.MethodFailure as e:
+    except exception_classes.MethodFailure as e:
         error_message = e.error_message
         log_message = "Error in " + method_name + "."
 
