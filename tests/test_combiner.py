@@ -145,7 +145,6 @@ class TestCombininator(unittest.TestCase):
                                               "additional_aggregated_column": "region",
                                               "period_column": "period"}}, context_object)
 
-
                     assert "Did not recieve all 3 messages" in out["error"]
 
     @mock_sqs
