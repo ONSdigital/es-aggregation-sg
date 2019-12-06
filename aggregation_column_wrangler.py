@@ -21,8 +21,6 @@ class InputSchema(Schema):
     sns_topic_arn = fields.Str(required=True)
     sqs_message_group_id = fields.Str(required=True)
     sqs_queue_url = fields.Str(required=True)
-    period_column = fields.Str(required=True)
-    region_column = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -49,6 +47,9 @@ def lambda_handler(event, context):
         aggregated_column = event['RuntimeVariables']['aggregated_column']
         cell_total_column = event['RuntimeVariables']['cell_total_column']
         total_column = event['RuntimeVariables']['total_column']
+        additional_aggregated_column = event['RuntimeVariables']
+        ['additional_aggregated_column']
+        period_column = event['RuntimeVariables']['period_column']
 
         # ENV vars
         config, errors = InputSchema().load(os.environ)
@@ -64,8 +65,6 @@ def lambda_handler(event, context):
         sns_topic_arn = config['sns_topic_arn']
         sqs_message_group_id = config['sqs_message_group_id']
         sqs_queue_url = config['sqs_queue_url']
-        period_column = config['period_column']
-        region_column = config['region_column']
 
         logger.info("Validated params.")
 
@@ -84,7 +83,7 @@ def lambda_handler(event, context):
             "input_json": formatted_data,
             "total_column": total_column,
             "period_column": period_column,
-            "region_column": region_column,
+            "additional_aggregated_column": additional_aggregated_column,
             "aggregated_column": aggregated_column,
             "cell_total_column": cell_total_column,
             "aggregation_type": aggregation_type

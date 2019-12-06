@@ -48,8 +48,6 @@ functions:
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
       sqs_message_group_id: aggregation-by-county
       sqs_queue_url: https://sqs.eu-west-2.amazonaws.com/${self:custom.accountId}/BMI_Results.fifo
-      period_column: period
-      region_column: region
 
   deploy-column-method:
     name: es-aggregation-column-method
@@ -88,8 +86,6 @@ functions:
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
       sqs_message_group_id: aggregation-by-top2
       sqs_queue_url: https://sqs.eu-west-2.amazonaws.com/${self:custom.accountId}/BMI_Results.fifo
-      period_column: period
-      region_column: region
 
   deploy-top2-method:
     name: es-aggregation-top2-method
@@ -127,6 +123,3 @@ functions:
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
       sqs_message_group_id: aggregation-combiner-out
       sqs_queue_url: https://sqs.eu-west-2.amazonaws.com/${self:custom.accountId}/BMI_Results.fifo
-      period_column: period
-      region_column: region
-      aggregated_column: county

@@ -29,9 +29,7 @@ class TestCountyWranglerMethods:
                 "sqs_message_group_id": "mock-message-id",
                 "method_name": "mock-method",
                 "incoming_message_group": "yes",
-                'in_file_name': 'esFree',
-                "period_column": "period",
-                "region_column": "region",
+                'in_file_name': 'esFree'
             },
         )
 
@@ -56,12 +54,17 @@ class TestCountyWranglerMethods:
             mock_lambda.return_value.invoke.return_value.get.return_value.read.\
                 return_value = invoke_data
             returned_value = aggregation_column_wrangler.\
-                lambda_handler({"RuntimeVariables": {"period": 6666,
-                                                     "aggregation_type": "sum",
-                                                     "aggregated_column": "county",
-                                                     "cell_total_column": "county_total",
-                                                     "total_column": "Q608_total"}
-                                }, context_object)
+                lambda_handler({
+                    "RuntimeVariables":
+                        {"period": 6666,
+                         "aggregation_type": "sum",
+                         "aggregated_column": "county",
+                         "cell_total_column": "county_total",
+                         "total_column": "Q608_total",
+                         "additional_aggregated_column": "region",
+                         "period_column": "period"
+                         }
+                }, context_object)
 
             mock_sqs.return_value = {"Messages": [{"Body": json.dumps(input_data),
                                                    "ReceiptHandle": "String"}]}
@@ -75,12 +78,17 @@ class TestCountyWranglerMethods:
     def test_wrangler_general_exception(self, mock_s3_return, mock_client, mock_boto):
         mock_s3_return.side_effect = Exception()
         response = aggregation_column_wrangler.\
-            lambda_handler({"RuntimeVariables": {"period": 6666,
-                                                 "aggregation_type": "sum",
-                                                 "aggregated_column": "county",
-                                                 "cell_total_column": "county_total",
-                                                 "total_column": "Q608_total"}
-                            }, context_object)
+            lambda_handler({
+                "RuntimeVariables":
+                    {"period": 6666,
+                     "aggregation_type": "sum",
+                     "aggregated_column": "county",
+                     "cell_total_column": "county_total",
+                     "total_column": "Q608_total",
+                     "additional_aggregated_column": "region",
+                     "period_column": "period"
+                     }
+            }, context_object)
 
         assert "success" in response
         assert response["success"] is False
@@ -94,13 +102,18 @@ class TestCountyWranglerMethods:
         # Removing the strata_column to allow for test of missing parameter
         aggregation_column_wrangler.os.environ.pop("method_name")
 
-        response = aggregation_column_wrangler. \
-            lambda_handler({"RuntimeVariables": {"period": 6666,
-                                                 "aggregation_type": "sum",
-                                                 "aggregated_column": "county",
-                                                 "cell_total_column": "county_total",
-                                                 "total_column": "Q608_total"}
-                            }, context_object)
+        response = aggregation_column_wrangler.\
+            lambda_handler({
+                "RuntimeVariables":
+                    {"period": 6666,
+                     "aggregation_type": "sum",
+                     "aggregated_column": "county",
+                     "cell_total_column": "county_total",
+                     "total_column": "Q608_total",
+                     "additional_aggregated_column": "region",
+                     "period_column": "period"
+                     }
+            }, context_object)
 
         aggregation_column_wrangler.os.environ["method_name"] = "mock_method"
         assert """Error validating environment params:""" in response["error"]
@@ -114,12 +127,17 @@ class TestCountyWranglerMethods:
             mock_s3_return.side_effect = KeyError()
             mock_s3_return.return_value = pd.DataFrame(input_data)
             response = aggregation_column_wrangler.\
-                lambda_handler({"RuntimeVariables": {"period": 6666,
-                                                     "aggregation_type": "sum",
-                                                     "aggregated_column": "county",
-                                                     "cell_total_column": "county_total",
-                                                     "total_column": "Q608_total"}
-                                }, context_object)
+                lambda_handler({
+                    "RuntimeVariables":
+                        {"period": 6666,
+                         "aggregation_type": "sum",
+                         "aggregated_column": "county",
+                         "cell_total_column": "county_total",
+                         "total_column": "Q608_total",
+                         "additional_aggregated_column": "region",
+                         "period_column": "period"
+                         }
+                }, context_object)
 
             assert "success" in response
             assert response["success"] is False
@@ -142,14 +160,17 @@ class TestCountyWranglerMethods:
                                                                 StreamingBody(file, 355)}
 
                 returned_value = aggregation_column_wrangler.\
-                    lambda_handler(
-                        {"RuntimeVariables": {
-                            "period": 6666,
-                            "aggregation_type": "sum",
-                            "aggregated_column": "county",
-                            "cell_total_column": "county_total",
-                            "total_column": "Q608_total"}},
-                        context_object)
+                    lambda_handler({
+                        "RuntimeVariables":
+                            {"period": 6666,
+                             "aggregation_type": "sum",
+                             "aggregated_column": "county",
+                             "cell_total_column": "county_total",
+                             "total_column": "Q608_total",
+                             "additional_aggregated_column": "region",
+                             "period_column": "period"
+                             }
+                    }, context_object)
 
                 assert(returned_value['error'].__contains__("""Bad data"""))
 
@@ -166,13 +187,18 @@ class TestCountyWranglerMethods:
             mock_client_object.invoke.return_value = {
                 "Payload": StreamingBody(input_file, 123456)
             }
-            response = aggregation_column_wrangler. \
-                lambda_handler({"RuntimeVariables": {"period": 6666,
-                                                     "aggregation_type": "sum",
-                                                     "aggregated_column": "county",
-                                                     "cell_total_column": "county_total",
-                                                     "total_column": "Q608_total"}
-                                }, context_object)
+            response = aggregation_column_wrangler.\
+                lambda_handler({
+                    "RuntimeVariables":
+                        {"period": 6666,
+                         "aggregation_type": "sum",
+                         "aggregated_column": "county",
+                         "cell_total_column": "county_total",
+                         "total_column": "Q608_total",
+                         "additional_aggregated_column": "region",
+                         "period_column": "period"
+                         }
+                }, context_object)
 
             assert "success" in response
             assert response["success"] is False
@@ -186,25 +212,35 @@ class TestCountyWranglerMethods:
                 mock_s3.side_effect = KeyError()
                 mock_s3.return_value = mock_content
 
-            response = aggregation_column_wrangler. \
-                lambda_handler({"RuntimeVariables": {"period": 6666,
-                                                     "aggregation_type": "sum",
-                                                     "aggregated_column": "county",
-                                                     "cell_total_column": "county_total",
-                                                     "total_column": "Q608_total"}
-                                }, context_object)
+            response = aggregation_column_wrangler.\
+                lambda_handler({
+                    "RuntimeVariables":
+                        {"period": 6666,
+                         "aggregation_type": "sum",
+                         "aggregated_column": "county",
+                         "cell_total_column": "county_total",
+                         "total_column": "Q608_total",
+                         "additional_aggregated_column": "region",
+                         "period_column": "period"
+                         }
+                }, context_object)
 
         assert response['error'].__contains__("""Key Error""")
 
     @mock_sqs
     def test_fail_to_get_from_sqs(self):
-        response = aggregation_column_wrangler. \
-            lambda_handler({"RuntimeVariables": {"period": 6666,
-                                                 "aggregation_type": "sum",
-                                                 "aggregated_column": "county",
-                                                 "cell_total_column": "county_total",
-                                                 "total_column": "Q608_total"}
-                            }, context_object)
+        response = aggregation_column_wrangler.\
+                lambda_handler({
+                    "RuntimeVariables":
+                        {"period": 6666,
+                         "aggregation_type": "sum",
+                         "aggregated_column": "county",
+                         "cell_total_column": "county_total",
+                         "total_column": "Q608_total",
+                         "additional_aggregated_column": "region",
+                         "period_column": "period"
+                         }
+                }, context_object)
 
         assert "success" in response
         assert response["success"] is False
@@ -224,13 +260,18 @@ class TestCountyWranglerMethods:
                 .read.return_value.decode.return_value = \
                 '{"error": "This is an error message"}'
 
-            returned_value = aggregation_column_wrangler. \
-                lambda_handler({"RuntimeVariables": {"period": 6666,
-                                                     "aggregation_type": "sum",
-                                                     "aggregated_column": "county",
-                                                     "cell_total_column": "county_total",
-                                                     "total_column": "Q608_total"}
-                                }, context_object)
+            returned_value = aggregation_column_wrangler.\
+                lambda_handler({
+                    "RuntimeVariables":
+                        {"period": 6666,
+                         "aggregation_type": "sum",
+                         "aggregated_column": "county",
+                         "cell_total_column": "county_total",
+                         "total_column": "Q608_total",
+                         "additional_aggregated_column": "region",
+                         "period_column": "period"
+                         }
+                }, context_object)
 
             mock_sqs.return_value = {"Messages": [{"Body": json.dumps(input_data),
                                                    "ReceiptHandle": "String"}]}
