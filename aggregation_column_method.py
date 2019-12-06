@@ -68,7 +68,7 @@ def lambda_handler(event, context):
         logger.info("County totals successfully calculated.")
 
         output_json = agg_by_county_output.to_json(orient='records')
-
+        final_output = {"data": output_json}
         logger.info("DataFrame converted to JSON for output.")
 
     except KeyError as e:
@@ -92,6 +92,7 @@ def lambda_handler(event, context):
         if (len(error_message)) > 0:
             logger.error(log_message)
             return {"success": False, "error": error_message}
-        else:
-            logger.info("Successfully completed module: " + current_module)
-            return json.loads(output_json)
+
+    logger.info("Successfully completed module: " + current_module)
+    final_output['success'] = True
+    return final_output

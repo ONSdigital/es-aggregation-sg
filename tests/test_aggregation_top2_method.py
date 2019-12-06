@@ -35,7 +35,7 @@ class TestAggregationTop2Method(unittest.TestCase):
 
             # Write the output to file
             file = open('tests/fixtures/top2_produced_method_output', 'w')
-            file.write(returned_value)
+            file.write(returned_value["data"])
             file.close()
 
             with open("tests/fixtures/top2_method_output.json") as file:

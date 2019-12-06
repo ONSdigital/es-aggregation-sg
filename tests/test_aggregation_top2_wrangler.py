@@ -48,11 +48,9 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             with open('tests/fixtures/top2_method_output.json', "r") as file:
                 in_file = file.read()
 
-                mock_lambda.return_value.\
-                    invoke.return_value.\
-                    get.return_value.\
-                    read.return_value.\
-                    decode.return_value = json.dumps(in_file)
+                mock_lambda.return_value.invoke.return_value.get.return_value \
+                    .read.return_value.decode.return_value = json.dumps(
+                        {"success": True, "data": in_file})
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {
                         "period": 201809,
@@ -227,11 +225,9 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             with open(err_file, "r") as file:
                 lambda_return = file.read()
 
-                mock_lambda.return_value.invoke.\
-                    return_value.get.\
-                    return_value.read.\
-                    return_value.decode.\
-                    return_value = json.dumps(lambda_return)
+                mock_lambda.return_value.invoke.return_value.get.return_value \
+                    .read.return_value.decode.return_value = json.dumps(
+                        {"success": True, "data": lambda_return})
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {
                         "period": 201809,
@@ -408,8 +404,8 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             mock_get_from_s3.return_value = pd.DataFrame(input_data)
 
             mock_lambda.return_value.invoke.return_value.get.return_value \
-                .read.return_value.decode.return_value = \
-                '{"error": "This is an error message"}'
+                .read.return_value.decode.return_value = json.dumps(
+                    {"success": False, "error": "This is an error message"})
             returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {
                         "period": 201809,
