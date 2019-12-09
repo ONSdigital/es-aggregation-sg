@@ -1,20 +1,9 @@
 import json
 import logging
 
-import boto3
 import marshmallow
 import numpy as np
 import pandas as pd
-
-# Set up clients
-s3 = boto3.resource('s3')
-sqs = boto3.client('sqs', region_name='eu-west-2')
-sns = boto3.client('sns', region_name='eu-west-2')
-lambda_client = boto3.client('lambda', region_name="eu-west-2")
-
-
-class MethodFailure(Exception):
-    pass
 
 
 class EnvironSchema(marshmallow.Schema):
@@ -25,18 +14,19 @@ class EnvironSchema(marshmallow.Schema):
     total_column = marshmallow.fields.Str(required=True)
     period_column = marshmallow.fields.Str(required=True)
     region_column = marshmallow.fields.Str(required=True)
-    county_column = marshmallow.fields.Str(required=True)
+    aggregated_column = marshmallow.fields.Str(required=True)
 
 
 def lambda_handler(event, context):
     """
     This method requires a dataframe which must contain the input columns:
-     - period
-     - county
-     - Q608_total
+     - 'period' by default, can be changed in environment variables.
+     - 'county' by default, can be changed in environment variables.
+     - 'region' by default, can be changed in environment variables.
+     - 'Q608_total' by default, can be changed in environment variables.
     ... and the two output columns...
-     - largest_contributor
-     - second_largest contributor
+     - largest_contributor, created inside top2 wrangler.
+     - second_largest contributor, created inside top2 wrangler.
 
     It loops through each county (by period) and records largest & second
     largest value against each record in the group.
@@ -66,16 +56,16 @@ def lambda_handler(event, context):
         total_column = config["total_column"]
         period_column = config["period_column"]
         region_column = config["region_column"]
-        county_column = config["county_column"]
+        aggregated_column = config["aggregated_column"]
 
         input_dataframe = pd.DataFrame(input_json)
 
         logger.info("Invoking calc_top_two function on input dataframe")
 
         response = calc_top_two(input_dataframe, total_column,
-                                period_column, county_column)
+                                period_column, aggregated_column)
 
-        response = response[[region_column, county_column, period_column,
+        response = response[[region_column, aggregated_column, period_column,
                              "largest_contributor",
                              "second_largest_contributor"]]
 
@@ -104,7 +94,7 @@ def lambda_handler(event, context):
     return response_json
 
 
-def calc_top_two(data, total_column, period_column, county_column,):
+def calc_top_two(data, total_column, period_column, aggregated_column,):
     # NB: No need for try/except as called from inside try clause in lambda_handler.
 
     logger = logging.getLogger()
@@ -120,26 +110,25 @@ def calc_top_two(data, total_column, period_column, county_column,):
 
     # Get unique periods
     for period in period_list:
-        county_list = []
-        temp_county_list = data.loc[
-            (data[period_column] == period)][county_column].tolist()
+        column_list = []
+        temp_column_list = data.loc[
+            (data[period_column] == period)][aggregated_column].tolist()
 
         logger.info("Processing period " + str(period))
 
-        # Make County unique
-        for temp_county in temp_county_list:
-            if temp_county not in county_list:
-                county_list.append(temp_county)
+        # Make column unique
+        for temp_column in temp_column_list:
+            if temp_column not in column_list:
+                column_list.append(temp_column)
 
-            # Loop through each county (by period) and update largest &
-            # second largest value
-            for county in county_list:
-                logger.info("...Processing county " + str(county))
+            # Loop through each column (by period) updating largest & second largest value
+            for column in column_list:
+                logger.info("...Processing column " + str(column))
 
                 tot = data.loc[(data[period_column] == period)][[total_column,
-                                                                 county_column]]
+                                                                 aggregated_column]]
 
-                tot2 = tot.loc[(tot[county_column] == county)]
+                tot2 = tot.loc[(tot[aggregated_column] == column)]
 
                 sorted_dataframe = tot2.sort_values(by=[total_column], ascending=False)
 
@@ -152,11 +141,11 @@ def calc_top_two(data, total_column, period_column, county_column,):
                 if top_two.shape[0] >= 2:
                     secondary_value = top_two[total_column].iloc[1]
 
-                data.loc[(data[county_column] == county) &
+                data.loc[(data[aggregated_column] == column) &
                          (data[period_column] == period),
                          'largest_contributor'] = primary_value
 
-                data.loc[(data[county_column] == county) &
+                data.loc[(data[aggregated_column] == column) &
                          (data[period_column] == period),
                          'second_largest_contributor'] = secondary_value
 

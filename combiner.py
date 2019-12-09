@@ -21,13 +21,6 @@ class EnvironSchema(Schema):
     sns_topic_arn = fields.Str(required=True)
     sqs_message_group_id = fields.Str(required=True)
     sqs_queue_url = fields.Str(required=True)
-    period_column = fields.Str(required=True)
-    region_column = fields.Str(required=True)
-    county_column = fields.Str(required=True)
-
-
-class NoDataInQueueError(Exception):
-    pass
 
 
 class DoNotHaveAllDataError(Exception):
@@ -40,7 +33,7 @@ def lambda_handler(event, context):
     current_module = "Aggregation_Combiner"
     error_message = ""
     log_message = ""
-    checkpoint = 0
+    checkpoint = 4
 
     try:
         logger.info("Starting Aggregation Combiner.")
@@ -61,9 +54,11 @@ def lambda_handler(event, context):
         sns_topic_arn = config["sns_topic_arn"]
         sqs_message_group_id = config["sqs_message_group_id"]
         sqs_queue_url = config["sqs_queue_url"]
-        period_column = config['period_column']
-        region_column = config['region_column']
-        county_column = config['county_column']
+
+        aggregated_column = event['RuntimeVariables']['aggregated_column']
+        additional_aggregated_column = event['RuntimeVariables']
+        ['additional_aggregated_column']
+        period_column = event['RuntimeVariables']['period_column']
 
         # Clients
         sqs = boto3.client("sqs", "eu-west-2")
@@ -77,7 +72,7 @@ def lambda_handler(event, context):
         # Receive the 3 aggregation outputs
         response = funk.get_sqs_message(sqs_queue_url, 3)
         if "Messages" not in response:
-            raise NoDataInQueueError("No Messages in queue")
+            raise funk.NoDataInQueueError("No Messages in queue")
         if len(response["Messages"]) < 3:
             raise DoNotHaveAllDataError(
                 "Only " + str(len(response["Messages"])) + " recieved"
@@ -106,16 +101,19 @@ def lambda_handler(event, context):
 
         # merge the imputation output from s3 with the 3 aggregation outputs
         first_merge = pd.merge(
-            imp_df, first_agg_df, on=[region_column, county_column, period_column],
-            how="left")
+            imp_df, first_agg_df, on=[additional_aggregated_column,
+                                      aggregated_column,
+                                      period_column], how="left")
 
         second_merge = pd.merge(
-            first_merge, second_agg_df, on=[region_column, county_column, period_column],
-            how="left")
+            first_merge, second_agg_df, on=[additional_aggregated_column,
+                                            aggregated_column,
+                                            period_column], how="left")
 
         third_merge = pd.merge(
-            second_merge, third_agg_df, on=[region_column, county_column, period_column],
-            how="left")
+            second_merge, third_agg_df, on=[additional_aggregated_column,
+                                            aggregated_column,
+                                            period_column], how="left")
 
         logger.info("Successfully merged dataframes")
 
@@ -135,7 +133,7 @@ def lambda_handler(event, context):
         funk.send_sns_message(checkpoint, sns_topic_arn, "Aggregation - Combiner.")
         logger.info("Successfully sent data to sns")
 
-    except NoDataInQueueError as e:
+    except funk.NoDataInQueueError as e:
         error_message = (
             "There was no data in sqs queue in:  "
             + current_module

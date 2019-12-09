@@ -13,25 +13,27 @@ class EnvironSchema(marshmallow.Schema):
     total_column = marshmallow.fields.Str(required=True)
     period_column = marshmallow.fields.Str(required=True)
     region_column = marshmallow.fields.Str(required=True)
-    county_column = marshmallow.fields.Str(required=True)
+    aggregated_column = marshmallow.fields.Str(required=True)
     cell_total_column = marshmallow.fields.Str(required=True)
+    aggregation_type = marshmallow.fields.Str(required=True)
 
 
 def lambda_handler(event, context):
     """
-    Generates a JSON dataset, grouped by region, county and period,
-    with the Q608 totals (sum) as a new column called 'county_total'.
+    Generates a JSON dataset, grouped by the given aggregated_column(e.g.county) and
+    period, with the given total_column(e.g.Q608_total) aggregated by the given
+    aggregation_type(e.g.Sum) as a new column called cell_total_column(e.g.county_total).
     :param event: Event object
     :param context: Context object
     :return: JSON string
     """
-    current_module = "Aggregation County - Method"
+    current_module = "Aggregation by column - Method"
     error_message = ""
     log_message = ""
     logger = logging.getLogger("Aggregation")
     output_json = ""
     try:
-        logger.info("Aggregation county method begun.")
+        logger.info("Aggregation by column - Method begun.")
 
         # Set up Environment variables Schema.
         schema = EnvironSchema(strict=False)
@@ -43,17 +45,20 @@ def lambda_handler(event, context):
         total_column = config["total_column"]
         period_column = config["period_column"]
         region_column = config["region_column"]
-        county_column = config["county_column"]
+        aggregated_column = config["aggregated_column"]
         cell_total_column = config["cell_total_column"]
+        aggregation_type = config["aggregation_type"]
 
         input_dataframe = pd.DataFrame(input_json)
 
         logger.info("JSON data converted to DataFrame.")
 
-        county_agg = input_dataframe.groupby([region_column, county_column,
+        county_agg = input_dataframe.groupby([region_column,
+                                              aggregated_column,
                                               period_column])
 
-        agg_by_county_output = county_agg.agg({total_column: 'sum'}).reset_index()
+        agg_by_county_output = county_agg.agg({total_column: aggregation_type})\
+            .reset_index()
 
         agg_by_county_output.rename(
             columns={total_column: cell_total_column},

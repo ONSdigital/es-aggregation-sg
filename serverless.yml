@@ -25,12 +25,12 @@ custom:
   accountId: ${self:custom.accounts.account-id}
 
 functions:
-  deploy-county-wrangler:
-    name: es-aggregation-county-wrangler
-    handler: aggregation_county_wrangler.lambda_handler
+  deploy-column-wrangler:
+    name: es-aggregation-column-wrangler
+    handler: aggregation_column_wrangler.lambda_handler
     package:
       include:
-        - aggregation_county_wrangler.py
+        - aggregation_column_wrangler.py
       exclude:
         - ./**
     layers:
@@ -43,66 +43,18 @@ functions:
       checkpoint: 4
       bucket_name: results-s3-bucket
       in_file_name: imputation_apply_out.json
-      out_file_name: aggregation_county_out.json
-      method_name: es-aggregation-county-method
+      out_file_name: aggregation_column_out.json
+      method_name: es-aggregation-column-method
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
       sqs_message_group_id: aggregation-by-county
       sqs_queue_url: https://sqs.eu-west-2.amazonaws.com/${self:custom.accountId}/BMI_Results.fifo
-      total_column: Q608_total
-      period_column: period
-      region_column: region
-      county_column: county
-      cell_total_column: county_total
 
-  deploy-county-method:
-    name: es-aggregation-county-method
-    handler: aggregation_county_method.lambda_handler
+  deploy-column-method:
+    name: es-aggregation-column-method
+    handler: aggregation_column_method.lambda_handler
     package:
       include:
-        - aggregation_county_method.py
-      exclude:
-        - ./**
-    layers:
-      - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:es_python_layer:10
-      - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:es_python_marshmallow:2
-    tags:
-      app: results
-
-  deploy-entref-wrangler:
-    name: es-aggregation-entref-wrangler
-    handler: aggregation_entref_wrangler.lambda_handler
-    package:
-      include:
-        - aggregation_entref_wrangler.py
-      exclude:
-        - ./**
-    layers:
-      - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:es_python_layer:10
-      - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:es_python_marshmallow:2
-      - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:dev-es-commonfunctions:15
-    tags:
-      app: results
-    environment:
-      checkpoint: 4
-      bucket_name: results-s3-bucket
-      in_file_name: imputation_apply_out.json
-      method_name: es-aggregation-entref-method
-      out_file_name: ent_ref_out.json
-      sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
-      sqs_message_group_id: aggregation-by-entref
-      sqs_queue_url: https://sqs.eu-west-2.amazonaws.com/${self:custom.accountId}/BMI_Results.fifo
-      period_column: period
-      region_column: region
-      county_column: county
-      ent_ref_column: enterprise_ref
-      cell_total_column: ent_ref_count
-
-  deploy-entref-method:
-    name: es-aggregation-entref-method
-    handler: aggregation_entref_method.lambda_handler
-    package:
-      include:
-        - aggregation_entref_method.py
+        - aggregation_column_method.py
       exclude:
         - ./**
     layers:
@@ -134,10 +86,6 @@ functions:
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
       sqs_message_group_id: aggregation-by-top2
       sqs_queue_url: https://sqs.eu-west-2.amazonaws.com/${self:custom.accountId}/BMI_Results.fifo
-      total_column: Q608_total
-      period_column: period
-      region_column: region
-      county_column: county
 
   deploy-top2-method:
     name: es-aggregation-top2-method
@@ -175,6 +123,3 @@ functions:
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
       sqs_message_group_id: aggregation-combiner-out
       sqs_queue_url: https://sqs.eu-west-2.amazonaws.com/${self:custom.accountId}/BMI_Results.fifo
-      period_column: period
-      region_column: region
-      county_column: county

@@ -28,9 +28,7 @@ class TestAggregationTop2Method(unittest.TestCase):
                 "total_column": "Q608_total",
                 "period_column": "period",
                 "region_column": "region",
-                "county_column": "county",
-                "ent_ref_column": "enterprise_ref",
-                "cell_total_column": "ent_ref_count"
+                "aggregated_column": "county"
             }
 
             returned_value = aggregation_top2_method.lambda_handler(json_payload, None)
