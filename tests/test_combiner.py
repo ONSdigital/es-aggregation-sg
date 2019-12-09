@@ -27,7 +27,7 @@ class TestCombininator(unittest.TestCase):
                 "sqs_queue_url": "mock_queue",
                 "bucket_name": "bertiebucket",
                 "sqs_message_group_id": "Bob"
-            },
+            }
         ):
             out = combiner.lambda_handler("mike?", context_object)
             assert not out["success"]
@@ -49,8 +49,8 @@ class TestCombininator(unittest.TestCase):
                 "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "mrsbucket",
                 "sqs_message_group_id": "Bob",
-                "in_file_name": "sss",
-            },
+                "in_file_name": "sss"
+            }
         ):
             with open("tests/fixtures/factorsdata.json") as file:
                 s3_data = file.read()
@@ -98,8 +98,8 @@ class TestCombininator(unittest.TestCase):
                 "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "BertieBucket",
                 "sqs_message_group_id": "Bob",
-                "in_file_name": "sss",
-            },
+                "in_file_name": "sss"
+            }
         ):
             with open("tests/fixtures/factorsdata.json") as file:
                 s3_data = file.read()
@@ -128,8 +128,8 @@ class TestCombininator(unittest.TestCase):
                 "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "Bertie Bucket",
                 "sqs_message_group_id": "Bob",
-                "in_file_name": "sss",
-            },
+                "in_file_name": "sss"
+            }
         ):
             with open("tests/fixtures/factorsdata.json") as file:
                 s3_data = file.read()
@@ -163,8 +163,8 @@ class TestCombininator(unittest.TestCase):
                 "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "BertieBucket",
                 "sqs_message_group_id": "Bob",
-                "in_file_name": "sss",
-            },
+                "in_file_name": "sss"
+            }
         ):
             with mock.patch("combiner.aws_functions.read_dataframe_from_s3") as mock_bot:
                 mock_bot.side_effect = AttributeError("noo")
@@ -191,8 +191,8 @@ class TestCombininator(unittest.TestCase):
                 "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "BertieBucket",
                 "sqs_message_group_id": "Bob",
-                "in_file_name": "sss",
-            },
+                "in_file_name": "sss"
+            }
         ):
 
             out = combiner.lambda_handler(
@@ -217,8 +217,8 @@ class TestCombininator(unittest.TestCase):
                 "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "Bertie Bucket",
                 "sqs_message_group_id": "Bob",
-                "in_file_name": "sss",
-            },
+                "in_file_name": "sss"
+            }
         ):
             with open("tests/fixtures/factorsdata.json") as file:
                 s3_data = file.read()
@@ -260,8 +260,8 @@ class TestCombininator(unittest.TestCase):
                 "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "BertieBucket",
                 "sqs_message_group_id": "Bob",
-                "in_file_name": "sss",
-            },
+                "in_file_name": "sss"
+            }
         ):
             with mock.patch("combiner.aws_functions.read_dataframe_from_s3") as mock_bot:
                 mock_bot.side_effect = Exception("noo")

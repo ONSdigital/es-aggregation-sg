@@ -41,7 +41,7 @@ class TestCountyMethodMethods(unittest.TestCase):
                 "input_json": json_content,
                 "total_column": "Q608_total",
                 "period_column": "period",
-                "region_column": "region",
+                "additional_aggregated_column": "region",
                 "aggregated_column": "county",
                 "cell_total_column": "county_total",
                 "aggregation_type": "sum"
@@ -73,7 +73,7 @@ class TestCountyMethodMethods(unittest.TestCase):
                 "input_json": json_content,
                 "total_column": "Q608_total",
                 "period_column": "period",
-                "region_column": "region",
+                "additional_aggregated_column": "region",
                 "aggregated_column": "county",
                 "cell_total_column": "county_total",
                 "aggregation_type": "sum"
@@ -99,7 +99,7 @@ class TestCountyMethodMethods(unittest.TestCase):
             "input_json": json_content,
             "total_column": "Q608_total",
             "period_column": "period",
-            "region_column": "region",
+            "additional_aggregated_column": "region",
             "aggregated_column": "county",
             "cell_total_column": "county_total",
             "aggregation_type": "sum"

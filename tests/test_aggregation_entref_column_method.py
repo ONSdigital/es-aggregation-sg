@@ -21,7 +21,7 @@ class TestStringMethods(unittest.TestCase):
                 "input_json": input_data,
                 "total_column": "enterprise_ref",
                 "period_column": "period",
-                "region_column": "region",
+                "additional_aggregated_column": "region",
                 "aggregated_column": "county",
                 "cell_total_column": "ent_ref_count",
                 "aggregation_type": "nunique"
@@ -52,7 +52,7 @@ class TestStringMethods(unittest.TestCase):
                 "input_json": json_content,
                 "total_column": "enterprise_ref",
                 "period_column": "period",
-                "region_column": "region",
+                "additional_aggregated_column": "region",
                 "aggregated_column": "enterprise_ref",
                 "cell_total_column": "ent_ref_count",
                 "aggregation_type": "nunique"

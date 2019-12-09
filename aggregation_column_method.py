@@ -12,7 +12,7 @@ class EnvironSchema(marshmallow.Schema):
     input_json = marshmallow.fields.Str(required=True)
     total_column = marshmallow.fields.Str(required=True)
     period_column = marshmallow.fields.Str(required=True)
-    region_column = marshmallow.fields.Str(required=True)
+    additional_aggregated_column = marshmallow.fields.Str(required=True)
     aggregated_column = marshmallow.fields.Str(required=True)
     cell_total_column = marshmallow.fields.Str(required=True)
     aggregation_type = marshmallow.fields.Str(required=True)
@@ -44,7 +44,7 @@ def lambda_handler(event, context):
         input_json = json.loads(config["input_json"])
         total_column = config["total_column"]
         period_column = config["period_column"]
-        region_column = config["region_column"]
+        additional_aggregated_column = config["additional_aggregated_column"]
         aggregated_column = config["aggregated_column"]
         cell_total_column = config["cell_total_column"]
         aggregation_type = config["aggregation_type"]
@@ -53,7 +53,7 @@ def lambda_handler(event, context):
 
         logger.info("JSON data converted to DataFrame.")
 
-        county_agg = input_dataframe.groupby([region_column,
+        county_agg = input_dataframe.groupby([additional_aggregated_column,
                                               aggregated_column,
                                               period_column])
 

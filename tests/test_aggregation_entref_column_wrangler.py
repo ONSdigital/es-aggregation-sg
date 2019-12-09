@@ -33,7 +33,7 @@ class TestStringMethods(unittest.TestCase):
             'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
-            "in_file_name": "moo",
+            "in_file_name": "moo"
             }
         ):
             with open("tests/fixtures/wrangler_input.json") as file:
@@ -67,7 +67,7 @@ class TestStringMethods(unittest.TestCase):
     def test_missing_environment_variable(self, mock_get_from_s3, mock_lambda,
                                           mock_sqs, mock_sns):
         with mock.patch.dict(aggregation_column_wrangler.os.environ, {
-            'bucket_name': 'some-bucket-name',
+            'bucket_name': 'some-bucket-name'
             }
         ):
             with open("tests/fixtures/wrangler_input.json") as file:
@@ -110,7 +110,7 @@ class TestStringMethods(unittest.TestCase):
             'incoming_message_group': 'jam',
             "in_file_name": "moo",
             "period_column": "period",
-            "region_column": "region",
+            "additional_aggregated_column": "region",
             "county_column": "county",
             "ent_ref_column": "enterprise_ref",
             "cell_total_column": "ent_ref_count"
@@ -236,7 +236,7 @@ class TestStringMethods(unittest.TestCase):
             'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
-            "in_file_name": "moo",
+            "in_file_name": "moo"
             }
         ):
             with open("tests/fixtures/wrangler_input.json") as file:
@@ -281,11 +281,11 @@ class TestMoto:
             'incoming_message_group': 'jam',
             "in_file_name": "moo",
             "period_column": "period",
-            "region_column": "region",
+            "additional_aggregated_column": "region",
             "county_column": "county",
             "ent_ref_column": "enterprise_ref",
             "cell_total_column": "ent_ref_count"
-            },
+            }
         ):
             response = aggregation_column_wrangler.\
                     lambda_handler(
@@ -316,11 +316,11 @@ class TestMoto:
             'incoming_message_group': 'jam',
             "in_file_name": "moo",
             "period_column": "period",
-            "region_column": "region",
+            "additional_aggregated_column": "region",
             "county_column": "county",
             "ent_ref_column": "enterprise_ref",
             "cell_total_column": "ent_ref_count"
-            },
+            }
         ):
             with mock.patch("aggregation_column_wrangler."
                             "aws_functions.read_dataframe_from_s3") as mock_s3:

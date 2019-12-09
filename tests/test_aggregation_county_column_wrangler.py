@@ -30,7 +30,7 @@ class TestCountyWranglerMethods:
                 "method_name": "mock-method",
                 "incoming_message_group": "yes",
                 'in_file_name': 'esFree'
-            },
+            }
         )
 
         cls.mock_os_patcher.start()

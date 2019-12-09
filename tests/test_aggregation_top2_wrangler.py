@@ -37,7 +37,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': 'Grooop',
-            'out_file_name': 'bob',
+            'out_file_name': 'bob'
             }
         ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -75,7 +75,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
         (ValueError)
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
-            'bucket_name': 'some-bucket-name',
+            'bucket_name': 'some-bucket-name'
             }
         ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -168,7 +168,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'incoming_message_group': "Gruppe",
             'out_file_name': "boris",
             'period_column': 'period',
-            'region_column': 'region'
+            'additional_aggregated_column': 'region'
             }
         ):
             with open("tests/fixtures/top2_wrangler_input_err.json") as file:
@@ -436,7 +436,7 @@ class TestMoto:
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
             'out_file_name': "boris"
-            },
+            }
         ):
             response = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {
@@ -464,7 +464,7 @@ class TestMoto:
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
             'out_file_name': "boris"
-            },
+            }
         ):
             with mock.patch("aggregation_top2_wrangler."
                             "aws_functions.read_dataframe_from_s3") as mock_s3:
