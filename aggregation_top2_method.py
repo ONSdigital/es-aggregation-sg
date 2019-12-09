@@ -127,12 +127,13 @@ def calc_top_two(data, total_column, period_column, aggregated_column,):
             for column in column_list:
                 logger.info("...Processing column " + str(column))
 
-                tot = data.loc[(data[period_column] == period)][[total_column,
-                                                                 aggregated_column]]
+                total = data.loc[(data[period_column] == period)][[total_column,
+                                                                   aggregated_column]]
 
-                tot2 = tot.loc[(tot[aggregated_column] == column)]
+                second_total = total.loc[(total[aggregated_column] == column)]
 
-                sorted_dataframe = tot2.sort_values(by=[total_column], ascending=False)
+                sorted_dataframe = second_total.sort_values(by=[total_column],
+                                                            ascending=False)
 
                 sorted_dataframe = sorted_dataframe.reset_index(drop=True)
 

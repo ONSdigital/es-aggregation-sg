@@ -11,7 +11,6 @@ class EnvironSchema(marshmallow.Schema):
     """
     input_json = marshmallow.fields.Str(required=True)
     total_column = marshmallow.fields.Str(required=True)
-    period_column = marshmallow.fields.Str(required=True)
     additional_aggregated_column = marshmallow.fields.Str(required=True)
     aggregated_column = marshmallow.fields.Str(required=True)
     cell_total_column = marshmallow.fields.Str(required=True)
@@ -28,7 +27,6 @@ def lambda_handler(event, context):
         aggregated_column - A column to aggregate by. e.g. Enterprise_Reference.
         additional_aggregated_column - A column to aggregate by. e.g. Region.
         aggregation_type - How we wish to do the aggregation. e.g. sum, count, nunique.
-        period_column - Name of to column containing the period value.
         total_column - The column with the sum of the data.
         cell_total_column - Name of column to rename total_column.
     }
@@ -52,7 +50,6 @@ def lambda_handler(event, context):
 
         input_json = json.loads(config["input_json"])
         total_column = config["total_column"]
-        period_column = config["period_column"]
         additional_aggregated_column = config["additional_aggregated_column"]
         aggregated_column = config["aggregated_column"]
         cell_total_column = config["cell_total_column"]
@@ -63,8 +60,7 @@ def lambda_handler(event, context):
         logger.info("JSON data converted to DataFrame.")
 
         county_agg = input_dataframe.groupby([additional_aggregated_column,
-                                              aggregated_column,
-                                              period_column])
+                                              aggregated_column])
 
         agg_by_county_output = county_agg.agg({total_column: aggregation_type})\
             .reset_index()

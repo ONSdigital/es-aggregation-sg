@@ -92,7 +92,6 @@ def lambda_handler(event, context):
         json_payload = {
             "input_json": formatted_data,
             "total_column": total_column,
-            "period_column": period_column,
             "additional_aggregated_column": additional_aggregated_column,
             "aggregated_column": aggregated_column,
             "cell_total_column": cell_total_column,

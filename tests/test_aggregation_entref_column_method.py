@@ -45,13 +45,12 @@ class TestStringMethods(unittest.TestCase):
 
         with open("tests/fixtures/wrangler_input.json", "r") as file:
             content = file.read()
-            content = content.replace("period", "TEST")
+            content = content.replace("region", "TEST")
             json_content = content
 
             json_payload = {
                 "input_json": json_content,
                 "total_column": "enterprise_ref",
-                "period_column": "period",
                 "additional_aggregated_column": "region",
                 "aggregated_column": "enterprise_ref",
                 "cell_total_column": "ent_ref_count",

@@ -40,7 +40,6 @@ class TestCountyMethodMethods(unittest.TestCase):
             json_payload = {
                 "input_json": json_content,
                 "total_column": "Q608_total",
-                "period_column": "period",
                 "additional_aggregated_column": "region",
                 "aggregated_column": "county",
                 "cell_total_column": "county_total",
