@@ -22,7 +22,7 @@ def lambda_handler(event, context):
     This method loops through each county (by period) and records largest & second
     largest value against each record in the group.
 
-    This method requires input_json to contain the input columns:
+    It requires input_json to contain the input columns:
      - largest_contributor, created inside top2 wrangler.
      - second_largest contributor, created inside top2 wrangler.
 
