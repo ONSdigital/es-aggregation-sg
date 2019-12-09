@@ -5,7 +5,7 @@ import os
 import boto3
 import pandas as pd
 from botocore.exceptions import ClientError
-from esawsfunctions import funk
+from es_aws_functions import aws_functions, exception_classes
 from marshmallow import Schema, fields
 
 
@@ -23,21 +23,28 @@ class EnvironSchema(Schema):
     sqs_queue_url = fields.Str(required=True)
 
 
-class NoDataInQueueError(Exception):
-    pass
-
-
 class DoNotHaveAllDataError(Exception):
     pass
 
 
 def lambda_handler(event, context):
+    """
+    This method takes the new columns and adds them all onto the main dataset.
+
+    :param event: { "RuntimeVariables": {
+        aggregated_column - A column to aggregate by. e.g. Enterprise_Reference.
+        additional_aggregated_column - A column to aggregate by. e.g. Region.
+        period_column - Name of to column containing the period value.
+    }}
+    :param context:
+    :return:
+    """
     logger = logging.getLogger("Combininator")
     logger.setLevel(logging.INFO)
     current_module = "Aggregation_Combiner"
     error_message = ""
     log_message = ""
-    checkpoint = 0
+    checkpoint = 4
 
     try:
         logger.info("Starting Aggregation Combiner.")
@@ -49,6 +56,7 @@ def lambda_handler(event, context):
             raise ValueError(f"Error validating environment parameters: {errors}")
 
         logger.info("Validated params")
+
         # Enviroment variables
         checkpoint = config["checkpoint"]
         bucket_name = config["bucket_name"]
@@ -57,20 +65,25 @@ def lambda_handler(event, context):
         sns_topic_arn = config["sns_topic_arn"]
         sqs_message_group_id = config["sqs_message_group_id"]
         sqs_queue_url = config["sqs_queue_url"]
-        # Clients
 
+        aggregated_column = event['RuntimeVariables']['aggregated_column']
+        additional_aggregated_column =\
+            event['RuntimeVariables']['additional_aggregated_column']
+        period_column = event['RuntimeVariables']['period_column']
+
+        # Clients
         sqs = boto3.client("sqs", "eu-west-2")
 
         # Get file from s3
-        imp_df = funk.read_dataframe_from_s3(bucket_name, in_file_name)
+        imp_df = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
 
         logger.info("Successfully retrieved data from s3")
         data = []
 
         # Receive the 3 aggregation outputs
-        response = funk.get_sqs_message(sqs_queue_url, 3)
+        response = aws_functions.get_sqs_message(sqs_queue_url, 3)
         if "Messages" not in response:
-            raise NoDataInQueueError("No Messages in queue")
+            raise exception_classes.NoDataInQueueError("No Messages in queue")
         if len(response["Messages"]) < 3:
             raise DoNotHaveAllDataError(
                 "Only " + str(len(response["Messages"])) + " recieved"
@@ -90,23 +103,29 @@ def lambda_handler(event, context):
         second_agg = json.loads(data[1])
         third_agg = json.loads(data[2])
 
-        first_agg_df = funk.read_dataframe_from_s3(first_agg['bucket'],
-                                                   first_agg['key'])
-        second_agg_df = funk.read_dataframe_from_s3(second_agg['bucket'],
-                                                    second_agg['key'])
-        third_agg_df = funk.read_dataframe_from_s3(third_agg['bucket'],
-                                                   third_agg['key'])
+        first_agg_df = aws_functions.read_dataframe_from_s3(first_agg['bucket'],
+                                                            first_agg['key'])
+        second_agg_df = aws_functions.read_dataframe_from_s3(second_agg['bucket'],
+                                                             second_agg['key'])
+        third_agg_df = aws_functions.read_dataframe_from_s3(third_agg['bucket'],
+                                                            third_agg['key'])
 
         # merge the imputation output from s3 with the 3 aggregation outputs
         first_merge = pd.merge(
-            imp_df, first_agg_df, on=["region", "county", "period"], how="left"
-        )
+            imp_df, first_agg_df, on=[additional_aggregated_column,
+                                      aggregated_column,
+                                      period_column], how="left")
+
         second_merge = pd.merge(
-            first_merge, second_agg_df, on=["region", "county", "period"], how="left"
-        )
+            first_merge, second_agg_df, on=[additional_aggregated_column,
+                                            aggregated_column,
+                                            period_column], how="left")
+
         third_merge = pd.merge(
-            second_merge, third_agg_df, on=["region", "county", "period"], how="left"
-        )
+            second_merge, third_agg_df, on=[additional_aggregated_column,
+                                            aggregated_column,
+                                            period_column], how="left")
+
         logger.info("Successfully merged dataframes")
 
         # !temporary due to the size of our test data.
@@ -118,14 +137,15 @@ def lambda_handler(event, context):
         final_output = third_merge.to_json(orient="records")
 
         # send output onwards
-        funk.save_data(bucket_name, out_file_name,
-                       final_output, sqs_queue_url, sqs_message_group_id)
+        aws_functions.save_data(bucket_name, out_file_name, final_output,
+                                sqs_queue_url, sqs_message_group_id)
         logger.info("Successfully sent message to sqs")
 
-        funk.send_sns_message(checkpoint, sns_topic_arn, "Aggregation - Combiner.")
+        aws_functions.send_sns_message(checkpoint, sns_topic_arn,
+                                       "Aggregation - Combiner.")
         logger.info("Successfully sent data to sns")
 
-    except NoDataInQueueError as e:
+    except exception_classes.NoDataInQueueError as e:
         error_message = (
             "There was no data in sqs queue in:  "
             + current_module

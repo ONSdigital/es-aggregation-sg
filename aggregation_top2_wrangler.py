@@ -6,7 +6,7 @@ import boto3
 import numpy as np
 import pandas as pd
 from botocore.exceptions import ClientError, IncompleteReadError
-from esawsfunctions import funk
+from es_aws_functions import aws_functions, exception_classes
 from marshmallow import Schema, fields
 
 
@@ -31,32 +31,24 @@ def lambda_handler(event, context):
     This wrangler is used to prepare data for the calculate top two
     statistical method.
     The method requires a dataframe which must contain the input columns:
-     - period
-     - county
-     - Q608_total
-    ... and the two output columns...
      - largest_contributor
      - second_largest contributor
 
-    The wrangler:
-      - converts the data from json to dataframe,
-      - ensures the mandatory columns are present and correctly typed
-      - appends the output columns
-      - sends the dataframe to the function
-      - ensures the new columns are present in the returned dataframe
-      - sends the data on via SQS
-      - Notifies via SNS
-
-    :param event: N/A
+    :param event: {"RuntimeVariables":{
+        aggregated_column - A column to aggregate by. e.g. Enterprise_Reference.
+        additional_aggregated_column - A column to aggregate by. e.g. Region.
+        period_column - Name of to column containing the period value.
+        total_column - The column with the sum of the data.
+    }}
     :param context: N/A
-    :return: Success - dataframe, checkpoint
+    :return: {"success": True/False, "checkpoint"/"error": 4/"Message"}
     """
     current_module = "Aggregation Calc Top Two - Wrangler."
     logger = logging.getLogger()
     logger.setLevel(0)
     error_message = ''
     log_message = ''
-    checkpoint = 0
+    checkpoint = 4
 
     try:
         logger.info("Starting " + current_module)
@@ -81,15 +73,23 @@ def lambda_handler(event, context):
         sqs_message_group_id = config['sqs_message_group_id']
         sqs_queue_url = config['sqs_queue_url']
 
+        aggregated_column = event['RuntimeVariables']['aggregated_column']
+
+        additional_aggregated_column = event['RuntimeVariables']
+        ['additional_aggregated_column']
+
+        total_column = event['RuntimeVariables']['total_column']
+        period_column = event['RuntimeVariables']['period_column']
+
         # Read from S3 bucket
-        data = funk.read_dataframe_from_s3(bucket_name, in_file_name)
+        data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
         logger.info("Completed reading data from s3")
 
         # Ensure mandatory columns are present and have the correct
         # type of content
         msg = "Checking required data columns are present and correctly typed."
         logger.info(msg)
-        req_col_list = ['period', 'county', 'Q608_total']
+        req_col_list = [period_column, aggregated_column, total_column]
         for req_col in req_col_list:
             if req_col not in data.columns:
                 err_msg = 'Required column "' + req_col + '" not found in dataframe.'
@@ -114,17 +114,28 @@ def lambda_handler(event, context):
 
         # Invoke aggregation top2 method
         logger.info("Invoking the statistical method.")
-        top2 = lambda_client.invoke(FunctionName=method_name, Payload=prepared_data)
+
+        json_payload = {
+            "input_json": prepared_data,
+            "total_column": total_column,
+            "period_column": period_column,
+            "additional_aggregated_column": additional_aggregated_column,
+            "aggregated_column": aggregated_column
+        }
+
+        top2 = lambda_client.invoke(FunctionName=method_name,
+                                    Payload=json.dumps(json_payload))
+
         json_response = json.loads(top2.get('Payload').read().decode("utf-8"))
 
-        if str(type(json_response)) != "<class 'str'>":
-            raise funk.MethodFailure(json_response['error'])
+        if not json_response['success']:
+            raise exception_classes.MethodFailure(json_response['error'])
 
         # Ensure appended columns are present in output and have the
         # correct type of content
         msg = "Checking required output columns are present and correctly typed."
         logger.info(msg)
-        ret_data = pd.DataFrame(json.loads(json_response))
+        ret_data = pd.DataFrame(json.loads(json_response["data"]))
         req_col_list = ['largest_contributor', 'second_largest_contributor']
         for req_col in req_col_list:
             if req_col not in ret_data.columns:
@@ -141,10 +152,11 @@ def lambda_handler(event, context):
 
         # Sending output to SQS, notice to SNS
         logger.info("Sending function response downstream.")
-        funk.save_data(bucket_name, out_file_name,
-                       json_response, sqs_queue_url, sqs_message_group_id)
+        aws_functions.save_data(bucket_name, out_file_name,
+                                json_response["data"], sqs_queue_url,
+                                sqs_message_group_id)
         logger.info("Successfully sent the data to S3")
-        funk.send_sns_message(checkpoint, sns_topic_arn, "Aggregation - Top 2.")
+        aws_functions.send_sns_message(checkpoint, sns_topic_arn, "Aggregation - Top 2.")
         logger.info("Successfully sent the SNS message")
 
     except IndexError as e:
@@ -202,7 +214,7 @@ def lambda_handler(event, context):
         log_message = error_message
         log_message += " | Line: " + str(e.__traceback__.tb_lineno)
 
-    except funk.MethodFailure as e:
+    except exception_classes.MethodFailure as e:
         error_message = e.error_message
         log_message = "Error in " + method_name + "."
 
@@ -220,6 +232,6 @@ def lambda_handler(event, context):
         if(len(error_message)) > 0:
             logger.error(log_message)
             return {"success": False, "error": error_message}
-        else:
-            logger.info("Successfully completed module: " + current_module)
-            return {"success": True, "checkpoint": checkpoint}
+
+    logger.info("Successfully completed module: " + current_module)
+    return {"success": True, "checkpoint": checkpoint}

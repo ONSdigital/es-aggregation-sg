@@ -18,10 +18,10 @@ context_object = MockContext()
 
 class TestAggregationTop2Wrangler(unittest.TestCase):
 
-    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
-    @mock.patch('aggregation_top2_wrangler.funk.save_data')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
-    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.read_dataframe_from_s3')
     def test_wrangler_happy_path(self, mock_get_from_s3, mock_lambda,
                                  mock_sqs, mock_sns):
         """
@@ -48,22 +48,25 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             with open('tests/fixtures/top2_method_output.json', "r") as file:
                 in_file = file.read()
 
-                mock_lambda.return_value.\
-                    invoke.return_value.\
-                    get.return_value.\
-                    read.return_value.\
-                    decode.return_value = json.dumps(in_file)
+                mock_lambda.return_value.invoke.return_value.get.return_value \
+                    .read.return_value.decode.return_value = json.dumps(
+                        {"success": True, "data": in_file})
                 returned_value = aggregation_top2_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809}},
-                    context_object
-                )
+                    {"RuntimeVariables": {
+                        "period": 201809,
+                        "total_column": "Q608_total",
+                        "aggregated_column": "county",
+                        "additional_aggregated_column": "region",
+                        "period_column": "period",
+                        "county_column": "county"
+                        }}, context_object)
 
             self.assertTrue(returned_value['success'])
 
-    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
-    @mock.patch('aggregation_top2_wrangler.funk.save_data')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
-    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.read_dataframe_from_s3')
     def test_missing_environment_variable(self, mock_get_from_s3, mock_lambda,
                                           mock_sqs, mock_sns):
         """
@@ -72,7 +75,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
         (ValueError)
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
-            'bucket_name': 'some-bucket-name',
+            'bucket_name': 'some-bucket-name'
             }
         ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -86,16 +89,17 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                 )
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809}},
-                    context_object
-                )
+                    {"RuntimeVariables": {"period": 201809,
+                                          "total_column": "Q608_total",
+                                          "aggregated_column": "county"}
+                     }, context_object)
 
             assert("Parameter validation error" in returned_value['error'])
 
-    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
-    @mock.patch('aggregation_top2_wrangler.funk.save_data')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
-    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.read_dataframe_from_s3')
     def test_missing_column_on_input(self, mock_get_from_s3,
                                      mock_lambda, mock_sqs, mock_sns):
         """
@@ -129,16 +133,21 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                 )
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809}},
-                    context_object
-                )
+                    {"RuntimeVariables": {
+                        "period": 201809,
+                        "total_column": "Q608_total",
+                        "aggregated_column": "county",
+                        "additional_aggregated_column": "region",
+                        "period_column": "period",
+                        "county_column": "county"
+                        }}, context_object)
 
             assert ("Required columns missing" in returned_value['error'])
 
-    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
-    @mock.patch('aggregation_top2_wrangler.funk.save_data')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
-    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.read_dataframe_from_s3')
     def test_bad_data_on_input(self, mock_get_from_s3, mock_lambda,
                                mock_sqs, mock_sns):
         """
@@ -157,7 +166,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
-            'out_file_name': "boris"}
+            'out_file_name': "boris",
+            'period_column': 'period',
+            'additional_aggregated_column': 'region'
+            }
         ):
             with open("tests/fixtures/top2_wrangler_input_err.json") as file:
                 input_data = json.load(file)
@@ -169,16 +181,21 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                 )
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809}},
-                    context_object
-                )
+                    {"RuntimeVariables": {
+                        "period": 201809,
+                        "total_column": "Q608_total",
+                        "aggregated_column": "county",
+                        "additional_aggregated_column": "region",
+                        "period_column": "period",
+                        "county_column": "county"
+                        }}, context_object)
 
             assert ("Bad data encountered" in returned_value['error'])
 
-    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
-    @mock.patch('aggregation_top2_wrangler.funk.save_data')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
-    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.read_dataframe_from_s3')
     def test_missing_column_on_output(self, mock_get_from_s3, mock_lambda,
                                       mock_sqs, mock_sns):
         """
@@ -208,22 +225,25 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             with open(err_file, "r") as file:
                 lambda_return = file.read()
 
-                mock_lambda.return_value.invoke.\
-                    return_value.get.\
-                    return_value.read.\
-                    return_value.decode.\
-                    return_value = json.dumps(lambda_return)
+                mock_lambda.return_value.invoke.return_value.get.return_value \
+                    .read.return_value.decode.return_value = json.dumps(
+                        {"success": True, "data": lambda_return})
                 returned_value = aggregation_top2_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809}},
-                    context_object
-                )
+                    {"RuntimeVariables": {
+                        "period": 201809,
+                        "total_column": "Q608_total",
+                        "aggregated_column": "county",
+                        "additional_aggregated_column": "region",
+                        "period_column": "period",
+                        "county_column": "county"
+                        }}, context_object)
 
             assert ("Required columns missing" in returned_value['error'])
 
-    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
-    @mock.patch('aggregation_top2_wrangler.funk.save_data')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
-    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.read_dataframe_from_s3')
     def test_bad_data_on_output(self, mock_get_from_s3, mock_lambda, mock_sqs, mock_sns):
         """
         Tests that the error message contains "Bad data encountered" if
@@ -242,8 +262,8 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
             'out_file_name': "boris"
-        }
-                             ):
+            }
+        ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
                 input_data = json.load(file)
 
@@ -256,16 +276,21 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                 )
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809}},
-                    context_object
-                )
+                    {"RuntimeVariables": {
+                        "period": 201809,
+                        "total_column": "Q608_total",
+                        "aggregated_column": "county",
+                        "additional_aggregated_column": "region",
+                        "period_column": "period",
+                        "county_column": "county"
+                        }}, context_object)
 
             assert ("Bad data encountered" in returned_value['error'])
 
-    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
-    @mock.patch('aggregation_top2_wrangler.funk.save_data')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
-    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.read_dataframe_from_s3')
     def test_incomplete_json(self, mock_get_from_s3, mock_lambda, mock_sqs, mock_sns):
         """
         Tests that the error message contains "Incomplete Lambda response"
@@ -296,16 +321,21 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                 )
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809}},
-                    context_object
-                )
+                    {"RuntimeVariables": {
+                        "period": 201809,
+                        "total_column": "Q608_total",
+                        "aggregated_column": "county",
+                        "additional_aggregated_column": "region",
+                        "period_column": "period",
+                        "county_column": "county"
+                        }}, context_object)
 
             assert ("Incomplete Lambda response" in returned_value['error'])
 
-    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
-    @mock.patch('aggregation_top2_wrangler.funk.save_data')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
-    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.read_dataframe_from_s3')
     def test_general_error(self, mock_get_from_s3, mock_lambda, mock_sqs, mock_sns):
         """
         Tests that the fallthrough for unclassified exceptions is working.
@@ -335,16 +365,21 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                 )
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809}},
-                    context_object
-                )
+                    {"RuntimeVariables": {
+                        "period": 201809,
+                        "total_column": "Q608_total",
+                        "aggregated_column": "county",
+                        "additional_aggregated_column": "region",
+                        "period_column": "period",
+                        "county_column": "county"
+                        }}, context_object)
 
             assert ("General Error" in returned_value['error'])
 
-    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
-    @mock.patch('aggregation_top2_wrangler.funk.save_data')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
-    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.read_dataframe_from_s3')
     def test_wrangler_method_error(self, mock_get_from_s3, mock_lambda,
                                    mock_sqs, mock_sns):
         """
@@ -359,8 +394,8 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'checkpoint': '3',
             'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
-            'incoming_message_group': 'Grooop',
-            'out_file_name': 'bob'
+            'incoming_message_group': "Gruppe",
+            'out_file_name': "boris"
             }
         ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
@@ -369,12 +404,17 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             mock_get_from_s3.return_value = pd.DataFrame(input_data)
 
             mock_lambda.return_value.invoke.return_value.get.return_value \
-                .read.return_value.decode.return_value = \
-                '{"error": "This is an error message"}'
+                .read.return_value.decode.return_value = json.dumps(
+                    {"success": False, "error": "This is an error message"})
             returned_value = aggregation_top2_wrangler.lambda_handler(
-                {"RuntimeVariables": {"period": 201809}},
-                context_object
-            )
+                    {"RuntimeVariables": {
+                        "period": 201809,
+                        "total_column": "Q608_total",
+                        "aggregated_column": "county",
+                        "additional_aggregated_column": "region",
+                        "period_column": "period",
+                        "county_column": "county"
+                        }}, context_object)
 
             assert "success" in returned_value
             assert returned_value["success"] is False
@@ -396,12 +436,17 @@ class TestMoto:
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
             'out_file_name': "boris"
-            },
+            }
         ):
             response = aggregation_top2_wrangler.lambda_handler(
-                {"RuntimeVariables": {"period": 201809}},
-                context_object
-            )
+                    {"RuntimeVariables": {
+                        "period": 201809,
+                        "total_column": "Q608_total",
+                        "aggregated_column": "county",
+                        "additional_aggregated_column": "region",
+                        "period_column": "period",
+                        "county_column": "county"
+                        }}, context_object)
 
             assert "success" in response
             assert response["success"] is False
@@ -419,18 +464,23 @@ class TestMoto:
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
             'out_file_name': "boris"
-            },
+            }
         ):
             with mock.patch("aggregation_top2_wrangler."
-                            "funk.read_dataframe_from_s3") as mock_s3:
+                            "aws_functions.read_dataframe_from_s3") as mock_s3:
                 with open("tests/fixtures/top2_wrangler_input.json", "r") as file:
                     mock_content = file.read()
                     mock_s3.side_effect = KeyError()
                     mock_s3.return_value = mock_content
 
                 response = aggregation_top2_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809}},
-                    context_object
-                )
+                    {"RuntimeVariables": {
+                        "period": 201809,
+                        "total_column": "Q608_total",
+                        "aggregated_column": "county",
+                        "additional_aggregated_column": "region",
+                        "period_column": "period",
+                        "county_column": "county"
+                        }}, context_object)
 
             assert ("Key Error" in response['error'])
