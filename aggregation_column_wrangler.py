@@ -38,7 +38,7 @@ def lambda_handler(event, context):
     }}
 
     :param context: N/A
-    :return: Success - {"success": True/False, "checkpoint"/"error": 4/"Message"}
+    :return: {"success": True/False, "checkpoint"/"error": 4/"Message"}
     """
     current_module = "Aggregation by column - Wrangler"
     error_message = ""

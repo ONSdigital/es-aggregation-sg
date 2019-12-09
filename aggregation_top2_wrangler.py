@@ -41,7 +41,7 @@ def lambda_handler(event, context):
         total_column - The column with the sum of the data.
     }}
     :param context: N/A
-    :return: Success - {"success": True/False, "checkpoint"/"error": 4/"Message"}
+    :return: {"success": True/False, "checkpoint"/"error": 4/"Message"}
     """
     current_module = "Aggregation Calc Top Two - Wrangler."
     logger = logging.getLogger()

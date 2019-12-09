@@ -42,9 +42,19 @@ Steps performed:
 
 **Summary:** This method is responsible for grouping the data by a given column, region and period. It then aggregates on the specified column (e.g. enterprise_ref) creating a total (e.g. ent_ref_count) and then renames the column accordingly.
 
-**Inputs:** The method requires the data which is output from imputation but filtered by the current period (done by wrangler) and contains all the following columns: (county/enterprise_ref/...), region, period.
+**Inputs:**
+    event: {"RuntimeVariables":{ <br>
+        aggregated_column - A column to aggregate by. e.g. Enterprise_Reference. <br>
+        additional_aggregated_column - A column to aggregate by. e.g. Region. <br>
+        aggregation_type - How we wish to do the aggregation. e.g. sum, count, nunique. <br>
+        period_column - Name of to column containing the period value. <br>
+        period - The current run's period value. <br>
+        total_column - The column with the sum of the data. <br>
+        cell_total_column - Name of column to rename total_column. <br>
+    }}
 
-**Outputs:** A JSON dict which contains a success marker and the aggregated data with the column count/sum.
+**Outputs:** A JSON dict which contains a success marker and the aggregated data with the column count/sum. <br>
+e.g. {"success": True/False, "checkpoint"/"error": 4/"Message"}
 <hr>
 
 #### Calculate Top Two Method
@@ -53,9 +63,16 @@ Steps performed:
 
 **Summary:** Takes a DataFrame in json format and uses the columns period, column* and total* to calculate the highest and second highest total within each period/column* combination. These are then appended as two new columns. Finally, the DataFrame is re-converted to json and sent on via SQS.
 
-**Inputs:** This method requires a DataFrame in json format containing the following integer columns: "columns*", "period" and "total*"
+**Inputs:**
+    event: {"RuntimeVariables":{ <br>
+        aggregated_column - A column to aggregate by. e.g. Enterprise_Reference. <br>
+        additional_aggregated_column - A column to aggregate by. e.g. Region. <br>
+        period_column - Name of to column containing the period value. <br>
+        total_column - The column with the sum of the data. <br>
+    }}
 
-**Outputs:** A JSON dict which contains a success marker and the input DataFrame with the following two columns appended: "largest_contributor" and "second_largest_contributor"
+**Outputs:** A JSON dict which contains a success marker and the input DataFrame with the following two columns appended: "largest_contributor" and "second_largest_contributor" <br>
+e.g. {"success": True/False, "checkpoint"/"error": 4/"Message"}
 <hr>
 
 #### Combiner
