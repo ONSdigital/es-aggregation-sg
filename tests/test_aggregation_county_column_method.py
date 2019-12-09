@@ -1,4 +1,3 @@
-import json
 import unittest
 import unittest.mock as mock
 
@@ -58,7 +57,7 @@ class TestCountyMethodMethods(unittest.TestCase):
             )
 
             response_df = (
-                pd.read_json(json.dumps(output))
+                pd.read_json(output["data"])
             )
 
             response_df = response_df.round(5)

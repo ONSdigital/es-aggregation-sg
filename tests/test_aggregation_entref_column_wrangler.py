@@ -41,10 +41,10 @@ class TestStringMethods(unittest.TestCase):
 
             mock_get_from_s3.return_value = pd.DataFrame(input_data)
 
-            with open('tests/fixtures/method_output.json', "rb") as file:
-                mock_lambda.return_value.invoke.return_value = {"Payload":
-                                                                StreamingBody(file,
-                                                                              355)}
+            with open('tests/fixtures/method_output.json', "r") as file:
+                mock_lambda.return_value.invoke.return_value.get.return_value \
+                    .read.return_value.decode.return_value = json.dumps(
+                        {"success": True, "data": file.read()})
 
                 returned_value = aggregation_column_wrangler.\
                     lambda_handler(
@@ -245,8 +245,8 @@ class TestStringMethods(unittest.TestCase):
             mock_get_from_s3.return_value = pd.DataFrame(input_data)
 
             mock_lambda.return_value.invoke.return_value.get.return_value \
-                .read.return_value.decode.return_value = \
-                '{"error": "This is an error message"}'
+                .read.return_value.decode.return_value = json.dumps(
+                    {"success": False, "error": "This is an error message"})
 
             returned_value = aggregation_column_wrangler.\
                 lambda_handler(

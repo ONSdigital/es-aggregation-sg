@@ -71,6 +71,7 @@ def lambda_handler(event, context):
 
         logger.info("Converting output dataframe to json")
         response_json = response.to_json(orient='records')
+        final_output = {"data": response_json}
 
     except Exception as e:
         # Catch anything unforseen that wrangler has missed.
@@ -88,10 +89,9 @@ def lambda_handler(event, context):
             logger.error(log_message)
             return {"success": False, "error": error_message}
 
-    logger.info("Returning the output json")
     logger.info("Successfully completed module: " + current_module)
-
-    return response_json
+    final_output['success'] = True
+    return final_output
 
 
 def calc_top_two(data, total_column, period_column, aggregated_column,):

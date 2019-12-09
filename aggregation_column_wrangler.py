@@ -96,10 +96,10 @@ def lambda_handler(event, context):
 
         logger.info("Successfully invoked the method lambda")
 
-        if str(type(json_response)) != "<class 'list'>":
+        if not json_response['success']:
             raise funk.MethodFailure(json_response['error'])
 
-        funk.save_data(bucket_name, out_file_name, json.dumps(json_response),
+        funk.save_data(bucket_name, out_file_name, json_response["data"],
                        sqs_queue_url, sqs_message_group_id)
         logger.info("Successfully sent the data to SQS")
 
@@ -167,6 +167,6 @@ def lambda_handler(event, context):
         if (len(error_message)) > 0:
             logger.error(log_message)
             return {"success": False, "error": error_message}
-        else:
-            logger.info("Successfully completed module: " + current_module)
-            return {"success": True, "checkpoint": checkpoint}
+
+    logger.info("Successfully completed module: " + current_module)
+    return {"success": True, "checkpoint": checkpoint}

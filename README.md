@@ -14,6 +14,7 @@ Steps performed:
     - Invokes method lambda
     - Puts the aggregated data onto the SQS queue
     - Sends SNS message
+ <hr>
  
 ### Calculate Top 2 Wrangler
 
@@ -31,10 +32,11 @@ Steps performed:
     - Serialises the dataframe back to json
     - sends the data on via SQS
     - Notifies via SNS   
+<hr>
 
 ## Methods
 
-### Calculate Enterprise Reference Count Method
+#### Calculate Enterprise Reference Count Method
 
 **Name of Lambda:** aggregation_column_method
 
@@ -42,9 +44,10 @@ Steps performed:
 
 **Inputs:** The method requires the data which is output from imputation but filtered by the current period (done by wrangler) and contains all the following columns: (county/enterprise_ref/...), region, period.
 
-**Outputs:** A JSON string which contains the aggregated data and the column count/sum.
+**Outputs:** A JSON dict which contains a success marker and the aggregated data with the column count/sum.
+<hr>
 
-### Calculate Top Two Method
+#### Calculate Top Two Method
 
 **Name of Lambda:** aggregation_top2_wrangler
 
@@ -52,16 +55,11 @@ Steps performed:
 
 **Inputs:** This method requires a DataFrame in json format containing the following integer columns: "columns*", "period" and "total*"
 
-**Outputs:** A JSON object of the input DataFrame with the following two columns appended: "largest_contributor" and "second_largest_contributor"
+**Outputs:** A JSON dict which contains a success marker and the input DataFrame with the following two columns appended: "largest_contributor" and "second_largest_contributor"
+<hr>
 
-### Combiner
-The combiner is used to join the outputs from the 3 aggregations back onto the original
- data. It is assumed that the imputed(or original if it didnt need imputing) data is 
- stored in an s3 bucket by the imputation module; and that each of the 3 aggregation 
- processes each write their output to sqs.<br><br>
- The combiner merely picks up the imputation data from s3, then 3 messages from the sqs
-  queue. It joins these all together and sends onwards. The result of which is that the
-   next module(disclosure) has the granular input data with the addition of aggregations 
-   merged on.
+#### Combiner
+The combiner is used to join the outputs from the 3 aggregations back onto the original data. It is assumed that the imputed(or original if it didnt need imputing) data is stored in an s3 bucket by the imputation module; and that each of the 3 aggregation processes each write their output to sqs. <br>
+The combiner merely picks up the imputation data from s3, then 3 messages from the sqs queue. It joins these all together and sends onwards. The result of which is that the next module(disclosure) has the granular input data with the addition of aggregations merged on.
 
 *The exact column can be provided as a runtime variable.

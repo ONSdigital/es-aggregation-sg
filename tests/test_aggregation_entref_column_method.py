@@ -30,7 +30,7 @@ class TestStringMethods(unittest.TestCase):
             returned_value = aggregation_column_method.lambda_handler(json_payload, None)
 
             file = open('tests/fixtures/produced_method_output', 'w')
-            file.write(json.dumps(returned_value))
+            file.write(returned_value["data"])
             file.close()
 
             with open("tests/fixtures/method_output.json") as file:

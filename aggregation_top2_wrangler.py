@@ -136,14 +136,14 @@ def lambda_handler(event, context):
 
         json_response = json.loads(top2.get('Payload').read().decode("utf-8"))
 
-        if str(type(json_response)) != "<class 'str'>":
+        if not json_response['success']:
             raise funk.MethodFailure(json_response['error'])
 
         # Ensure appended columns are present in output and have the
         # correct type of content
         msg = "Checking required output columns are present and correctly typed."
         logger.info(msg)
-        ret_data = pd.DataFrame(json.loads(json_response))
+        ret_data = pd.DataFrame(json.loads(json_response["data"]))
         req_col_list = ['largest_contributor', 'second_largest_contributor']
         for req_col in req_col_list:
             if req_col not in ret_data.columns:
@@ -161,7 +161,7 @@ def lambda_handler(event, context):
         # Sending output to SQS, notice to SNS
         logger.info("Sending function response downstream.")
         funk.save_data(bucket_name, out_file_name,
-                       json_response, sqs_queue_url, sqs_message_group_id)
+                       json_response["data"], sqs_queue_url, sqs_message_group_id)
         logger.info("Successfully sent the data to S3")
         funk.send_sns_message(checkpoint, sns_topic_arn, "Aggregation - Top 2.")
         logger.info("Successfully sent the SNS message")
@@ -239,6 +239,6 @@ def lambda_handler(event, context):
         if(len(error_message)) > 0:
             logger.error(log_message)
             return {"success": False, "error": error_message}
-        else:
-            logger.info("Successfully completed module: " + current_module)
-            return {"success": True, "checkpoint": checkpoint}
+
+    logger.info("Successfully completed module: " + current_module)
+    return {"success": True, "checkpoint": checkpoint}

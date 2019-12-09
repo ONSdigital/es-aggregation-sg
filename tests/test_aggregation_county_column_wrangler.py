@@ -45,14 +45,15 @@ class TestCountyWranglerMethods:
     @mock.patch("aggregation_column_wrangler.funk.read_dataframe_from_s3")
     def test_happy_path(self, mock_s3_return, mock_lambda, mock_sqs):
         invoke_data = ''
-        with open("tests/fixtures/imp_output_test.json", 'rb') as input_file:
+        with open("tests/fixtures/imp_output_test.json", 'r') as input_file:
             invoke_data = input_file.read()
         with open("tests/fixtures/imp_output_test.json") as input_file:
             input_data = json.load(input_file)
 
             mock_s3_return.return_value = pd.DataFrame(input_data)
             mock_lambda.return_value.invoke.return_value.get.return_value.read.\
-                return_value = invoke_data
+                return_value.decode.return_value = json.dumps({"data": invoke_data,
+                                                               "success": True})
             returned_value = aggregation_column_wrangler.\
                 lambda_handler({
                     "RuntimeVariables":
@@ -257,8 +258,8 @@ class TestCountyWranglerMethods:
             mock_s3_return.return_value = pd.DataFrame(input_data)
 
             mock_lambda.return_value.invoke.return_value.get.return_value \
-                .read.return_value.decode.return_value = \
-                '{"error": "This is an error message"}'
+                .read.return_value.decode.return_value = json.dumps(
+                    {"success": False, "error": "This is an error message"})
 
             returned_value = aggregation_column_wrangler.\
                 lambda_handler({
