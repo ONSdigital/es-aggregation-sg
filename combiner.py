@@ -28,6 +28,17 @@ class DoNotHaveAllDataError(Exception):
 
 
 def lambda_handler(event, context):
+    """
+    The takes the new columns and adds them all onto the main dataset.
+
+    :param event: { "RuntimeVariables": {
+        aggregated_column - A column to aggregate by. e.g. Enterprise_Reference.
+        additional_aggregated_column - A column to aggregate by. e.g. Region.
+        period_column - Name of to column containing the period value.
+    }}
+    :param context:
+    :return:
+    """
     logger = logging.getLogger("Combininator")
     logger.setLevel(logging.INFO)
     current_module = "Aggregation_Combiner"

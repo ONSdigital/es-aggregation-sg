@@ -19,22 +19,22 @@ class EnvironSchema(marshmallow.Schema):
 
 def lambda_handler(event, context):
     """
-    This method requires a dataframe which must contain the input columns:
-     - 'period' by default, can be changed in environment variables.
-     - 'county' by default, can be changed in environment variables.
-     - 'region' by default, can be changed in environment variables.
-     - 'Q608_total' by default, can be changed in environment variables.
-    ... and the two output columns...
-     - largest_contributor, created inside top2 wrangler.
-     - second_largest contributor, created inside top2 wrangler.
-
     It loops through each county (by period) and records largest & second
     largest value against each record in the group.
 
-    :param event: N/A
+    This method requires input_json to contain the input columns:
+     - largest_contributor, created inside top2 wrangler.
+     - second_largest contributor, created inside top2 wrangler.
+
+    :param event: {
+        input_json - JSON String of the data.
+        aggregated_column - A column to aggregate by. e.g. Enterprise_Reference.
+        additional_aggregated_column - A column to aggregate by. e.g. Region.
+        period_column - Name of to column containing the period value.
+        total_column - The column with the sum of the data.
+    }
     :param context: N/A
-    :return:    Success - response_json (json serialised pandas dataframe)
-                Failure - success (string, bool), error (string)
+    :return: Success - {"success": True/False, "data"/"error": "JSON String"/"Message"}
     """
     current_module = "Aggregation Calc Top Two - Method"
     logger = logging.getLogger()

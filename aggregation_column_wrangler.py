@@ -26,9 +26,19 @@ class InputSchema(Schema):
 def lambda_handler(event, context):
     """
     This method is used to prepare data for the calculation of column totals.
-    :param event: N/A
+
+    :param event: {"RuntimeVariables":{
+        aggregated_column - A column to aggregate by. e.g. Enterprise_Reference.
+        additional_aggregated_column - A column to aggregate by. e.g. Region.
+        aggregation_type - How we wish to do the aggregation. e.g. sum, count, nunique.
+        period_column - Name of to column containing the period value.
+        period - The current run's period value.
+        total_column - The column with the sum of the data.
+        cell_total_column - Name of column to rename total_column.
+    }}
+
     :param context: N/A
-    :return: Success - True/False & Checkpoint
+    :return: Success - {"success": True/False, "checkpoint"/"error": 4/"Message"}
     """
     current_module = "Aggregation by column - Wrangler"
     error_message = ""

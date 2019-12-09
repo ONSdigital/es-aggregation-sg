@@ -23,9 +23,18 @@ def lambda_handler(event, context):
     Generates a JSON dataset, grouped by the given aggregated_column(e.g.county) and
     period, with the given total_column(e.g.Q608_total) aggregated by the given
     aggregation_type(e.g.Sum) as a new column called cell_total_column(e.g.county_total).
-    :param event: Event object
-    :param context: Context object
-    :return: JSON string
+
+    :param event: {
+        aggregated_column - A column to aggregate by. e.g. Enterprise_Reference.
+        additional_aggregated_column - A column to aggregate by. e.g. Region.
+        aggregation_type - How we wish to do the aggregation. e.g. sum, count, nunique.
+        period_column - Name of to column containing the period value.
+        total_column - The column with the sum of the data.
+        cell_total_column - Name of column to rename total_column.
+    }
+
+    :param context: N/A
+    :return: Success - {"success": True/False, "data"/"error": "JSON String"/"Message"}
     """
     current_module = "Aggregation by column - Method"
     error_message = ""

@@ -31,25 +31,17 @@ def lambda_handler(event, context):
     This wrangler is used to prepare data for the calculate top two
     statistical method.
     The method requires a dataframe which must contain the input columns:
-     - period
-     - county
-     - Q608_total
-    ... and the two output columns...
      - largest_contributor
      - second_largest contributor
 
-    The wrangler:
-      - converts the data from json to dataframe,
-      - ensures the mandatory columns are present and correctly typed
-      - appends the output columns
-      - sends the dataframe to the function
-      - ensures the new columns are present in the returned dataframe
-      - sends the data on via SQS
-      - Notifies via SNS
-
-    :param event: N/A
+    :param event: {"RuntimeVariables":{
+        aggregated_column - A column to aggregate by. e.g. Enterprise_Reference.
+        additional_aggregated_column - A column to aggregate by. e.g. Region.
+        period_column - Name of to column containing the period value.
+        total_column - The column with the sum of the data.
+    }}
     :param context: N/A
-    :return: Success - dataframe, checkpoint
+    :return: Success - {"success": True/False, "checkpoint"/"error": 4/"Message"}
     """
     current_module = "Aggregation Calc Top Two - Wrangler."
     logger = logging.getLogger()
