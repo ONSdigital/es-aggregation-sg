@@ -21,7 +21,7 @@ Steps performed:
 The wrangler is responsible for preparing the data, invoking the method lambda and sending the data downstream along with
 the respective notification messages (SNS).
 
-Steps performed:   
+Steps performed:
 
     - Retrieves data from S3 bucket
     - Converts the data from json to dataframe,
