@@ -19,7 +19,7 @@ class EnvironSchema(marshmallow.Schema):
 
 def lambda_handler(event, context):
     """
-    It loops through each county (by period) and records largest & second
+    This method loops through each county (by period) and records largest & second
     largest value against each record in the group.
 
     This method requires input_json to contain the input columns:
