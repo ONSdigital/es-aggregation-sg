@@ -144,37 +144,6 @@ class TestCountyWranglerMethods:
             assert response["success"] is False
             assert """Key Error""" in response["error"]
 
-    @mock.patch('aggregation_column_wrangler.aws_functions.send_sns_message')
-    @mock.patch('aggregation_column_wrangler.aws_functions.save_data')
-    @mock.patch('aggregation_column_wrangler.boto3.client')
-    @mock.patch('aggregation_column_wrangler.aws_functions.read_dataframe_from_s3')
-    def test_bad_data_exception(self, mock_s3_return, mock_lambda, mock_sqs, mock_sns):
-        with open("tests/fixtures/imp_output_test.json") as file:
-            content = file.read()
-            content = content.replace("period", "TEST")
-            input_data = json.loads(content)
-
-            mock_s3_return.return_value = pd.DataFrame(input_data)
-
-            with open('tests/fixtures/agg_county_output.json', "rb") as file:
-                mock_lambda.return_value.invoke.return_value = {"Payload":
-                                                                StreamingBody(file, 355)}
-
-                returned_value = aggregation_column_wrangler.\
-                    lambda_handler({
-                        "RuntimeVariables":
-                            {"period": 6666,
-                             "aggregation_type": "sum",
-                             "aggregated_column": "county",
-                             "cell_total_column": "county_total",
-                             "total_column": "Q608_total",
-                             "additional_aggregated_column": "region",
-                             "period_column": "period"
-                             }
-                    }, context_object)
-
-                assert(returned_value['error'].__contains__("""Bad data"""))
-
     @mock.patch("aggregation_column_wrangler.aws_functions.save_data")
     @mock.patch("aggregation_column_wrangler.boto3.client")
     @mock.patch("aggregation_column_wrangler.aws_functions.read_dataframe_from_s3")

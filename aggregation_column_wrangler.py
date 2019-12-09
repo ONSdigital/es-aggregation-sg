@@ -84,7 +84,7 @@ def lambda_handler(event, context):
         data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
         logger.info("Completed reading data from s3")
 
-        disaggregated_data = data[data.period == int(period)]
+        disaggregated_data = data[data[period_column] == int(period)]
 
         formatted_data = disaggregated_data.to_json(orient='records')
         logger.info("Filtered disaggregated_data")
@@ -117,14 +117,6 @@ def lambda_handler(event, context):
                                        "Aggregation - " + aggregated_column + ".")
 
         logger.info("Successfully sent the SNS message")
-
-    except AttributeError as e:
-        error_message = ("Bad data encountered in "
-                         + current_module + " |- "
-                         + str(e.args) + " | Request ID: "
-                         + str(context.aws_request_id))
-
-        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
 
     except ValueError as e:
         error_message = ("Parameter validation error in "
