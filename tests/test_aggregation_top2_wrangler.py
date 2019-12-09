@@ -18,10 +18,10 @@ context_object = MockContext()
 
 class TestAggregationTop2Wrangler(unittest.TestCase):
 
-    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
-    @mock.patch('aggregation_top2_wrangler.funk.save_data')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
-    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.read_dataframe_from_s3')
     def test_wrangler_happy_path(self, mock_get_from_s3, mock_lambda,
                                  mock_sqs, mock_sns):
         """
@@ -63,10 +63,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
             self.assertTrue(returned_value['success'])
 
-    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
-    @mock.patch('aggregation_top2_wrangler.funk.save_data')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
-    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.read_dataframe_from_s3')
     def test_missing_environment_variable(self, mock_get_from_s3, mock_lambda,
                                           mock_sqs, mock_sns):
         """
@@ -96,10 +96,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
             assert("Parameter validation error" in returned_value['error'])
 
-    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
-    @mock.patch('aggregation_top2_wrangler.funk.save_data')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
-    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.read_dataframe_from_s3')
     def test_missing_column_on_input(self, mock_get_from_s3,
                                      mock_lambda, mock_sqs, mock_sns):
         """
@@ -144,10 +144,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
             assert ("Required columns missing" in returned_value['error'])
 
-    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
-    @mock.patch('aggregation_top2_wrangler.funk.save_data')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
-    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.read_dataframe_from_s3')
     def test_bad_data_on_input(self, mock_get_from_s3, mock_lambda,
                                mock_sqs, mock_sns):
         """
@@ -192,10 +192,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
             assert ("Bad data encountered" in returned_value['error'])
 
-    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
-    @mock.patch('aggregation_top2_wrangler.funk.save_data')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
-    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.read_dataframe_from_s3')
     def test_missing_column_on_output(self, mock_get_from_s3, mock_lambda,
                                       mock_sqs, mock_sns):
         """
@@ -240,10 +240,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
             assert ("Required columns missing" in returned_value['error'])
 
-    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
-    @mock.patch('aggregation_top2_wrangler.funk.save_data')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
-    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.read_dataframe_from_s3')
     def test_bad_data_on_output(self, mock_get_from_s3, mock_lambda, mock_sqs, mock_sns):
         """
         Tests that the error message contains "Bad data encountered" if
@@ -287,10 +287,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
             assert ("Bad data encountered" in returned_value['error'])
 
-    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
-    @mock.patch('aggregation_top2_wrangler.funk.save_data')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
-    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.read_dataframe_from_s3')
     def test_incomplete_json(self, mock_get_from_s3, mock_lambda, mock_sqs, mock_sns):
         """
         Tests that the error message contains "Incomplete Lambda response"
@@ -332,10 +332,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
             assert ("Incomplete Lambda response" in returned_value['error'])
 
-    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
-    @mock.patch('aggregation_top2_wrangler.funk.save_data')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
-    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.read_dataframe_from_s3')
     def test_general_error(self, mock_get_from_s3, mock_lambda, mock_sqs, mock_sns):
         """
         Tests that the fallthrough for unclassified exceptions is working.
@@ -376,10 +376,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
             assert ("General Error" in returned_value['error'])
 
-    @mock.patch('aggregation_top2_wrangler.funk.send_sns_message')
-    @mock.patch('aggregation_top2_wrangler.funk.save_data')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
-    @mock.patch('aggregation_top2_wrangler.funk.read_dataframe_from_s3')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.read_dataframe_from_s3')
     def test_wrangler_method_error(self, mock_get_from_s3, mock_lambda,
                                    mock_sqs, mock_sns):
         """
@@ -467,7 +467,7 @@ class TestMoto:
             },
         ):
             with mock.patch("aggregation_top2_wrangler."
-                            "funk.read_dataframe_from_s3") as mock_s3:
+                            "aws_functions.read_dataframe_from_s3") as mock_s3:
                 with open("tests/fixtures/top2_wrangler_input.json", "r") as file:
                     mock_content = file.read()
                     mock_s3.side_effect = KeyError()

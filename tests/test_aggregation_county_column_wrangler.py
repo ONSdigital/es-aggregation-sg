@@ -40,9 +40,9 @@ class TestCountyWranglerMethods:
         # Stop the mocking of the os stuff
         cls.mock_os_patcher.stop()
 
-    @mock.patch("aggregation_column_wrangler.funk.save_data")
+    @mock.patch("aggregation_column_wrangler.aws_functions.save_data")
     @mock.patch("aggregation_column_wrangler.boto3.client")
-    @mock.patch("aggregation_column_wrangler.funk.read_dataframe_from_s3")
+    @mock.patch("aggregation_column_wrangler.aws_functions.read_dataframe_from_s3")
     def test_happy_path(self, mock_s3_return, mock_lambda, mock_sqs):
         invoke_data = ''
         with open("tests/fixtures/imp_output_test.json", 'r') as input_file:
@@ -75,7 +75,7 @@ class TestCountyWranglerMethods:
 
     @mock.patch("aggregation_column_wrangler.boto3")
     @mock.patch("aggregation_column_wrangler.boto3.client")
-    @mock.patch("aggregation_column_wrangler.funk.read_dataframe_from_s3")
+    @mock.patch("aggregation_column_wrangler.aws_functions.read_dataframe_from_s3")
     def test_wrangler_general_exception(self, mock_s3_return, mock_client, mock_boto):
         mock_s3_return.side_effect = Exception()
         response = aggregation_column_wrangler.\
@@ -121,7 +121,7 @@ class TestCountyWranglerMethods:
 
     @mock.patch("aggregation_column_wrangler.boto3")
     @mock.patch("aggregation_column_wrangler.boto3.client")
-    @mock.patch("aggregation_column_wrangler.funk.read_dataframe_from_s3")
+    @mock.patch("aggregation_column_wrangler.aws_functions.read_dataframe_from_s3")
     def test_wrangler_key_error(self, mock_s3_return, mock_client, mock_boto):
         with open("tests/fixtures/imp_output_test.json") as input_file:
             input_data = json.load(input_file)
@@ -144,10 +144,10 @@ class TestCountyWranglerMethods:
             assert response["success"] is False
             assert """Key Error""" in response["error"]
 
-    @mock.patch('aggregation_column_wrangler.funk.send_sns_message')
-    @mock.patch('aggregation_column_wrangler.funk.save_data')
+    @mock.patch('aggregation_column_wrangler.aws_functions.send_sns_message')
+    @mock.patch('aggregation_column_wrangler.aws_functions.save_data')
     @mock.patch('aggregation_column_wrangler.boto3.client')
-    @mock.patch('aggregation_column_wrangler.funk.read_dataframe_from_s3')
+    @mock.patch('aggregation_column_wrangler.aws_functions.read_dataframe_from_s3')
     def test_bad_data_exception(self, mock_s3_return, mock_lambda, mock_sqs, mock_sns):
         with open("tests/fixtures/imp_output_test.json") as file:
             content = file.read()
@@ -175,9 +175,9 @@ class TestCountyWranglerMethods:
 
                 assert(returned_value['error'].__contains__("""Bad data"""))
 
-    @mock.patch("aggregation_column_wrangler.funk.save_data")
+    @mock.patch("aggregation_column_wrangler.aws_functions.save_data")
     @mock.patch("aggregation_column_wrangler.boto3.client")
-    @mock.patch("aggregation_column_wrangler.funk.read_dataframe_from_s3")
+    @mock.patch("aggregation_column_wrangler.aws_functions.read_dataframe_from_s3")
     def test_incomplete_read(self, mock_s3_return, mock_client, mock_sqs):
         with open("tests/fixtures/imp_output_test.json") as input_file:
             input_data = json.load(input_file)
@@ -207,7 +207,7 @@ class TestCountyWranglerMethods:
 
     def test_client_error_exception(self):
         with mock.patch("aggregation_column_wrangler."
-                        "funk.read_dataframe_from_s3") as mock_s3:
+                        "aws_functions.read_dataframe_from_s3") as mock_s3:
             with open("tests/fixtures/imp_output_test.json", "r") as file:
                 mock_content = file.read()
                 mock_s3.side_effect = KeyError()
@@ -247,9 +247,9 @@ class TestCountyWranglerMethods:
         assert response["success"] is False
         assert response["error"].__contains__("""AWS Error""")
 
-    @mock.patch("aggregation_column_wrangler.funk.save_data")
+    @mock.patch("aggregation_column_wrangler.aws_functions.save_data")
     @mock.patch("aggregation_column_wrangler.boto3.client")
-    @mock.patch("aggregation_column_wrangler.funk.read_dataframe_from_s3")
+    @mock.patch("aggregation_column_wrangler.aws_functions.read_dataframe_from_s3")
     def test_method_error(self, mock_s3_return, mock_lambda, mock_sqs):
 
         with open("tests/fixtures/imp_output_test.json") as input_file:
