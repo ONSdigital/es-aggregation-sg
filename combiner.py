@@ -29,7 +29,7 @@ class DoNotHaveAllDataError(Exception):
 
 def lambda_handler(event, context):
     """
-    The takes the new columns and adds them all onto the main dataset.
+    This method takes the new columns and adds them all onto the main dataset.
 
     :param event: { "RuntimeVariables": {
         aggregated_column - A column to aggregate by. e.g. Enterprise_Reference.
