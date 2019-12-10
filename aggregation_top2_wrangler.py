@@ -75,8 +75,8 @@ def lambda_handler(event, context):
 
         aggregated_column = event['RuntimeVariables']['aggregated_column']
 
-        additional_aggregated_column = event['RuntimeVariables']
-        ['additional_aggregated_column']
+        additional_aggregated_column = \
+            event['RuntimeVariables']['additional_aggregated_column']
 
         total_column = event['RuntimeVariables']['total_column']
         period_column = event['RuntimeVariables']['period_column']
