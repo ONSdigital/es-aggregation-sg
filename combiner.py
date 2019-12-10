@@ -69,7 +69,6 @@ def lambda_handler(event, context):
         aggregated_column = event['RuntimeVariables']['aggregated_column']
         additional_aggregated_column =\
             event['RuntimeVariables']['additional_aggregated_column']
-        period_column = event['RuntimeVariables']['period_column']
 
         # Clients
         sqs = boto3.client("sqs", "eu-west-2")
@@ -113,18 +112,15 @@ def lambda_handler(event, context):
         # merge the imputation output from s3 with the 3 aggregation outputs
         first_merge = pd.merge(
             imp_df, first_agg_df, on=[additional_aggregated_column,
-                                      aggregated_column,
-                                      period_column], how="left")
+                                      aggregated_column], how="left")
 
         second_merge = pd.merge(
             first_merge, second_agg_df, on=[additional_aggregated_column,
-                                            aggregated_column,
-                                            period_column], how="left")
+                                            aggregated_column], how="left")
 
         third_merge = pd.merge(
             second_merge, third_agg_df, on=[additional_aggregated_column,
-                                            aggregated_column,
-                                            period_column], how="left")
+                                            aggregated_column], how="left")
 
         logger.info("Successfully merged dataframes")
 
