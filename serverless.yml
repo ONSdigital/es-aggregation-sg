@@ -14,7 +14,7 @@ provider:
   runtime: python3.7
   region: eu-west-2
   memorySize: 1024
-  timeout: 20
+  timeout: 40
   tracing:
     lambda: true
   package:
