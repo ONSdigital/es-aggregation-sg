@@ -38,6 +38,7 @@ def lambda_handler(event, context):
     """
     current_module = "Aggregation Calc Top Two - Method"
     logger = logging.getLogger()
+    logger.setLevel(0)
     error_message = ''
     log_message = ''
     response_json = None
@@ -67,9 +68,10 @@ def lambda_handler(event, context):
 
         response = response[[additional_aggregated_column,
                              aggregated_column,
-                             period_column,
                              "largest_contributor",
                              "second_largest_contributor"]]
+
+        response = response.drop_duplicates()
 
         logger.info("Converting output dataframe to json")
         response_json = response.to_json(orient='records')
@@ -123,34 +125,34 @@ def calc_top_two(data, total_column, period_column, aggregated_column,):
             if temp_column not in column_list:
                 column_list.append(temp_column)
 
-            # Loop through each column (by period) updating largest & second largest value
-            for column in column_list:
-                logger.info("...Processing column " + str(column))
+        # Loop through each column (by period) updating largest & second largest value
+        for column in column_list:
+            logger.info("...Processing column " + str(column))
 
-                total = data.loc[(data[period_column] == period)][[total_column,
-                                                                   aggregated_column]]
+            total = data.loc[(data[period_column] == period)][[total_column,
+                                                               aggregated_column]]
 
-                second_total = total.loc[(total[aggregated_column] == column)]
+            second_total = total.loc[(total[aggregated_column] == column)]
 
-                sorted_dataframe = second_total.sort_values(by=[total_column],
-                                                            ascending=False)
+            sorted_dataframe = second_total.sort_values(by=[total_column],
+                                                        ascending=False)
 
-                sorted_dataframe = sorted_dataframe.reset_index(drop=True)
+            sorted_dataframe = sorted_dataframe.reset_index(drop=True)
 
-                top_two = sorted_dataframe.head(2)
+            top_two = sorted_dataframe.head(2)
 
-                primary_value = top_two[total_column].iloc[0]
+            primary_value = top_two[total_column].iloc[0]
 
-                if top_two.shape[0] >= 2:
-                    secondary_value = top_two[total_column].iloc[1]
+            if top_two.shape[0] >= 2:
+                secondary_value = top_two[total_column].iloc[1]
 
-                data.loc[(data[aggregated_column] == column) &
-                         (data[period_column] == period),
-                         'largest_contributor'] = primary_value
+            data.loc[(data[aggregated_column] == column) &
+                     (data[period_column] == period),
+                     'largest_contributor'] = primary_value
 
-                data.loc[(data[aggregated_column] == column) &
-                         (data[period_column] == period),
-                         'second_largest_contributor'] = secondary_value
+            data.loc[(data[aggregated_column] == column) &
+                     (data[period_column] == period),
+                     'second_largest_contributor'] = secondary_value
 
     # Ensure additional columns are type cast correctly (Belt n Braces)
     data['largest_contributor'] = (data['largest_contributor'].astype(np.int64))
