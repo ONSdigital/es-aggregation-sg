@@ -30,7 +30,7 @@ def lambda_handler(event, context):
         aggregated_column - A column to aggregate by. e.g. Enterprise_Reference.
         additional_aggregated_column - A column to aggregate by. e.g. Region.
         total_column - The column with the sum of the data.
-        top2_aggregated_column - The collumn Top2 will aggregate by
+        top2_aggregated_column - The collumn Top2 will aggregate by.
     }
     :param context: N/A
     :return: Success - {"success": True/False, "data"/"error": "JSON String"/"Message"}
