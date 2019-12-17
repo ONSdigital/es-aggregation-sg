@@ -61,17 +61,6 @@ def lambda_handler(event, context):
         logger.info("Invoking calc_top_two function on input dataframe")
 
         response = calc_top_two(input_dataframe, total_column, aggregated_column)
-        pd.set_option('display.max_rows', 1)
-        pd.set_option('display.max_columns', 500)
-        pd.set_option('display.width', 1000)
-        print(response[additional_aggregated_column])
-        print("-------")
-        print(response[aggregated_column])
-        print("-------")
-        print(response["largest_contributor"])
-        print("-------")
-        print(response["second_largest_contributor"])
-        print("-------")
         response = response[[additional_aggregated_column,
                              aggregated_column,
                              "largest_contributor",

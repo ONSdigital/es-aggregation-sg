@@ -20,7 +20,6 @@ class TestStringMethods(unittest.TestCase):
             json_payload = {
                 "input_json": input_data,
                 "total_column": "enterprise_ref",
-                "period_column": "period",
                 "additional_aggregated_column": "region",
                 "aggregated_column": "county",
                 "cell_total_column": "ent_ref_count",
