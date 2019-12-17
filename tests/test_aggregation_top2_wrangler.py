@@ -127,18 +127,18 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
             mock_get_from_s3.return_value = pd.DataFrame(input_data)
 
-            with open('tests/fixtures/top2_method_output.json', "rb") as file:
-                mock_lambda.return_value.invoke.return_value = (
-                    {"Payload": StreamingBody(file, 355)}
-                )
+            with open('tests/fixtures/top2_method_output_missing_col.json', "r") as file:
+                lambda_return = file.read()
+
+                mock_lambda.return_value.invoke.return_value.get.return_value \
+                    .read.return_value.decode.return_value = json.dumps(
+                        {"success": True, "data": lambda_return})
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {
-                        "period": 201809,
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
                         "additional_aggregated_column": "region",
-                        "period_column": "period",
                         "county_column": "county"
                         }}, context_object)
 

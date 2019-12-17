@@ -31,8 +31,6 @@ def lambda_handler(event, context):
         aggregated_column - A column to aggregate by. e.g. Enterprise_Reference.
         additional_aggregated_column - A column to aggregate by. e.g. Region.
         aggregation_type - How we wish to do the aggregation. e.g. sum, count, nunique.
-        period_column - Name of to column containing the period value.
-        period - The current run's period value.
         total_column - The column with the sum of the data.
         cell_total_column - Name of column to rename total_column.
     }}
@@ -52,14 +50,12 @@ def lambda_handler(event, context):
         # Needs to be declared inside the lambda_handler
         lambda_client = boto3.client('lambda', region_name="eu-west-2")
 
-        period = event['RuntimeVariables']['period']
         aggregation_type = event['RuntimeVariables']['aggregation_type']
         aggregated_column = event['RuntimeVariables']['aggregated_column']
         cell_total_column = event['RuntimeVariables']['cell_total_column']
         total_column = event['RuntimeVariables']['total_column']
         additional_aggregated_column = \
             event['RuntimeVariables']['additional_aggregated_column']
-        period_column = event['RuntimeVariables']['period_column']
 
         # ENV vars
         config, errors = InputSchema().load(os.environ)
@@ -84,10 +80,8 @@ def lambda_handler(event, context):
         data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
         logger.info("Completed reading data from s3")
 
-        disaggregated_data = data[data[period_column] == int(period)]
-
-        formatted_data = disaggregated_data.to_json(orient='records')
-        logger.info("Filtered disaggregated_data")
+        formatted_data = data.to_json(orient='records')
+        logger.info("Formated disaggregated_data")
 
         json_payload = {
             "input_json": formatted_data,

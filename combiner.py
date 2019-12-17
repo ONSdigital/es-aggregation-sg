@@ -34,7 +34,6 @@ def lambda_handler(event, context):
     :param event: { "RuntimeVariables": {
         aggregated_column - A column to aggregate by. e.g. Enterprise_Reference.
         additional_aggregated_column - A column to aggregate by. e.g. Region.
-        period_column - Name of to column containing the period value.
     }}
     :param context:
     :return:

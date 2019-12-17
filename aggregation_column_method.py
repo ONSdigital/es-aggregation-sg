@@ -19,9 +19,9 @@ class EnvironSchema(marshmallow.Schema):
 
 def lambda_handler(event, context):
     """
-    Generates a JSON dataset, grouped by the given aggregated_column(e.g.county) and
-    period, with the given total_column(e.g.Q608_total) aggregated by the given
-    aggregation_type(e.g.Sum) as a new column called cell_total_column(e.g.county_total).
+    Generates a JSON dataset, grouped by the given aggregated_column(e.g.county) with
+     the given total_column(e.g.Q608_total) aggregated by the given aggregation_type
+     (e.g.Sum) as a new column called cell_total_column(e.g.county_total).
 
     :param event: {
         aggregated_column - A column to aggregate by. e.g. Enterprise_Reference.

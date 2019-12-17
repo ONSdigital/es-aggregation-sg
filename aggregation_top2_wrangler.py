@@ -37,7 +37,6 @@ def lambda_handler(event, context):
     :param event: {"RuntimeVariables":{
         aggregated_column - A column to aggregate by. e.g. Enterprise_Reference.
         additional_aggregated_column - A column to aggregate by. e.g. Region.
-        period_column - Name of to column containing the period value.
         total_column - The column with the sum of the data.
     }}
     :param context: N/A
@@ -79,7 +78,6 @@ def lambda_handler(event, context):
             event['RuntimeVariables']['additional_aggregated_column']
 
         total_column = event['RuntimeVariables']['total_column']
-        period_column = event['RuntimeVariables']['period_column']
 
         # Read from S3 bucket
         data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
@@ -89,7 +87,7 @@ def lambda_handler(event, context):
         # type of content
         msg = "Checking required data columns are present and correctly typed."
         logger.info(msg)
-        req_col_list = [period_column, aggregated_column, total_column]
+        req_col_list = [aggregated_column, total_column]
         for req_col in req_col_list:
             if req_col not in data.columns:
                 err_msg = 'Required column "' + req_col + '" not found in dataframe.'
@@ -118,7 +116,6 @@ def lambda_handler(event, context):
         json_payload = {
             "input_json": prepared_data,
             "total_column": total_column,
-            "period_column": period_column,
             "additional_aggregated_column": additional_aggregated_column,
             "aggregated_column": aggregated_column
         }
