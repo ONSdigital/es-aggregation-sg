@@ -2,7 +2,6 @@ import json
 import logging
 
 import marshmallow
-import numpy as np
 import pandas as pd
 
 
@@ -14,6 +13,7 @@ class EnvironSchema(marshmallow.Schema):
     total_column = marshmallow.fields.Str(required=True)
     additional_aggregated_column = marshmallow.fields.Str(required=True)
     aggregated_column = marshmallow.fields.Str(required=True)
+    top2_aggregated_column = marshmallow.fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -30,6 +30,7 @@ def lambda_handler(event, context):
         aggregated_column - A column to aggregate by. e.g. Enterprise_Reference.
         additional_aggregated_column - A column to aggregate by. e.g. Region.
         total_column - The column with the sum of the data.
+        top2_aggregated_column - The collumn Top2 will aggregate by
     }
     :param context: N/A
     :return: Success - {"success": True/False, "data"/"error": "JSON String"/"Message"}
@@ -55,17 +56,18 @@ def lambda_handler(event, context):
         total_column = config["total_column"]
         additional_aggregated_column = config["additional_aggregated_column"]
         aggregated_column = config["aggregated_column"]
+        top2_aggregated_column = config["top2_aggregated_column"]
 
         input_dataframe = pd.DataFrame(input_json)
 
         logger.info("Invoking calc_top_two function on input dataframe")
 
-        response = calc_top_two(input_dataframe, total_column, aggregated_column)
+        response = calc_top_two(input_dataframe, total_column, top2_aggregated_column)
         response = response[[additional_aggregated_column,
                              aggregated_column,
                              "largest_contributor",
                              "second_largest_contributor"]]
-        
+
         response = response.drop_duplicates()
 
         logger.info("Converting output dataframe to json")
@@ -93,7 +95,7 @@ def lambda_handler(event, context):
     return final_output
 
 
-def calc_top_two(data, total_column, aggregated_column,):
+def calc_top_two(data, total_column, top2_aggregated_column):
     # NB: No need for try/except as called from inside try clause in lambda_handler.
 
     logger = logging.getLogger()
@@ -103,14 +105,15 @@ def calc_top_two(data, total_column, aggregated_column,):
     data['largest_contributor'] = 0
     data['second_largest_contributor'] = 0
 
-    county_list = json.loads(data['county'].drop_duplicates().to_json(orient='records'))
+    county_list = json.loads(data[top2_aggregated_column].drop_duplicates()
+                                                         .to_json(orient='records'))
 
     # Find top 2 in each unique county
     for county in county_list:
         logger.info("Looking for top 2 in county: " + str(county))
 
         # Extract and sort the data
-        current_data = data[(data['county'] == county)]
+        current_data = data[(data[top2_aggregated_column] == county)]
         sorted_data = current_data.sort_values(by=[total_column], ascending=False)
         sorted_data = sorted_data[total_column].reset_index(drop=True)
 
@@ -124,7 +127,7 @@ def calc_top_two(data, total_column, aggregated_column,):
         # Save to the output data
         data[['largest_contributor', 'second_largest_contributor']] = data.apply(
             lambda x: pd.Series([top_one, top_two])
-            if (x['county'] == county)
+            if (x[top2_aggregated_column] == county)
             else pd.Series([x['largest_contributor'], x['second_largest_contributor']]),
             axis=1)
 

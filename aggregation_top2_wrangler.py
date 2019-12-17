@@ -79,6 +79,8 @@ def lambda_handler(event, context):
 
         total_column = event['RuntimeVariables']['total_column']
 
+        top2_aggregated_column = event['RuntimeVariables']['top2_aggregated_column']
+
         # Read from S3 bucket
         data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
         logger.info("Completed reading data from s3")
@@ -87,7 +89,7 @@ def lambda_handler(event, context):
         # type of content
         msg = "Checking required data columns are present and correctly typed."
         logger.info(msg)
-        req_col_list = [aggregated_column, total_column]
+        req_col_list = [aggregated_column, total_column, top2_aggregated_column]
         for req_col in req_col_list:
             if req_col not in data.columns:
                 err_msg = 'Required column "' + req_col + '" not found in dataframe.'
@@ -117,7 +119,8 @@ def lambda_handler(event, context):
             "input_json": prepared_data,
             "total_column": total_column,
             "additional_aggregated_column": additional_aggregated_column,
-            "aggregated_column": aggregated_column
+            "aggregated_column": aggregated_column,
+            "top2_aggregated_column": top2_aggregated_column
         }
 
         top2 = lambda_client.invoke(FunctionName=method_name,

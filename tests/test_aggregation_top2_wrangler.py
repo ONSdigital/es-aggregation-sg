@@ -55,6 +55,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                     {"RuntimeVariables": {
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
+                        "top2_aggregated_column": "county",
                         "additional_aggregated_column": "region",
                         "county_column": "county"
                         }}, context_object)
@@ -134,6 +135,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                     {"RuntimeVariables": {
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
+                        "top2_aggregated_column": "county",
                         "additional_aggregated_column": "region",
                         "county_column": "county"
                         }}, context_object)
@@ -179,6 +181,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                     {"RuntimeVariables": {
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
+                        "top2_aggregated_column": "county",
                         "additional_aggregated_column": "region",
                         "county_column": "county"
                         }}, context_object)
@@ -225,6 +228,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                     {"RuntimeVariables": {
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
+                        "top2_aggregated_column": "county",
                         "additional_aggregated_column": "region",
                         "county_column": "county"
                         }}, context_object)
@@ -270,6 +274,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                     {"RuntimeVariables": {
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
+                        "top2_aggregated_column": "county",
                         "additional_aggregated_column": "region",
                         "county_column": "county"
                         }}, context_object)
@@ -313,6 +318,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                     {"RuntimeVariables": {
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
+                        "top2_aggregated_column": "county",
                         "additional_aggregated_column": "region",
                         "county_column": "county"
                         }}, context_object)
@@ -355,6 +361,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                     {"RuntimeVariables": {
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
+                        "top2_aggregated_column": "county",
                         "additional_aggregated_column": "region",
                         "county_column": "county"
                         }}, context_object)
@@ -395,6 +402,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                     {"RuntimeVariables": {
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
+                        "top2_aggregated_column": "county",
                         "additional_aggregated_column": "region",
                         "county_column": "county"
                         }}, context_object)
@@ -425,6 +433,7 @@ class TestMoto:
                     {"RuntimeVariables": {
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
+                        "top2_aggregated_column": "county",
                         "additional_aggregated_column": "region",
                         "county_column": "county"
                         }}, context_object)

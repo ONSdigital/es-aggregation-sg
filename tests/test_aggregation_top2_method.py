@@ -27,6 +27,7 @@ class TestAggregationTop2Method(unittest.TestCase):
                 "input_json": input_data,
                 "total_column": "Q608_total",
                 "additional_aggregated_column": "region",
+                "top2_aggregated_column": "county",
                 "aggregated_column": "county"
             }
 
