@@ -58,14 +58,13 @@ e.g. {"success": True/False, "checkpoint"/"error": 4/"Message"}
 
 **Name of Lambda:** aggregation_top2_wrangler
 
-**Summary:** Takes a DataFrame in json format and calculates the highest and second highest total within each county (column name adjustable in runtime variables). These are then appended as two new columns. The DataFrame is saved to S3 as json and a notification sent on to the next module via SNS.
+**Summary:** Takes a DataFrame in json format and calculates the highest and second highest total within each unique combination of the aggregated_column and additional aggregated column (column names are adjustable in the runtime variables). These are then appended as two new columns. The DataFrame is saved to S3 as json and a notification sent on to the next module via SNS.
 
 **Inputs:**
     event: {"RuntimeVariables":{ <br>
         aggregated_column - A column to aggregate by. e.g. Enterprise_Reference. <br>
         additional_aggregated_column - A column to aggregate by. e.g. Region. <br>
         total_column - The column with the sum of the data. <br>
-        top2_aggregated_column - The collumn Top2 will aggregate by. <br>
     }}
 
 **Outputs:** A JSON dict which contains a success marker and the input DataFrame with the following two columns appended: "largest_contributor" and "second_largest_contributor" <br>
