@@ -78,8 +78,8 @@ class TestCombininator(unittest.TestCase):
                         }
                 out = combiner.lambda_handler(
                     {"RuntimeVariables": {"aggregated_column": "county",
-                                          "additional_aggregated_column": "region",
-                                          "period_column": "period"}}, context_object)
+                                          "additional_aggregated_column": "region"
+                                          }}, context_object)
 
                 assert out["success"]
 
@@ -107,8 +107,8 @@ class TestCombininator(unittest.TestCase):
                 mock_s3.return_value = s3_data
                 out = combiner.lambda_handler(
                     {"RuntimeVariables": {"aggregated_column": "county",
-                                          "additional_aggregated_column": "region",
-                                          "period_column": "period"}}, context_object)
+                                          "additional_aggregated_column": "region"
+                                          }}, context_object)
 
                 assert "There was no data in sqs queue" in out["error"]
 
@@ -142,8 +142,8 @@ class TestCombininator(unittest.TestCase):
                     mock_sqs.return_value = {"Messages": [{"Body": agg1}]}
                     out = combiner.lambda_handler(
                         {"RuntimeVariables": {"aggregated_column": "county",
-                                              "additional_aggregated_column": "region",
-                                              "period_column": "period"}}, context_object)
+                                              "additional_aggregated_column": "region"
+                                              }}, context_object)
 
                     assert "Did not recieve all 3 messages" in out["error"]
 
@@ -171,8 +171,8 @@ class TestCombininator(unittest.TestCase):
 
                 out = combiner.lambda_handler(
                     {"RuntimeVariables": {"aggregated_column": "county",
-                                          "additional_aggregated_column": "region",
-                                          "period_column": "period"}}, context_object)
+                                          "additional_aggregated_column": "region"
+                                          }}, context_object)
                 assert "Bad data encountered in" in out["error"]
 
     @mock_sqs
@@ -197,8 +197,8 @@ class TestCombininator(unittest.TestCase):
 
             out = combiner.lambda_handler(
                     {"RuntimeVariables": {"aggregated_column": "county",
-                                          "additional_aggregated_column": "region",
-                                          "period_column": "period"}}, context_object)
+                                          "additional_aggregated_column": "region"
+                                          }}, context_object)
             assert "AWS Error" in out["error"]
 
     @mock_sqs
@@ -239,8 +239,8 @@ class TestCombininator(unittest.TestCase):
                         out = combiner.lambda_handler(
                             {"RuntimeVariables": {
                                 "aggregated_column": "county",
-                                "additional_aggregated_column": "region",
-                                "period_column": "period"}}, context_object)
+                                "additional_aggregated_column": "region"
+                                }}, context_object)
 
                         assert "Key Error" in out["error"]
 
@@ -268,6 +268,6 @@ class TestCombininator(unittest.TestCase):
 
                 out = combiner.lambda_handler(
                     {"RuntimeVariables": {"aggregated_column": "county",
-                                          "additional_aggregated_column": "region",
-                                          "period_column": "period"}}, context_object)
+                                          "additional_aggregated_column": "region"
+                                          }}, context_object)
                 assert "General Error" in out["error"]

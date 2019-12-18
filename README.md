@@ -10,7 +10,6 @@ The wrangler is responsible for preparing the data, invoking the lambda and then
 Steps performed:
 
     - Retrieves data From S3 bucket
-    - Filters the data by current period
     - Invokes method lambda
     - Puts the aggregated data onto the SQS queue
     - Sends SNS message
@@ -40,15 +39,13 @@ Steps performed:
 
 **Name of Lambda:** aggregation_column_method
 
-**Summary:** This method is responsible for grouping the data by a given column, region and period. It then aggregates on the specified column (e.g. enterprise_ref) creating a total (e.g. ent_ref_count) and then renames the column accordingly.
+**Summary:** This method is responsible for grouping the data by a given column, and region. It then aggregates on the specified column (e.g. enterprise_ref) creating a total (e.g. ent_ref_count) and then renames the column accordingly.
 
 **Inputs:**
     event: {"RuntimeVariables":{ <br>
         aggregated_column - A column to aggregate by. e.g. Enterprise_Reference. <br>
         additional_aggregated_column - A column to aggregate by. e.g. Region. <br>
         aggregation_type - How we wish to do the aggregation. e.g. sum, count, nunique. <br>
-        period_column - Name of to column containing the period value. <br>
-        period - The current run's period value. <br>
         total_column - The column with the sum of the data. <br>
         cell_total_column - Name of column to rename total_column. <br>
     }}
@@ -61,13 +58,12 @@ e.g. {"success": True/False, "checkpoint"/"error": 4/"Message"}
 
 **Name of Lambda:** aggregation_top2_wrangler
 
-**Summary:** Takes a DataFrame in json format and uses the columns period, column* and total* to calculate the highest and second highest total within each period/column* combination. These are then appended as two new columns. Finally, the DataFrame is re-converted to json and sent on via SQS.
+**Summary:** Takes a DataFrame in json format and calculates the highest and second highest total within each unique combination of the aggregated_column and additional aggregated column (column names are adjustable in the runtime variables). These are then appended as two new columns. The DataFrame is saved to S3 as json and a notification sent on to the next module via SNS.
 
 **Inputs:**
     event: {"RuntimeVariables":{ <br>
         aggregated_column - A column to aggregate by. e.g. Enterprise_Reference. <br>
         additional_aggregated_column - A column to aggregate by. e.g. Region. <br>
-        period_column - Name of to column containing the period value. <br>
         total_column - The column with the sum of the data. <br>
     }}
 

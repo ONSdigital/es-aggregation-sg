@@ -57,13 +57,11 @@ class TestCountyWranglerMethods:
             returned_value = aggregation_column_wrangler.\
                 lambda_handler({
                     "RuntimeVariables":
-                        {"period": 6666,
-                         "aggregation_type": "sum",
+                        {"aggregation_type": "sum",
                          "aggregated_column": "county",
                          "cell_total_column": "county_total",
                          "total_column": "Q608_total",
-                         "additional_aggregated_column": "region",
-                         "period_column": "period"
+                         "additional_aggregated_column": "region"
                          }
                 }, context_object)
 
@@ -81,13 +79,11 @@ class TestCountyWranglerMethods:
         response = aggregation_column_wrangler.\
             lambda_handler({
                 "RuntimeVariables":
-                    {"period": 6666,
-                     "aggregation_type": "sum",
+                    {"aggregation_type": "sum",
                      "aggregated_column": "county",
                      "cell_total_column": "county_total",
                      "total_column": "Q608_total",
-                     "additional_aggregated_column": "region",
-                     "period_column": "period"
+                     "additional_aggregated_column": "region"
                      }
             }, context_object)
 
@@ -106,13 +102,11 @@ class TestCountyWranglerMethods:
         response = aggregation_column_wrangler.\
             lambda_handler({
                 "RuntimeVariables":
-                    {"period": 6666,
-                     "aggregation_type": "sum",
+                    {"aggregation_type": "sum",
                      "aggregated_column": "county",
                      "cell_total_column": "county_total",
                      "total_column": "Q608_total",
-                     "additional_aggregated_column": "region",
-                     "period_column": "period"
+                     "additional_aggregated_column": "region"
                      }
             }, context_object)
 
@@ -130,13 +124,11 @@ class TestCountyWranglerMethods:
             response = aggregation_column_wrangler.\
                 lambda_handler({
                     "RuntimeVariables":
-                        {"period": 6666,
-                         "aggregation_type": "sum",
+                        {"aggregation_type": "sum",
                          "aggregated_column": "county",
                          "cell_total_column": "county_total",
                          "total_column": "Q608_total",
-                         "additional_aggregated_column": "region",
-                         "period_column": "period"
+                         "additional_aggregated_column": "region"
                          }
                 }, context_object)
 
@@ -160,13 +152,11 @@ class TestCountyWranglerMethods:
             response = aggregation_column_wrangler.\
                 lambda_handler({
                     "RuntimeVariables":
-                        {"period": 6666,
-                         "aggregation_type": "sum",
+                        {"aggregation_type": "sum",
                          "aggregated_column": "county",
                          "cell_total_column": "county_total",
                          "total_column": "Q608_total",
-                         "additional_aggregated_column": "region",
-                         "period_column": "period"
+                         "additional_aggregated_column": "region"
                          }
                 }, context_object)
 
@@ -185,13 +175,11 @@ class TestCountyWranglerMethods:
             response = aggregation_column_wrangler.\
                 lambda_handler({
                     "RuntimeVariables":
-                        {"period": 6666,
-                         "aggregation_type": "sum",
+                        {"aggregation_type": "sum",
                          "aggregated_column": "county",
                          "cell_total_column": "county_total",
                          "total_column": "Q608_total",
-                         "additional_aggregated_column": "region",
-                         "period_column": "period"
+                         "additional_aggregated_column": "region"
                          }
                 }, context_object)
 
@@ -202,13 +190,11 @@ class TestCountyWranglerMethods:
         response = aggregation_column_wrangler.\
                 lambda_handler({
                     "RuntimeVariables":
-                        {"period": 6666,
-                         "aggregation_type": "sum",
+                        {"aggregation_type": "sum",
                          "aggregated_column": "county",
                          "cell_total_column": "county_total",
                          "total_column": "Q608_total",
-                         "additional_aggregated_column": "region",
-                         "period_column": "period"
+                         "additional_aggregated_column": "region"
                          }
                 }, context_object)
 
@@ -233,13 +219,11 @@ class TestCountyWranglerMethods:
             returned_value = aggregation_column_wrangler.\
                 lambda_handler({
                     "RuntimeVariables":
-                        {"period": 6666,
-                         "aggregation_type": "sum",
+                        {"aggregation_type": "sum",
                          "aggregated_column": "county",
                          "cell_total_column": "county_total",
                          "total_column": "Q608_total",
-                         "additional_aggregated_column": "region",
-                         "period_column": "period"
+                         "additional_aggregated_column": "region"
                          }
                 }, context_object)
 

@@ -26,7 +26,6 @@ class TestAggregationTop2Method(unittest.TestCase):
             json_payload = {
                 "input_json": input_data,
                 "total_column": "Q608_total",
-                "period_column": "period",
                 "additional_aggregated_column": "region",
                 "aggregated_column": "county"
             }

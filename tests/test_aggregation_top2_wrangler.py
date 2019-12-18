@@ -53,11 +53,9 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                         {"success": True, "data": in_file})
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {
-                        "period": 201809,
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
                         "additional_aggregated_column": "region",
-                        "period_column": "period",
                         "county_column": "county"
                         }}, context_object)
 
@@ -89,8 +87,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                 )
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"period": 201809,
-                                          "total_column": "Q608_total",
+                    {"RuntimeVariables": {"total_column": "Q608_total",
                                           "aggregated_column": "county"}
                      }, context_object)
 
@@ -122,23 +119,22 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
         ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
                 content = file.read()
-                content = content.replace("period", "MissingColTest")
                 input_data = json.loads(content)
 
             mock_get_from_s3.return_value = pd.DataFrame(input_data)
 
-            with open('tests/fixtures/top2_method_output.json', "rb") as file:
-                mock_lambda.return_value.invoke.return_value = (
-                    {"Payload": StreamingBody(file, 355)}
-                )
+            with open('tests/fixtures/top2_method_output_missing_col.json', "r") as file:
+                lambda_return = file.read()
+
+                mock_lambda.return_value.invoke.return_value.get.return_value \
+                    .read.return_value.decode.return_value = json.dumps(
+                        {"success": True, "data": lambda_return})
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {
-                        "period": 201809,
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
                         "additional_aggregated_column": "region",
-                        "period_column": "period",
                         "county_column": "county"
                         }}, context_object)
 
@@ -167,7 +163,6 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
             'out_file_name': "boris",
-            'period_column': 'period',
             'additional_aggregated_column': 'region'
             }
         ):
@@ -182,11 +177,9 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {
-                        "period": 201809,
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
                         "additional_aggregated_column": "region",
-                        "period_column": "period",
                         "county_column": "county"
                         }}, context_object)
 
@@ -230,11 +223,9 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                         {"success": True, "data": lambda_return})
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {
-                        "period": 201809,
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
                         "additional_aggregated_column": "region",
-                        "period_column": "period",
                         "county_column": "county"
                         }}, context_object)
 
@@ -277,11 +268,9 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {
-                        "period": 201809,
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
                         "additional_aggregated_column": "region",
-                        "period_column": "period",
                         "county_column": "county"
                         }}, context_object)
 
@@ -322,11 +311,9 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {
-                        "period": 201809,
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
                         "additional_aggregated_column": "region",
-                        "period_column": "period",
                         "county_column": "county"
                         }}, context_object)
 
@@ -366,11 +353,9 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {
-                        "period": 201809,
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
                         "additional_aggregated_column": "region",
-                        "period_column": "period",
                         "county_column": "county"
                         }}, context_object)
 
@@ -408,11 +393,9 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                     {"success": False, "error": "This is an error message"})
             returned_value = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {
-                        "period": 201809,
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
                         "additional_aggregated_column": "region",
-                        "period_column": "period",
                         "county_column": "county"
                         }}, context_object)
 
@@ -440,11 +423,9 @@ class TestMoto:
         ):
             response = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {
-                        "period": 201809,
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
                         "additional_aggregated_column": "region",
-                        "period_column": "period",
                         "county_column": "county"
                         }}, context_object)
 
@@ -475,11 +456,9 @@ class TestMoto:
 
                 response = aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {
-                        "period": 201809,
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
                         "additional_aggregated_column": "region",
-                        "period_column": "period",
                         "county_column": "county"
                         }}, context_object)
 

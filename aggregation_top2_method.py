@@ -2,7 +2,6 @@ import json
 import logging
 
 import marshmallow
-import numpy as np
 import pandas as pd
 
 
@@ -12,15 +11,14 @@ class EnvironSchema(marshmallow.Schema):
     """
     input_json = marshmallow.fields.Str(required=True)
     total_column = marshmallow.fields.Str(required=True)
-    period_column = marshmallow.fields.Str(required=True)
     additional_aggregated_column = marshmallow.fields.Str(required=True)
     aggregated_column = marshmallow.fields.Str(required=True)
 
 
 def lambda_handler(event, context):
     """
-    This method loops through each county (by period) and records largest & second
-    largest value against each record in the group.
+    This method loops through each county and records largest & second largest value
+     against each record in the group.
 
     It requires input_json to contain the input columns:
      - largest_contributor, created inside top2 wrangler.
@@ -30,7 +28,6 @@ def lambda_handler(event, context):
         input_json - JSON String of the data.
         aggregated_column - A column to aggregate by. e.g. Enterprise_Reference.
         additional_aggregated_column - A column to aggregate by. e.g. Region.
-        period_column - Name of to column containing the period value.
         total_column - The column with the sum of the data.
     }
     :param context: N/A
@@ -55,7 +52,6 @@ def lambda_handler(event, context):
         logger.info("Converting input json to dataframe")
         input_json = json.loads(config["input_json"])
         total_column = config["total_column"]
-        period_column = config["period_column"]
         additional_aggregated_column = config["additional_aggregated_column"]
         aggregated_column = config["aggregated_column"]
 
@@ -64,8 +60,7 @@ def lambda_handler(event, context):
         logger.info("Invoking calc_top_two function on input dataframe")
 
         response = calc_top_two(input_dataframe, total_column,
-                                period_column, aggregated_column)
-
+                                aggregated_column, additional_aggregated_column)
         response = response[[additional_aggregated_column,
                              aggregated_column,
                              "largest_contributor",
@@ -98,7 +93,7 @@ def lambda_handler(event, context):
     return final_output
 
 
-def calc_top_two(data, total_column, period_column, aggregated_column,):
+def calc_top_two(data, total_column, aggregated_column, additional_aggregated_column):
     # NB: No need for try/except as called from inside try clause in lambda_handler.
 
     logger = logging.getLogger()
@@ -107,58 +102,37 @@ def calc_top_two(data, total_column, period_column, aggregated_column,):
     # Ensure additional columns are zeroed (Belt n Braces)
     data['largest_contributor'] = 0
     data['second_largest_contributor'] = 0
-    secondary_value = 0
 
-    # Create unique list of periods in data
-    period_list = list(data.period.unique())
+    # Organise the unique groups to be used for top2 lookup
+    aggregations = data[[aggregated_column,
+                         additional_aggregated_column]].drop_duplicates()
+    aggregations_list = json.loads(aggregations.to_json(orient='records'))
 
-    # Get unique periods
-    for period in period_list:
-        column_list = []
-        temp_column_list = data.loc[
-            (data[period_column] == period)][aggregated_column].tolist()
+    # Find top 2 in each unique group
+    for aggregation in aggregations_list:
+        logger.info("Looking for top 2 in: " + str(aggregation))
 
-        logger.info("Processing period " + str(period))
+        # Extract and sort the data
+        current_data = data[
+            (data[aggregated_column] == aggregation[aggregated_column]) &
+            (data[additional_aggregated_column] == aggregation[additional_aggregated_column])]  # noqa
+        sorted_data = current_data.sort_values(by=[total_column], ascending=False)
+        sorted_data = sorted_data[total_column].reset_index(drop=True)
 
-        # Make column unique
-        for temp_column in temp_column_list:
-            if temp_column not in column_list:
-                column_list.append(temp_column)
+        # Get the top 2 records
+        top_one = sorted_data.iloc[0]
+        if len(sorted_data.index) > 1:
+            top_two = sorted_data.iloc[1]
+        else:
+            top_two = 0
 
-        # Loop through each column (by period) updating largest & second largest value
-        for column in column_list:
-            logger.info("...Processing column " + str(column))
-
-            total = data.loc[(data[period_column] == period)][[total_column,
-                                                               aggregated_column]]
-
-            second_total = total.loc[(total[aggregated_column] == column)]
-
-            sorted_dataframe = second_total.sort_values(by=[total_column],
-                                                        ascending=False)
-
-            sorted_dataframe = sorted_dataframe.reset_index(drop=True)
-
-            top_two = sorted_dataframe.head(2)
-
-            primary_value = top_two[total_column].iloc[0]
-
-            if top_two.shape[0] >= 2:
-                secondary_value = top_two[total_column].iloc[1]
-
-            data.loc[(data[aggregated_column] == column) &
-                     (data[period_column] == period),
-                     'largest_contributor'] = primary_value
-
-            data.loc[(data[aggregated_column] == column) &
-                     (data[period_column] == period),
-                     'second_largest_contributor'] = secondary_value
-
-    # Ensure additional columns are type cast correctly (Belt n Braces)
-    data['largest_contributor'] = (data['largest_contributor'].astype(np.int64))
-
-    data['second_largest_contributor'] = (data['second_largest_contributor']
-                                          .astype(np.int64))
+        # Save to the output data
+        data[['largest_contributor', 'second_largest_contributor']] = data.apply(
+            lambda x: pd.Series([top_one, top_two])
+            if (x[aggregated_column] == aggregation[aggregated_column]) &
+               (x[additional_aggregated_column] == aggregation[additional_aggregated_column])  # noqa
+            else pd.Series([x['largest_contributor'], x['second_largest_contributor']]),
+            axis=1)
 
     logger.info("Returning the output data")
     logger.info("Successfully completed function: calc_top_two")
