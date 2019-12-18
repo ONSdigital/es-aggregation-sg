@@ -119,19 +119,12 @@ def calc_top_two(data, total_column, aggregated_column, additional_aggregated_co
         sorted_data = current_data.sort_values(by=[total_column], ascending=False)
         sorted_data = sorted_data[total_column].reset_index(drop=True)
 
-        print(sorted_data)
-
         # Get the top 2 records
         top_one = sorted_data.iloc[0]
         if len(sorted_data.index) > 1:
             top_two = sorted_data.iloc[1]
         else:
             top_two = 0
-
-        print("THE ONE")
-        print(top_one)
-        print("LEO ISN'T IT")
-        print(top_two)
 
         # Save to the output data
         data[['largest_contributor', 'second_largest_contributor']] = data.apply(
