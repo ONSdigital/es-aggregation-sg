@@ -64,7 +64,7 @@ class TestCombininator(unittest.TestCase):
                 mock_funk.read_dataframe_from_s3.side_effect = \
                     [pd.DataFrame(json.loads(s3_data)), pd.DataFrame(json.loads(agg1)),
                      pd.DataFrame(json.loads(agg2)), pd.DataFrame(json.loads(agg3))]
-                mock_funk.get_sqs_message.return_value = {
+                mock_funk.get_sqs_messages.return_value = {
                             "Messages": [
                                 {"Body": "{\"key\": \"kee\","
                                          "\"bucket\":\"bouquet\"}",
@@ -111,41 +111,6 @@ class TestCombininator(unittest.TestCase):
                                           }}, context_object)
 
                 assert "There was no data in sqs queue" in out["error"]
-
-    @mock_sqs
-    @mock_s3
-    @mock_sns
-    def test_not_enough_data_in_queue(self):
-        sqs = boto3.resource("sqs", region_name="eu-west-2")
-        sqs.create_queue(QueueName="test_queue")
-        sqs_queue_url = sqs.get_queue_by_name(QueueName="test_queue").url
-        with mock.patch.dict(
-            "os.environ",
-            {
-                "checkpoint": "mock_checkpoint",
-                "sns_topic_arn": "not_an_arn",
-                "out_file_name": "mock_method",
-                "sqs_queue_url": sqs_queue_url,
-                "bucket_name": "Bertie Bucket",
-                "sqs_message_group_id": "Bob",
-                "in_file_name": "sss"
-            }
-        ):
-            with open("tests/fixtures/factorsdata.json") as file:
-                s3_data = file.read()
-            with open("tests/fixtures/agg1.json") as file:
-                agg1 = file.read()
-            with mock.patch("combiner.aws_functions.read_dataframe_from_s3") as mock_s3:
-                mock_s3.return_value = s3_data
-                with mock.patch("combiner.aws_functions.get_sqs_message") as mock_sqs:
-
-                    mock_sqs.return_value = {"Messages": [{"Body": agg1}]}
-                    out = combiner.lambda_handler(
-                        {"RuntimeVariables": {"aggregated_column": "county",
-                                              "additional_aggregated_column": "region"
-                                              }}, context_object)
-
-                    assert "Did not recieve all 3 messages" in out["error"]
 
     @mock_sqs
     @mock_s3
