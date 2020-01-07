@@ -23,10 +23,6 @@ class EnvironSchema(Schema):
     sqs_queue_url = fields.Str(required=True)
 
 
-class DoNotHaveAllDataError(Exception):
-    pass
-
-
 def lambda_handler(event, context):
     """
     This method takes the new columns and adds them all onto the main dataset.
@@ -79,13 +75,8 @@ def lambda_handler(event, context):
         data = []
 
         # Receive the 3 aggregation outputs
-        response = aws_functions.get_sqs_message(sqs_queue_url, 3)
-        if "Messages" not in response:
-            raise exception_classes.NoDataInQueueError("No Messages in queue")
-        if len(response["Messages"]) < 3:
-            raise DoNotHaveAllDataError(
-                "Only " + str(len(response["Messages"])) + " recieved"
-            )
+        response = aws_functions.get_sqs_messages(sqs_queue_url, 3, 'aggregation')
+
         receipt_handles = []
         logger.info("Successfully retrieved message from sqs")
         for message in response["Messages"]:
@@ -123,11 +114,6 @@ def lambda_handler(event, context):
 
         logger.info("Successfully merged dataframes")
 
-        # !temporary due to the size of our test data.
-        # This means that cells that didn't have any responders
-        # to produce aggregations from, then the aggregations are not null
-        # (breaking things)
-        third_merge.fillna(1, inplace=True, axis=1)
         # convert output to json ready to return
         final_output = third_merge.to_json(orient="records")
 
@@ -148,7 +134,7 @@ def lambda_handler(event, context):
             + str(context.aws_request_id)
         )
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
-    except DoNotHaveAllDataError as e:
+    except exception_classes.DoNotHaveAllDataError as e:
         error_message = (
             "Did not recieve all 3 messages from queue in:  "
             + current_module
