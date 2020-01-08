@@ -113,7 +113,7 @@ functions:
     environment:
       checkpoint: 4
       bucket_name: results-s3-bucket
-      in_file_name: non_responders_output.json
+      in_file_name: imputation_apply_out.json
       out_file_name: aggregation_out.json
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
       sqs_message_group_id: aggregation-combiner-out
