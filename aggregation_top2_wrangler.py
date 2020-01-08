@@ -77,6 +77,9 @@ def lambda_handler(event, context):
         additional_aggregated_column = \
             event['RuntimeVariables']['additional_aggregated_column']
 
+        top1_column = event['RuntimeVariables']['top1_column']
+        top2_column = event['RuntimeVariables']['top2_column']
+
         total_column = event['RuntimeVariables']['total_column']
 
         # Read from S3 bucket
@@ -103,8 +106,8 @@ def lambda_handler(event, context):
 
         # Add output columns
         logger.info("Appending two further required columns.")
-        data['largest_contributor'] = 0
-        data['second_largest_contributor'] = 0
+        data[top1_column] = 0
+        data[top2_column] = 0
 
         # Serialise data
         logger.info("Converting dataframe to json.")
@@ -117,7 +120,9 @@ def lambda_handler(event, context):
             "input_json": prepared_data,
             "total_column": total_column,
             "additional_aggregated_column": additional_aggregated_column,
-            "aggregated_column": aggregated_column
+            "aggregated_column": aggregated_column,
+            "top1_column": top1_column,
+            "top2_column": top2_column
         }
 
         top2 = lambda_client.invoke(FunctionName=method_name,
@@ -133,7 +138,7 @@ def lambda_handler(event, context):
         msg = "Checking required output columns are present and correctly typed."
         logger.info(msg)
         ret_data = pd.DataFrame(json.loads(json_response["data"]))
-        req_col_list = ['largest_contributor', 'second_largest_contributor']
+        req_col_list = [top1_column, top2_column]
         for req_col in req_col_list:
             if req_col not in ret_data.columns:
                 err_msg = 'Required column "' + req_col + '" not found in output data.'

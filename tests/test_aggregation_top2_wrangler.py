@@ -56,7 +56,9 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
                         "additional_aggregated_column": "region",
-                        "county_column": "county"
+                        "county_column": "county",
+                        "top1_column": "largest_contributor",
+                        "top2_column": "second_largest_contributor"
                         }}, context_object)
 
             self.assertTrue(returned_value['success'])
@@ -135,7 +137,9 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
                         "additional_aggregated_column": "region",
-                        "county_column": "county"
+                        "county_column": "county",
+                        "top1_column": "largest_contributor",
+                        "top2_column": "second_largest_contributor"
                         }}, context_object)
 
             assert ("Required columns missing" in returned_value['error'])
@@ -180,7 +184,9 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
                         "additional_aggregated_column": "region",
-                        "county_column": "county"
+                        "county_column": "county",
+                        "top1_column": "largest_contributor",
+                        "top2_column": "second_largest_contributor"
                         }}, context_object)
 
             assert ("Bad data encountered" in returned_value['error'])
@@ -226,7 +232,9 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
                         "additional_aggregated_column": "region",
-                        "county_column": "county"
+                        "county_column": "county",
+                        "top1_column": "largest_contributor",
+                        "top2_column": "second_largest_contributor"
                         }}, context_object)
 
             assert ("Required columns missing" in returned_value['error'])
@@ -271,7 +279,9 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
                         "additional_aggregated_column": "region",
-                        "county_column": "county"
+                        "county_column": "county",
+                        "top1_column": "largest_contributor",
+                        "top2_column": "second_largest_contributor"
                         }}, context_object)
 
             assert ("Bad data encountered" in returned_value['error'])
@@ -314,7 +324,9 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
                         "additional_aggregated_column": "region",
-                        "county_column": "county"
+                        "county_column": "county",
+                        "top1_column": "largest_contributor",
+                        "top2_column": "second_largest_contributor"
                         }}, context_object)
 
             assert ("Incomplete Lambda response" in returned_value['error'])
@@ -356,7 +368,9 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
                         "additional_aggregated_column": "region",
-                        "county_column": "county"
+                        "county_column": "county",
+                        "top1_column": "largest_contributor",
+                        "top2_column": "second_largest_contributor"
                         }}, context_object)
 
             assert ("General Error" in returned_value['error'])
@@ -396,7 +410,9 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
                         "additional_aggregated_column": "region",
-                        "county_column": "county"
+                        "county_column": "county",
+                        "top1_column": "largest_contributor",
+                        "top2_column": "second_largest_contributor"
                         }}, context_object)
 
             assert "success" in returned_value
@@ -426,7 +442,9 @@ class TestMoto:
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
                         "additional_aggregated_column": "region",
-                        "county_column": "county"
+                        "county_column": "county",
+                        "top1_column": "largest_contributor",
+                        "top2_column": "second_largest_contributor"
                         }}, context_object)
 
             assert "success" in response
@@ -459,7 +477,9 @@ class TestMoto:
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
                         "additional_aggregated_column": "region",
-                        "county_column": "county"
+                        "county_column": "county",
+                        "top1_column": "largest_contributor",
+                        "top2_column": "second_largest_contributor"
                         }}, context_object)
 
             assert ("Key Error" in response['error'])

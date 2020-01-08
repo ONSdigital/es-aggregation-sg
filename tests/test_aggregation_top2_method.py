@@ -6,7 +6,7 @@ import mock
 import aggregation_top2_method
 
 
-class MockContext():
+class MockContext:
     aws_request_id = 66
 
 
@@ -27,7 +27,9 @@ class TestAggregationTop2Method(unittest.TestCase):
                 "input_json": input_data,
                 "total_column": "Q608_total",
                 "additional_aggregated_column": "region",
-                "aggregated_column": "county"
+                "aggregated_column": "county",
+                "top1_column": "largest_contributor",
+                "top2_column": "second_largest_contributor"
             }
 
             returned_value = aggregation_top2_method.lambda_handler(json_payload, None)
