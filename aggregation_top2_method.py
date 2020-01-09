@@ -13,6 +13,8 @@ class EnvironSchema(marshmallow.Schema):
     total_column = marshmallow.fields.Str(required=True)
     additional_aggregated_column = marshmallow.fields.Str(required=True)
     aggregated_column = marshmallow.fields.Str(required=True)
+    top1_column = marshmallow.fields.Str(required=True)
+    top2_column = marshmallow.fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -54,17 +56,20 @@ def lambda_handler(event, context):
         total_column = config["total_column"]
         additional_aggregated_column = config["additional_aggregated_column"]
         aggregated_column = config["aggregated_column"]
+        top1_column = config['top1_column']
+        top2_column = config['top2_column']
 
         input_dataframe = pd.DataFrame(input_json)
 
         logger.info("Invoking calc_top_two function on input dataframe")
 
         response = calc_top_two(input_dataframe, total_column,
-                                aggregated_column, additional_aggregated_column)
+                                aggregated_column, additional_aggregated_column,
+                                top1_column, top2_column)
         response = response[[additional_aggregated_column,
                              aggregated_column,
-                             "largest_contributor",
-                             "second_largest_contributor"]]
+                             top1_column,
+                             top2_column]]
 
         response = response.drop_duplicates()
 
@@ -93,15 +98,16 @@ def lambda_handler(event, context):
     return final_output
 
 
-def calc_top_two(data, total_column, aggregated_column, additional_aggregated_column):
+def calc_top_two(data, total_column, aggregated_column, additional_aggregated_column,
+                 top1_column, top2_column):
     # NB: No need for try/except as called from inside try clause in lambda_handler.
 
     logger = logging.getLogger()
     logger.info("Executing function: calc_top_two")
 
     # Ensure additional columns are zeroed (Belt n Braces)
-    data['largest_contributor'] = 0
-    data['second_largest_contributor'] = 0
+    data[top1_column] = 0
+    data[top2_column] = 0
 
     # Organise the unique groups to be used for top2 lookup
     aggregations = data[[aggregated_column,
@@ -127,11 +133,11 @@ def calc_top_two(data, total_column, aggregated_column, additional_aggregated_co
             top_two = 0
 
         # Save to the output data
-        data[['largest_contributor', 'second_largest_contributor']] = data.apply(
+        data[[top1_column, top2_column]] = data.apply(
             lambda x: pd.Series([top_one, top_two])
             if (x[aggregated_column] == aggregation[aggregated_column]) &
                (x[additional_aggregated_column] == aggregation[additional_aggregated_column])  # noqa
-            else pd.Series([x['largest_contributor'], x['second_largest_contributor']]),
+            else pd.Series([x[top1_column], x[top2_column]]),
             axis=1)
 
     logger.info("Returning the output data")
