@@ -64,7 +64,7 @@ class TestCountyWranglerMethods:
                          "cell_total_column": "county_total",
                          "total_column": "Q608_total",
                          "additional_aggregated_column": "region",
-                         "id": "bob"
+                         "run_id": "bob"
                          }
                 }, context_object)
 
@@ -89,7 +89,7 @@ class TestCountyWranglerMethods:
                          "cell_total_column": "county_total",
                          "total_column": "Q608_total",
                          "additional_aggregated_column": "region",
-                         "id": "bob"
+                         "run_id": "bob"
                          }
                 }, context_object)
 
@@ -112,7 +112,7 @@ class TestCountyWranglerMethods:
                          "cell_total_column": "county_total",
                          "total_column": "Q608_total",
                          "additional_aggregated_column": "region",
-                         "id": "bob"
+                         "run_id": "bob"
                          }
                 }, context_object)
 
@@ -137,7 +137,7 @@ class TestCountyWranglerMethods:
                              "cell_total_column": "county_total",
                              "total_column": "Q608_total",
                              "additional_aggregated_column": "region",
-                             "id": "bob"
+                             "run_id": "bob"
                              }
                     }, context_object)
             assert "Key Error" in exc_info.exception.error_message
@@ -165,7 +165,7 @@ class TestCountyWranglerMethods:
                              "cell_total_column": "county_total",
                              "total_column": "Q608_total",
                              "additional_aggregated_column": "region",
-                             "id": "bob"
+                             "run_id": "bob"
                              }
                     }, context_object)
             assert "Incomplete Lambda response" in exc_info.exception.error_message
@@ -181,7 +181,7 @@ class TestCountyWranglerMethods:
                          "cell_total_column": "county_total",
                          "total_column": "Q608_total",
                          "additional_aggregated_column": "region",
-                         "id": "bob"
+                         "run_id": "bob"
                          }
                 }, context_object)
         assert "AWS Error" in exc_info.exception.error_message
@@ -198,7 +198,7 @@ class TestCountyWranglerMethods:
                              "cell_total_column": "county_total",
                              "total_column": "Q608_total",
                              "additional_aggregated_column": "region",
-                             "id": "bob"
+                             "run_id": "bob"
                              }
                     }, context_object)
 
@@ -227,7 +227,7 @@ class TestCountyWranglerMethods:
                              "cell_total_column": "county_total",
                              "total_column": "Q608_total",
                              "additional_aggregated_column": "region",
-                             "id": "bob"
+                             "run_id": "bob"
                              }
                     }, context_object)
             assert "This is an error message" in exc_info.exception.error_message

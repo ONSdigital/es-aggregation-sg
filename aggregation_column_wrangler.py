@@ -51,7 +51,7 @@ def lambda_handler(event, context):
         logger.info("Started Aggregation - Wrangler.")
         # Retrieve run_id before input validation
         # Because it is used in exception handling
-        run_id = event['RuntimeVariables']['id']
+        run_id = event['RuntimeVariables']['run_id']
 
         # Needs to be declared inside the lambda_handler
         lambda_client = boto3.client('lambda', region_name="eu-west-2")

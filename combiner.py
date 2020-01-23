@@ -40,10 +40,13 @@ def lambda_handler(event, context):
     error_message = ""
     log_message = ""
     checkpoint = 4
-
+    # Define run_id outside of try block
+    run_id = 0
     try:
         logger.info("Starting Aggregation Combiner.")
-
+        # Retrieve run_id before input validation
+        # Because it is used in exception handling
+        run_id = event['RuntimeVariables']['run_id']
         # Set up Environment variables Schema.
         schema = EnvironSchema()
         config, errors = schema.load(os.environ)
@@ -132,6 +135,7 @@ def lambda_handler(event, context):
             + current_module
             + " |-  | Request ID: "
             + str(context.aws_request_id)
+            + " | Run_id: " + str(run_id)
         )
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
     except exception_classes.DoNotHaveAllDataError as e:
@@ -140,6 +144,7 @@ def lambda_handler(event, context):
             + current_module
             + " |-  | Request ID: "
             + str(context.aws_request_id)
+            + " | Run_id: " + str(run_id)
         )
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
     except AttributeError as e:
@@ -150,6 +155,7 @@ def lambda_handler(event, context):
             + str(e.args)
             + " | Request ID: "
             + str(context.aws_request_id)
+            + " | Run_id: " + str(run_id)
         )
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
     except ValueError as e:
@@ -160,6 +166,7 @@ def lambda_handler(event, context):
             + str(e.args)
             + " | Request ID: "
             + str(context.aws_request_id)
+            + " | Run_id: " + str(run_id)
         )
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
     except ClientError as e:
@@ -172,6 +179,7 @@ def lambda_handler(event, context):
             + str(e.args)
             + " | Request ID: "
             + str(context.aws_request_id)
+            + " | Run_id: " + str(run_id)
         )
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
     except KeyError as e:
@@ -182,6 +190,7 @@ def lambda_handler(event, context):
             + str(e.args)
             + " | Request ID: "
             + str(context.aws_request_id)
+            + " | Run_id: " + str(run_id)
         )
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
     except Exception as e:
@@ -194,12 +203,13 @@ def lambda_handler(event, context):
             + str(e.args)
             + " | Request ID: "
             + str(context.aws_request_id)
+            + " | Run_id: " + str(run_id)
         )
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
     finally:
         if (len(error_message)) > 0:
             logger.error(log_message)
-            return {"success": False, "error": error_message}
+            raise exception_classes.LambdaFailure(error_message)
         else:
             logger.info("Successfully completed module: " + current_module)
             return {"success": True, "checkpoint": checkpoint}

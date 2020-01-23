@@ -60,7 +60,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                         "county_column": "county",
                         "top1_column": "largest_contributor",
                         "top2_column": "second_largest_contributor",
-                        "id": "bob"
+                        "run_id": "bob"
                         }}, context_object)
 
             self.assertTrue(returned_value['success'])
@@ -94,7 +94,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                     aggregation_top2_wrangler.lambda_handler(
                         {"RuntimeVariables": {"total_column": "Q608_total",
                                               "aggregated_column": "county",
-                                              "id": "bob"}
+                                              "run_id": "bob"}
                          }, context_object)
                 assert "Parameter validation error" in exc_info.exception.error_message
 
@@ -144,7 +144,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                             "county_column": "county",
                             "top1_column": "largest_contributor",
                             "top2_column": "second_largest_contributor",
-                            "id": "bob"
+                            "run_id": "bob"
                             }}, context_object)
                 assert "Required columns missing" in exc_info.exception.error_message
 
@@ -192,7 +192,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                             "county_column": "county",
                             "top1_column": "largest_contributor",
                             "top2_column": "second_largest_contributor",
-                            "id": "bob"
+                            "run_id": "bob"
                             }}, context_object)
             assert "Bad data encountered" in exc_info.exception.error_message
 
@@ -242,7 +242,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                             "county_column": "county",
                             "top1_column": "largest_contributor",
                             "top2_column": "second_largest_contributor",
-                            "id": "bob"
+                            "run_id": "bob"
                             }}, context_object)
                 assert "Required columns missing" in exc_info.exception.error_message
 
@@ -290,7 +290,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                             "county_column": "county",
                             "top1_column": "largest_contributor",
                             "top2_column": "second_largest_contributor",
-                            "id": "bob"
+                            "run_id": "bob"
                             }}, context_object)
                 assert "Bad data encountered" in exc_info.exception.error_message
 
@@ -336,7 +336,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                             "county_column": "county",
                             "top1_column": "largest_contributor",
                             "top2_column": "second_largest_contributor",
-                            "id": "bob"
+                            "run_id": "bob"
                             }}, context_object)
                 assert "Incomplete Lambda response" in exc_info.exception.error_message
 
@@ -381,7 +381,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                             "county_column": "county",
                             "top1_column": "largest_contributor",
                             "top2_column": "second_largest_contributor",
-                            "id": "bob"
+                            "run_id": "bob"
                             }}, context_object)
 
                 assert "General Error" in exc_info.exception.error_message
@@ -426,7 +426,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                         "county_column": "county",
                         "top1_column": "largest_contributor",
                         "top2_column": "second_largest_contributor",
-                        "id": "bob"
+                        "run_id": "bob"
                         }}, context_object)
             assert "error message" in exc_info.exception.error_message
 
@@ -458,7 +458,7 @@ class TestMoto:
                         "county_column": "county",
                         "top1_column": "largest_contributor",
                         "top2_column": "second_largest_contributor",
-                        "id": "bob"
+                        "run_id": "bob"
                         }}, context_object)
             assert "AWS Error" in exc_info.exception.error_message
 
@@ -486,6 +486,6 @@ class TestMoto:
                         "county_column": "county",
                         "top1_column": "largest_contributor",
                         "top2_column": "second_largest_contributor",
-                        "id": "bob"
+                        "run_id": "bob"
                         }}, context_object)
             assert "AWS Error" in exc_info.exception.error_message

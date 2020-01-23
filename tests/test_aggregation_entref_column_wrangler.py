@@ -57,7 +57,7 @@ class TestStringMethods(unittest.TestCase):
                              "total_column": "enterprise_ref",
                              "additional_aggregated_column": "region",
                              "period_column": "period",
-                             "id": "bob"
+                             "run_id": "bob"
                             }}, context_object)
 
             self.assertTrue(returned_value['success'])
@@ -92,7 +92,7 @@ class TestStringMethods(unittest.TestCase):
                                  "total_column": "enterprise_ref",
                                  "additional_aggregated_column": "region",
                                  "period_column": "period",
-                                 "id": "bob"
+                                 "run_id": "bob"
                                 }}, context_object)
             assert "Parameter validation error" in exc_info.exception.error_message
 
@@ -137,7 +137,7 @@ class TestStringMethods(unittest.TestCase):
                                  "total_column": "enterprise_ref",
                                  "additional_aggregated_column": "region",
                                  "period_column": "period",
-                                 "id": "bob"
+                                 "run_id": "bob"
                                 }}, context_object)
             assert "Incomplete Lambda response" in exc_info.exception.error_message
 
@@ -173,7 +173,7 @@ class TestStringMethods(unittest.TestCase):
                              "total_column": "enterprise_ref",
                              "additional_aggregated_column": "region",
                              "period_column": "period",
-                             "id": "bob"
+                             "run_id": "bob"
                             }}, context_object)
             assert "General Error" in exc_info.exception.error_message
 
@@ -216,7 +216,7 @@ class TestStringMethods(unittest.TestCase):
                              "total_column": "enterprise_ref",
                              "additional_aggregated_column": "region",
                              "period_column": "period",
-                             "id": "bob"
+                             "run_id": "bob"
                             }}, context_object)
 
             assert "error message" in exc_info.exception.error_message
@@ -256,7 +256,7 @@ class TestMoto:
                              "total_column": "enterprise_ref",
                              "additional_aggregated_column": "region",
                              "period_column": "period",
-                             "id": "bob"
+                             "run_id": "bob"
                             }}, context_object)
             assert "AWS Error" in exc_info.exception.error_message
 
@@ -291,6 +291,6 @@ class TestMoto:
                              "total_column": "enterprise_ref",
                              "additional_aggregated_column": "region",
                              "period_column": "period",
-                             "id": "bob"
+                             "run_id": "bob"
                             }}, context_object)
             assert "AWS Error" in exc_info.exception.error_message

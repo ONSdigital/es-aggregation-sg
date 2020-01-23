@@ -54,7 +54,7 @@ def lambda_handler(event, context):
         logger.info("Starting " + current_module)
         # Retrieve run_id before input validation
         # Because it is used in exception handling
-        run_id = event['RuntimeVariables']['id']
+        run_id = event['RuntimeVariables']['run_id']
         # Import environment variables using marshmallow validation
         schema = EnvironSchema()
         config, errors = schema.load(os.environ)

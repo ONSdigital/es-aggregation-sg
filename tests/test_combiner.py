@@ -4,6 +4,7 @@ from unittest import mock
 
 import boto3
 import pandas as pd
+from es_aws_functions import exception_classes
 from moto import mock_s3, mock_sns, mock_sqs
 
 import combiner  # noqa
@@ -29,9 +30,11 @@ class TestCombininator(unittest.TestCase):
                 "sqs_message_group_id": "Bob"
             }
         ):
-            out = combiner.lambda_handler("mike?", context_object)
-            assert not out["success"]
-            assert "Error validating environment" in out["error"]
+            with unittest.TestCase.assertRaises(
+                    self, exception_classes.LambdaFailure) as exc_info:
+                combiner.lambda_handler({"RuntimeVariables": {"run_id": "bob"}},
+                                        context_object)
+            assert "Error validating environment" in exc_info.exception.error_message
 
     @mock_sqs
     @mock_s3
@@ -78,7 +81,8 @@ class TestCombininator(unittest.TestCase):
                         }
                 out = combiner.lambda_handler(
                     {"RuntimeVariables": {"aggregated_column": "county",
-                                          "additional_aggregated_column": "region"
+                                          "additional_aggregated_column": "region",
+                                          "run_id": "bob"
                                           }}, context_object)
 
                 assert out["success"]
@@ -105,12 +109,15 @@ class TestCombininator(unittest.TestCase):
                 s3_data = file.read()
             with mock.patch("combiner.aws_functions.read_dataframe_from_s3") as mock_s3:
                 mock_s3.return_value = s3_data
-                out = combiner.lambda_handler(
-                    {"RuntimeVariables": {"aggregated_column": "county",
-                                          "additional_aggregated_column": "region"
-                                          }}, context_object)
-
-                assert "There was no data in sqs queue" in out["error"]
+                with unittest.TestCase.assertRaises(
+                        self, exception_classes.LambdaFailure) as exc_info:
+                    combiner.lambda_handler(
+                        {"RuntimeVariables": {"aggregated_column": "county",
+                                              "additional_aggregated_column": "region",
+                                              "run_id": "bob"
+                                              }}, context_object)
+                assert "There was no data in sqs queue" in \
+                       exc_info.exception.error_message
 
     @mock_sqs
     @mock_s3
@@ -133,12 +140,14 @@ class TestCombininator(unittest.TestCase):
         ):
             with mock.patch("combiner.aws_functions.read_dataframe_from_s3") as mock_bot:
                 mock_bot.side_effect = AttributeError("noo")
-
-                out = combiner.lambda_handler(
-                    {"RuntimeVariables": {"aggregated_column": "county",
-                                          "additional_aggregated_column": "region"
-                                          }}, context_object)
-                assert "Bad data encountered in" in out["error"]
+                with unittest.TestCase.assertRaises(
+                        self, exception_classes.LambdaFailure) as exc_info:
+                    combiner.lambda_handler(
+                        {"RuntimeVariables": {"aggregated_column": "county",
+                                              "additional_aggregated_column": "region",
+                                              "run_id": "bob"
+                                              }}, context_object)
+                assert "Bad data encountered in" in exc_info.exception.error_message
 
     @mock_sqs
     @mock_s3
@@ -159,12 +168,14 @@ class TestCombininator(unittest.TestCase):
                 "in_file_name": "sss"
             }
         ):
-
-            out = combiner.lambda_handler(
-                    {"RuntimeVariables": {"aggregated_column": "county",
-                                          "additional_aggregated_column": "region"
-                                          }}, context_object)
-            assert "AWS Error" in out["error"]
+            with unittest.TestCase.assertRaises(
+                    self, exception_classes.LambdaFailure) as exc_info:
+                combiner.lambda_handler(
+                        {"RuntimeVariables": {"aggregated_column": "county",
+                                              "additional_aggregated_column": "region",
+                                              "run_id": "bob"
+                                              }}, context_object)
+            assert "AWS Error" in exc_info.exception.error_message
 
     @mock_sqs
     @mock_s3
@@ -201,13 +212,15 @@ class TestCombininator(unittest.TestCase):
                                 {"Boody": agg1},
                             ]
                         }
-                        out = combiner.lambda_handler(
-                            {"RuntimeVariables": {
-                                "aggregated_column": "county",
-                                "additional_aggregated_column": "region"
-                                }}, context_object)
-
-                        assert "Key Error" in out["error"]
+                        with unittest.TestCase.assertRaises(
+                                self, exception_classes.LambdaFailure) as exc_info:
+                            combiner.lambda_handler(
+                                {"RuntimeVariables": {
+                                    "aggregated_column": "county",
+                                    "additional_aggregated_column": "region",
+                                    "run_id": "bob"
+                                    }}, context_object)
+                        assert "Key Error" in exc_info.exception.error_message
 
     @mock_sqs
     @mock_s3
@@ -230,9 +243,11 @@ class TestCombininator(unittest.TestCase):
         ):
             with mock.patch("combiner.aws_functions.read_dataframe_from_s3") as mock_bot:
                 mock_bot.side_effect = Exception("noo")
-
-                out = combiner.lambda_handler(
-                    {"RuntimeVariables": {"aggregated_column": "county",
-                                          "additional_aggregated_column": "region"
-                                          }}, context_object)
-                assert "General Error" in out["error"]
+                with unittest.TestCase.assertRaises(
+                        self, exception_classes.LambdaFailure) as exc_info:
+                    combiner.lambda_handler(
+                        {"RuntimeVariables": {"aggregated_column": "county",
+                                              "additional_aggregated_column": "region",
+                                              "run_id": "bob"
+                                              }}, context_object)
+                assert "General Error" in exc_info.exception.error_message
