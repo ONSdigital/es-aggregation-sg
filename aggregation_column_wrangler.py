@@ -44,8 +44,14 @@ def lambda_handler(event, context):
     checkpoint = 4
     logger = logging.getLogger("Aggregation")
     logger.setLevel(0)
+
+    # Define run_id outside of try block
+    run_id = 0
     try:
         logger.info("Started Aggregation - Wrangler.")
+        # Retrieve run_id before input validation
+        # Because it is used in exception handling
+        run_id = event['RuntimeVariables']['run_id']
 
         # Needs to be declared inside the lambda_handler
         lambda_client = boto3.client('lambda', region_name="eu-west-2")
@@ -116,7 +122,8 @@ def lambda_handler(event, context):
         error_message = ("Parameter validation error in "
                          + current_module + " |- "
                          + str(e.args) + " | Request ID: "
-                         + str(context.aws_request_id))
+                         + str(context.aws_request_id)
+                         + " | Run_id: " + str(run_id))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
 
@@ -125,7 +132,8 @@ def lambda_handler(event, context):
                          + str(e.response["Error"]["Code"]) + ") "
                          + current_module + " |- "
                          + str(e.args) + " | Request ID: "
-                         + str(context.aws_request_id))
+                         + str(context.aws_request_id)
+                         + " | Run_id: " + str(run_id))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
 
@@ -133,7 +141,8 @@ def lambda_handler(event, context):
         error_message = ("Key Error in "
                          + current_module + " |- "
                          + str(e.args) + " | Request ID: "
-                         + str(context.aws_request_id))
+                         + str(context.aws_request_id)
+                         + " | Run_id: " + str(run_id))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
 
@@ -141,27 +150,30 @@ def lambda_handler(event, context):
         error_message = ("Incomplete Lambda response encountered in "
                          + current_module + " |- "
                          + str(e.args) + " | Request ID: "
-                         + str(context.aws_request_id))
+                         + str(context.aws_request_id)
+                         + " | Run_id: " + str(run_id))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
 
     except exception_classes.MethodFailure as e:
         error_message = e.error_message
-        log_message = "Error in " + method_name + "."
+        log_message = "Error in " + method_name + "." \
+                      + " | Run_id: " + str(run_id)
 
     except Exception as e:
         error_message = ("General Error in "
                          + current_module + " ("
                          + str(type(e)) + ") |- "
                          + str(e.args) + " | Request ID: "
-                         + str(context.aws_request_id))
+                         + str(context.aws_request_id)
+                         + " | Run_id: " + str(run_id))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
 
     finally:
         if (len(error_message)) > 0:
             logger.error(log_message)
-            return {"success": False, "error": error_message}
+            raise exception_classes.LambdaFailure(error_message)
 
     logger.info("Successfully completed module: " + current_module)
     return {"success": True, "checkpoint": checkpoint}
