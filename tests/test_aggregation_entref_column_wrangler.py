@@ -4,6 +4,7 @@ import unittest
 import mock
 import pandas as pd
 from botocore.response import StreamingBody
+from es_aws_functions import exception_classes
 from moto import mock_sqs
 
 import aggregation_column_wrangler
@@ -55,7 +56,8 @@ class TestStringMethods(unittest.TestCase):
                              "cell_total_column": "ent_ref_count",
                              "total_column": "enterprise_ref",
                              "additional_aggregated_column": "region",
-                             "period_column": "period"
+                             "period_column": "period",
+                             "id": "bob"
                             }}, context_object)
 
             self.assertTrue(returned_value['success'])
@@ -78,20 +80,21 @@ class TestStringMethods(unittest.TestCase):
             with open('tests/fixtures/method_output.json', "rb") as file:
                 mock_lambda.return_value.invoke.return_value = {"Payload":
                                                                 StreamingBody(file, 355)}
-
-                returned_value = aggregation_column_wrangler.\
-                    lambda_handler(
-                        {"RuntimeVariables": {
-                             "period": 201809,
-                             "aggregation_type": "nunique",
-                             "aggregated_column": "county",
-                             "cell_total_column": "ent_ref_count",
-                             "total_column": "enterprise_ref",
-                             "additional_aggregated_column": "region",
-                             "period_column": "period"
-                            }}, context_object)
-
-            assert(returned_value['error'].__contains__("""Parameter validation error"""))
+                with unittest.TestCase.assertRaises(
+                        self, exception_classes.LambdaFailure) as exc_info:
+                    aggregation_column_wrangler.\
+                        lambda_handler(
+                            {"RuntimeVariables": {
+                                 "period": 201809,
+                                 "aggregation_type": "nunique",
+                                 "aggregated_column": "county",
+                                 "cell_total_column": "ent_ref_count",
+                                 "total_column": "enterprise_ref",
+                                 "additional_aggregated_column": "region",
+                                 "period_column": "period",
+                                 "id": "bob"
+                                }}, context_object)
+            assert "Parameter validation error" in exc_info.exception.error_message
 
     @mock.patch('aggregation_column_wrangler.aws_functions.send_sns_message')
     @mock.patch('aggregation_column_wrangler.aws_functions.save_data')
@@ -122,20 +125,21 @@ class TestStringMethods(unittest.TestCase):
             with open('tests/fixtures/method_output.json', "rb") as file:
                 mock_lambda.return_value.invoke.return_value = {"Payload":
                                                                 StreamingBody(file, 2)}
-
-                returned_value = aggregation_column_wrangler.\
-                    lambda_handler(
-                        {"RuntimeVariables": {
-                             "period": 201809,
-                             "aggregation_type": "nunique",
-                             "aggregated_column": "county",
-                             "cell_total_column": "ent_ref_count",
-                             "total_column": "enterprise_ref",
-                             "additional_aggregated_column": "region",
-                             "period_column": "period"
-                            }}, context_object)
-
-            assert(returned_value['error'].__contains__("""Incomplete Lambda response"""))
+                with unittest.TestCase.assertRaises(
+                        self, exception_classes.LambdaFailure) as exc_info:
+                    aggregation_column_wrangler.\
+                        lambda_handler(
+                            {"RuntimeVariables": {
+                                 "period": 201809,
+                                 "aggregation_type": "nunique",
+                                 "aggregated_column": "county",
+                                 "cell_total_column": "ent_ref_count",
+                                 "total_column": "enterprise_ref",
+                                 "additional_aggregated_column": "region",
+                                 "period_column": "period",
+                                 "id": "bob"
+                                }}, context_object)
+            assert "Incomplete Lambda response" in exc_info.exception.error_message
 
     @mock.patch('aggregation_column_wrangler.aws_functions.send_sns_message')
     @mock.patch('aggregation_column_wrangler.aws_functions.save_data')
@@ -157,20 +161,21 @@ class TestStringMethods(unittest.TestCase):
             "cell_total_column": "ent_ref_count"
             }
         ):
-
-            returned_value = aggregation_column_wrangler.\
-                lambda_handler(
-                    {"RuntimeVariables": {
-                         "period": 201809,
-                         "aggregation_type": "nunique",
-                         "aggregated_column": "county",
-                         "cell_total_column": "ent_ref_count",
-                         "total_column": "enterprise_ref",
-                         "additional_aggregated_column": "region",
-                         "period_column": "period"
-                        }}, context_object)
-
-            assert(returned_value['error'].__contains__("""General Error"""))
+            with unittest.TestCase.assertRaises(
+                    self, exception_classes.LambdaFailure) as exc_info:
+                aggregation_column_wrangler.\
+                    lambda_handler(
+                        {"RuntimeVariables": {
+                             "period": 201809,
+                             "aggregation_type": "nunique",
+                             "aggregated_column": "county",
+                             "cell_total_column": "ent_ref_count",
+                             "total_column": "enterprise_ref",
+                             "additional_aggregated_column": "region",
+                             "period_column": "period",
+                             "id": "bob"
+                            }}, context_object)
+            assert "General Error" in exc_info.exception.error_message
 
     @mock.patch('aggregation_column_wrangler.aws_functions.send_sns_message')
     @mock.patch('aggregation_column_wrangler.aws_functions.save_data')
@@ -199,22 +204,22 @@ class TestStringMethods(unittest.TestCase):
             mock_lambda.return_value.invoke.return_value.get.return_value \
                 .read.return_value.decode.return_value = json.dumps(
                     {"success": False, "error": "This is an error message"})
+            with unittest.TestCase.assertRaises(
+                    self, exception_classes.LambdaFailure) as exc_info:
+                aggregation_column_wrangler.\
+                    lambda_handler(
+                        {"RuntimeVariables": {
+                             "period": 201809,
+                             "aggregation_type": "nunique",
+                             "aggregated_column": "county",
+                             "cell_total_column": "ent_ref_count",
+                             "total_column": "enterprise_ref",
+                             "additional_aggregated_column": "region",
+                             "period_column": "period",
+                             "id": "bob"
+                            }}, context_object)
 
-            returned_value = aggregation_column_wrangler.\
-                lambda_handler(
-                    {"RuntimeVariables": {
-                         "period": 201809,
-                         "aggregation_type": "nunique",
-                         "aggregated_column": "county",
-                         "cell_total_column": "ent_ref_count",
-                         "total_column": "enterprise_ref",
-                         "additional_aggregated_column": "region",
-                         "period_column": "period"
-                        }}, context_object)
-
-            assert "success" in returned_value
-            assert returned_value["success"] is False
-            assert returned_value["error"].__contains__("""This is an error message""")
+            assert "error message" in exc_info.exception.error_message
 
 
 class TestMoto:
@@ -239,7 +244,9 @@ class TestMoto:
             "cell_total_column": "ent_ref_count"
             }
         ):
-            response = aggregation_column_wrangler.\
+            with unittest.TestCase.assertRaises(
+                    self, exception_classes.LambdaFailure) as exc_info:
+                aggregation_column_wrangler.\
                     lambda_handler(
                         {"RuntimeVariables": {
                              "period": 201809,
@@ -248,12 +255,10 @@ class TestMoto:
                              "cell_total_column": "ent_ref_count",
                              "total_column": "enterprise_ref",
                              "additional_aggregated_column": "region",
-                             "period_column": "period"
+                             "period_column": "period",
+                             "id": "bob"
                             }}, context_object)
-
-            assert "success" in response
-            assert response["success"] is False
-            assert response["error"].__contains__("""AWS Error""")
+            assert "AWS Error" in exc_info.exception.error_message
 
     def test_client_error_exception(self):
         with mock.patch.dict(aggregation_column_wrangler.os.environ, {
@@ -274,14 +279,9 @@ class TestMoto:
             "cell_total_column": "ent_ref_count"
             }
         ):
-            with mock.patch("aggregation_column_wrangler."
-                            "aws_functions.read_dataframe_from_s3") as mock_s3:
-                with open("tests/fixtures/wrangler_input.json", "r") as file:
-                    mock_content = file.read()
-                    mock_s3.side_effect = KeyError()
-                    mock_s3.return_value = mock_content
-
-                response = aggregation_column_wrangler.\
+            with unittest.TestCase.assertRaises(
+                    self, exception_classes.LambdaFailure) as exc_info:
+                aggregation_column_wrangler.\
                     lambda_handler(
                         {"RuntimeVariables": {
                              "period": 201809,
@@ -290,7 +290,7 @@ class TestMoto:
                              "cell_total_column": "ent_ref_count",
                              "total_column": "enterprise_ref",
                              "additional_aggregated_column": "region",
-                             "period_column": "period"
+                             "period_column": "period",
+                             "id": "bob"
                             }}, context_object)
-
-            assert response['error'].__contains__("""Key Error""")
+            assert "AWS Error" in exc_info.exception.error_message

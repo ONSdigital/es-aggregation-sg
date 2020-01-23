@@ -4,6 +4,7 @@ import unittest
 import mock
 import pandas as pd
 from botocore.response import StreamingBody
+from es_aws_functions import exception_classes
 from moto import mock_sqs
 
 import aggregation_top2_wrangler
@@ -58,7 +59,8 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                         "additional_aggregated_column": "region",
                         "county_column": "county",
                         "top1_column": "largest_contributor",
-                        "top2_column": "second_largest_contributor"
+                        "top2_column": "second_largest_contributor",
+                        "id": "bob"
                         }}, context_object)
 
             self.assertTrue(returned_value['success'])
@@ -87,13 +89,14 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                 mock_lambda.return_value.invoke.return_value = (
                     {"Payload": StreamingBody(file, 355)}
                 )
-
-                returned_value = aggregation_top2_wrangler.lambda_handler(
-                    {"RuntimeVariables": {"total_column": "Q608_total",
-                                          "aggregated_column": "county"}
-                     }, context_object)
-
-            assert("Parameter validation error" in returned_value['error'])
+                with unittest.TestCase.assertRaises(
+                        self, exception_classes.LambdaFailure) as exc_info:
+                    aggregation_top2_wrangler.lambda_handler(
+                        {"RuntimeVariables": {"total_column": "Q608_total",
+                                              "aggregated_column": "county",
+                                              "id": "bob"}
+                         }, context_object)
+                assert "Parameter validation error" in exc_info.exception.error_message
 
     @mock.patch('aggregation_top2_wrangler.aws_functions.send_sns_message')
     @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
@@ -131,18 +134,19 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                 mock_lambda.return_value.invoke.return_value.get.return_value \
                     .read.return_value.decode.return_value = json.dumps(
                         {"success": True, "data": lambda_return})
-
-                returned_value = aggregation_top2_wrangler.lambda_handler(
-                    {"RuntimeVariables": {
-                        "total_column": "Q608_total",
-                        "aggregated_column": "county",
-                        "additional_aggregated_column": "region",
-                        "county_column": "county",
-                        "top1_column": "largest_contributor",
-                        "top2_column": "second_largest_contributor"
-                        }}, context_object)
-
-            assert ("Required columns missing" in returned_value['error'])
+                with unittest.TestCase.assertRaises(
+                        self, exception_classes.LambdaFailure) as exc_info:
+                    aggregation_top2_wrangler.lambda_handler(
+                        {"RuntimeVariables": {
+                            "total_column": "Q608_total",
+                            "aggregated_column": "county",
+                            "additional_aggregated_column": "region",
+                            "county_column": "county",
+                            "top1_column": "largest_contributor",
+                            "top2_column": "second_largest_contributor",
+                            "id": "bob"
+                            }}, context_object)
+                assert "Required columns missing" in exc_info.exception.error_message
 
     @mock.patch('aggregation_top2_wrangler.aws_functions.send_sns_message')
     @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
@@ -178,18 +182,19 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                 mock_lambda.return_value.invoke.return_value = (
                     {"Payload": StreamingBody(file, 4389)}
                 )
-
-                returned_value = aggregation_top2_wrangler.lambda_handler(
-                    {"RuntimeVariables": {
-                        "total_column": "Q608_total",
-                        "aggregated_column": "county",
-                        "additional_aggregated_column": "region",
-                        "county_column": "county",
-                        "top1_column": "largest_contributor",
-                        "top2_column": "second_largest_contributor"
-                        }}, context_object)
-
-            assert ("Bad data encountered" in returned_value['error'])
+                with unittest.TestCase.assertRaises(
+                        self, exception_classes.LambdaFailure) as exc_info:
+                    aggregation_top2_wrangler.lambda_handler(
+                        {"RuntimeVariables": {
+                            "total_column": "Q608_total",
+                            "aggregated_column": "county",
+                            "additional_aggregated_column": "region",
+                            "county_column": "county",
+                            "top1_column": "largest_contributor",
+                            "top2_column": "second_largest_contributor",
+                            "id": "bob"
+                            }}, context_object)
+            assert "Bad data encountered" in exc_info.exception.error_message
 
     @mock.patch('aggregation_top2_wrangler.aws_functions.send_sns_message')
     @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
@@ -227,17 +232,19 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                 mock_lambda.return_value.invoke.return_value.get.return_value \
                     .read.return_value.decode.return_value = json.dumps(
                         {"success": True, "data": lambda_return})
-                returned_value = aggregation_top2_wrangler.lambda_handler(
-                    {"RuntimeVariables": {
-                        "total_column": "Q608_total",
-                        "aggregated_column": "county",
-                        "additional_aggregated_column": "region",
-                        "county_column": "county",
-                        "top1_column": "largest_contributor",
-                        "top2_column": "second_largest_contributor"
-                        }}, context_object)
-
-            assert ("Required columns missing" in returned_value['error'])
+                with unittest.TestCase.assertRaises(
+                        self, exception_classes.LambdaFailure) as exc_info:
+                    aggregation_top2_wrangler.lambda_handler(
+                        {"RuntimeVariables": {
+                            "total_column": "Q608_total",
+                            "aggregated_column": "county",
+                            "additional_aggregated_column": "region",
+                            "county_column": "county",
+                            "top1_column": "largest_contributor",
+                            "top2_column": "second_largest_contributor",
+                            "id": "bob"
+                            }}, context_object)
+                assert "Required columns missing" in exc_info.exception.error_message
 
     @mock.patch('aggregation_top2_wrangler.aws_functions.send_sns_message')
     @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
@@ -273,18 +280,19 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                 mock_lambda.return_value.invoke.return_value = (
                     {"Payload": StreamingBody(file, 4391)}
                 )
-
-                returned_value = aggregation_top2_wrangler.lambda_handler(
-                    {"RuntimeVariables": {
-                        "total_column": "Q608_total",
-                        "aggregated_column": "county",
-                        "additional_aggregated_column": "region",
-                        "county_column": "county",
-                        "top1_column": "largest_contributor",
-                        "top2_column": "second_largest_contributor"
-                        }}, context_object)
-
-            assert ("Bad data encountered" in returned_value['error'])
+                with unittest.TestCase.assertRaises(
+                        self, exception_classes.LambdaFailure) as exc_info:
+                    aggregation_top2_wrangler.lambda_handler(
+                        {"RuntimeVariables": {
+                            "total_column": "Q608_total",
+                            "aggregated_column": "county",
+                            "additional_aggregated_column": "region",
+                            "county_column": "county",
+                            "top1_column": "largest_contributor",
+                            "top2_column": "second_largest_contributor",
+                            "id": "bob"
+                            }}, context_object)
+                assert "Bad data encountered" in exc_info.exception.error_message
 
     @mock.patch('aggregation_top2_wrangler.aws_functions.send_sns_message')
     @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
@@ -318,18 +326,19 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                 mock_lambda.return_value.invoke.return_value = (
                     {"Payload": StreamingBody(file, 2)}
                 )
-
-                returned_value = aggregation_top2_wrangler.lambda_handler(
-                    {"RuntimeVariables": {
-                        "total_column": "Q608_total",
-                        "aggregated_column": "county",
-                        "additional_aggregated_column": "region",
-                        "county_column": "county",
-                        "top1_column": "largest_contributor",
-                        "top2_column": "second_largest_contributor"
-                        }}, context_object)
-
-            assert ("Incomplete Lambda response" in returned_value['error'])
+                with unittest.TestCase.assertRaises(
+                        self, exception_classes.LambdaFailure) as exc_info:
+                    aggregation_top2_wrangler.lambda_handler(
+                        {"RuntimeVariables": {
+                            "total_column": "Q608_total",
+                            "aggregated_column": "county",
+                            "additional_aggregated_column": "region",
+                            "county_column": "county",
+                            "top1_column": "largest_contributor",
+                            "top2_column": "second_largest_contributor",
+                            "id": "bob"
+                            }}, context_object)
+                assert "Incomplete Lambda response" in exc_info.exception.error_message
 
     @mock.patch('aggregation_top2_wrangler.aws_functions.send_sns_message')
     @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
@@ -362,18 +371,20 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                 mock_lambda.return_value.invoke.return_value = (
                     {"Payload": StreamingBody(file, 4389)}
                 )
+                with unittest.TestCase.assertRaises(
+                        self, exception_classes.LambdaFailure) as exc_info:
+                    aggregation_top2_wrangler.lambda_handler(
+                        {"RuntimeVariables": {
+                            "total_column": "Q608_total",
+                            "aggregated_column": "county",
+                            "additional_aggregated_column": "region",
+                            "county_column": "county",
+                            "top1_column": "largest_contributor",
+                            "top2_column": "second_largest_contributor",
+                            "id": "bob"
+                            }}, context_object)
 
-                returned_value = aggregation_top2_wrangler.lambda_handler(
-                    {"RuntimeVariables": {
-                        "total_column": "Q608_total",
-                        "aggregated_column": "county",
-                        "additional_aggregated_column": "region",
-                        "county_column": "county",
-                        "top1_column": "largest_contributor",
-                        "top2_column": "second_largest_contributor"
-                        }}, context_object)
-
-            assert ("General Error" in returned_value['error'])
+                assert "General Error" in exc_info.exception.error_message
 
     @mock.patch('aggregation_top2_wrangler.aws_functions.send_sns_message')
     @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
@@ -405,19 +416,19 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             mock_lambda.return_value.invoke.return_value.get.return_value \
                 .read.return_value.decode.return_value = json.dumps(
                     {"success": False, "error": "This is an error message"})
-            returned_value = aggregation_top2_wrangler.lambda_handler(
+            with unittest.TestCase.assertRaises(
+                    self, exception_classes.LambdaFailure) as exc_info:
+                aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
                         "additional_aggregated_column": "region",
                         "county_column": "county",
                         "top1_column": "largest_contributor",
-                        "top2_column": "second_largest_contributor"
+                        "top2_column": "second_largest_contributor",
+                        "id": "bob"
                         }}, context_object)
-
-            assert "success" in returned_value
-            assert returned_value["success"] is False
-            assert returned_value["error"].__contains__("""This is an error message""")
+            assert "error message" in exc_info.exception.error_message
 
 
 class TestMoto:
@@ -437,19 +448,19 @@ class TestMoto:
             'out_file_name': "boris"
             }
         ):
-            response = aggregation_top2_wrangler.lambda_handler(
+            with unittest.TestCase.assertRaises(
+                    self, exception_classes.LambdaFailure) as exc_info:
+                aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
                         "additional_aggregated_column": "region",
                         "county_column": "county",
                         "top1_column": "largest_contributor",
-                        "top2_column": "second_largest_contributor"
+                        "top2_column": "second_largest_contributor",
+                        "id": "bob"
                         }}, context_object)
-
-            assert "success" in response
-            assert response["success"] is False
-            assert ("AWS Error" in response['error'])
+            assert "AWS Error" in exc_info.exception.error_message
 
     def test_client_error_exception(self):
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
@@ -465,21 +476,16 @@ class TestMoto:
             'out_file_name': "boris"
             }
         ):
-            with mock.patch("aggregation_top2_wrangler."
-                            "aws_functions.read_dataframe_from_s3") as mock_s3:
-                with open("tests/fixtures/top2_wrangler_input.json", "r") as file:
-                    mock_content = file.read()
-                    mock_s3.side_effect = KeyError()
-                    mock_s3.return_value = mock_content
-
-                response = aggregation_top2_wrangler.lambda_handler(
+            with unittest.TestCase.assertRaises(
+                    self, exception_classes.LambdaFailure) as exc_info:
+                aggregation_top2_wrangler.lambda_handler(
                     {"RuntimeVariables": {
                         "total_column": "Q608_total",
                         "aggregated_column": "county",
                         "additional_aggregated_column": "region",
                         "county_column": "county",
                         "top1_column": "largest_contributor",
-                        "top2_column": "second_largest_contributor"
+                        "top2_column": "second_largest_contributor",
+                        "id": "bob"
                         }}, context_object)
-
-            assert ("Key Error" in response['error'])
+            assert "AWS Error" in exc_info.exception.error_message
