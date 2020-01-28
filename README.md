@@ -48,6 +48,7 @@ Steps performed:
         aggregation_type - How we wish to do the aggregation. e.g. sum, count, nunique. <br>
         total_column - The column with the sum of the data. <br>
         cell_total_column - Name of column to rename total_column. <br>
+        queue_url: - The sqs queue url to use in sending/receiving sqs messages.<br>
     }}
 
 **Outputs:** A JSON dict which contains a success marker and the aggregated data with the column count/sum. <br>
@@ -68,7 +69,8 @@ e.g. {"success": True/False, "checkpoint"/"error": 4/"Message"}
     }}
 
 **Outputs:** A JSON dict which contains a success marker and the input DataFrame with the following two columns appended: "largest_contributor" and "second_largest_contributor" <br>
-e.g. {"success": True/False, "checkpoint"/"error": 4/"Message"}
+e.g. {"success": True, "checkpoint": 4}<br>
+or LambdaFailure Exception
 <hr>
 
 #### Combiner
