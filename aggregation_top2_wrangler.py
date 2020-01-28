@@ -23,7 +23,6 @@ class EnvironSchema(Schema):
     out_file_name = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
     sqs_message_group_id = fields.Str(required=True)
-    sqs_queue_url = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -73,7 +72,6 @@ def lambda_handler(event, context):
         out_file_name = config['out_file_name']
         sns_topic_arn = config['sns_topic_arn']
         sqs_message_group_id = config['sqs_message_group_id']
-        sqs_queue_url = config['sqs_queue_url']
 
         aggregated_column = event['RuntimeVariables']['aggregated_column']
 
@@ -82,8 +80,8 @@ def lambda_handler(event, context):
 
         top1_column = event['RuntimeVariables']['top1_column']
         top2_column = event['RuntimeVariables']['top2_column']
-
         total_column = event['RuntimeVariables']['total_column']
+        sqs_queue_url = event['RuntimeVariables']["queue_url"]
 
         # Read from S3 bucket
         data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)

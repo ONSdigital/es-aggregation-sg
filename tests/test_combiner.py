@@ -25,14 +25,14 @@ class TestCombininator(unittest.TestCase):
                 "checkpoint": "mock_checkpoint",
                 "sns_topic_arn": "not_an_arn",
                 "out_file_name": "mock_method",
-                "sqs_queue_url": "mock_queue",
                 "bucket_name": "bertiebucket",
                 "sqs_message_group_id": "Bob"
             }
         ):
             with unittest.TestCase.assertRaises(
                     self, exception_classes.LambdaFailure) as exc_info:
-                combiner.lambda_handler({"RuntimeVariables": {"run_id": "bob"}},
+                combiner.lambda_handler({"RuntimeVariables": {"run_id": "bob",
+                                                              "queue_url": "Earl"}},
                                         context_object)
             assert "Error validating environment" in exc_info.exception.error_message
 
@@ -49,7 +49,6 @@ class TestCombininator(unittest.TestCase):
                 "checkpoint": "mock_checkpoint",
                 "sns_topic_arn": "not_an_arn",
                 "out_file_name": "mock_method",
-                "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "mrsbucket",
                 "sqs_message_group_id": "Bob",
                 "in_file_name": "sss"
@@ -82,7 +81,8 @@ class TestCombininator(unittest.TestCase):
                 out = combiner.lambda_handler(
                     {"RuntimeVariables": {"aggregated_column": "county",
                                           "additional_aggregated_column": "region",
-                                          "run_id": "bob"
+                                          "run_id": "bob",
+                                          "queue_url": sqs_queue_url
                                           }}, context_object)
 
                 assert out["success"]
@@ -99,7 +99,6 @@ class TestCombininator(unittest.TestCase):
                 "checkpoint": "mock_checkpoint",
                 "sns_topic_arn": "not_an_arn",
                 "out_file_name": "mock_method",
-                "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "BertieBucket",
                 "sqs_message_group_id": "Bob",
                 "in_file_name": "sss"
@@ -114,7 +113,8 @@ class TestCombininator(unittest.TestCase):
                     combiner.lambda_handler(
                         {"RuntimeVariables": {"aggregated_column": "county",
                                               "additional_aggregated_column": "region",
-                                              "run_id": "bob"
+                                              "run_id": "bob",
+                                              "queue_url": sqs_queue_url
                                               }}, context_object)
                 assert "There was no data in sqs queue" in \
                        exc_info.exception.error_message
@@ -132,7 +132,6 @@ class TestCombininator(unittest.TestCase):
                 "checkpoint": "mock_checkpoint",
                 "sns_topic_arn": "not_an_arn",
                 "out_file_name": "mock_method",
-                "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "BertieBucket",
                 "sqs_message_group_id": "Bob",
                 "in_file_name": "sss"
@@ -145,7 +144,8 @@ class TestCombininator(unittest.TestCase):
                     combiner.lambda_handler(
                         {"RuntimeVariables": {"aggregated_column": "county",
                                               "additional_aggregated_column": "region",
-                                              "run_id": "bob"
+                                              "run_id": "bob",
+                                              "queue_url": sqs_queue_url
                                               }}, context_object)
                 assert "Bad data encountered in" in exc_info.exception.error_message
 
@@ -162,7 +162,6 @@ class TestCombininator(unittest.TestCase):
                 "checkpoint": "mock_checkpoint",
                 "sns_topic_arn": "not_an_arn",
                 "out_file_name": "mock_method",
-                "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "BertieBucket",
                 "sqs_message_group_id": "Bob",
                 "in_file_name": "sss"
@@ -173,7 +172,8 @@ class TestCombininator(unittest.TestCase):
                 combiner.lambda_handler(
                         {"RuntimeVariables": {"aggregated_column": "county",
                                               "additional_aggregated_column": "region",
-                                              "run_id": "bob"
+                                              "run_id": "bob",
+                                              "queue_url": sqs_queue_url
                                               }}, context_object)
             assert "AWS Error" in exc_info.exception.error_message
 
@@ -190,7 +190,6 @@ class TestCombininator(unittest.TestCase):
                 "checkpoint": "mock_checkpoint",
                 "sns_topic_arn": "not_an_arn",
                 "out_file_name": "mock_method",
-                "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "Bertie Bucket",
                 "sqs_message_group_id": "Bob",
                 "in_file_name": "sss"
@@ -218,7 +217,8 @@ class TestCombininator(unittest.TestCase):
                                 {"RuntimeVariables": {
                                     "aggregated_column": "county",
                                     "additional_aggregated_column": "region",
-                                    "run_id": "bob"
+                                    "run_id": "bob",
+                                    "queue_url": sqs_queue_url
                                     }}, context_object)
                         assert "Key Error" in exc_info.exception.error_message
 
@@ -235,7 +235,6 @@ class TestCombininator(unittest.TestCase):
                 "checkpoint": "mock_checkpoint",
                 "sns_topic_arn": "not_an_arn",
                 "out_file_name": "mock_method",
-                "sqs_queue_url": sqs_queue_url,
                 "bucket_name": "BertieBucket",
                 "sqs_message_group_id": "Bob",
                 "in_file_name": "sss"
@@ -248,6 +247,7 @@ class TestCombininator(unittest.TestCase):
                     combiner.lambda_handler(
                         {"RuntimeVariables": {"aggregated_column": "county",
                                               "additional_aggregated_column": "region",
-                                              "run_id": "bob"
+                                              "run_id": "bob",
+                                              "queue_url": sqs_queue_url
                                               }}, context_object)
                 assert "General Error" in exc_info.exception.error_message

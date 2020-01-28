@@ -27,8 +27,6 @@ class TestStringMethods(unittest.TestCase):
         with mock.patch.dict(aggregation_column_wrangler.os.environ, {
             'bucket_name': 'some-bucket-name',
             'out_file_name': 'file_to_get_from_s3.json',
-            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
-                             '82618934671237/SomethingURL.fifo',
             'checkpoint': '3',
             'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'sqs_message_group_id': 'random',
@@ -57,7 +55,8 @@ class TestStringMethods(unittest.TestCase):
                              "total_column": "enterprise_ref",
                              "additional_aggregated_column": "region",
                              "period_column": "period",
-                             "run_id": "bob"
+                             "run_id": "bob",
+                             "queue_url": "Earl"
                             }}, context_object)
 
             self.assertTrue(returned_value['success'])
@@ -92,7 +91,8 @@ class TestStringMethods(unittest.TestCase):
                                  "total_column": "enterprise_ref",
                                  "additional_aggregated_column": "region",
                                  "period_column": "period",
-                                 "run_id": "bob"
+                                 "run_id": "bob",
+                                 "queue_url": "Earl"
                                 }}, context_object)
             assert "Parameter validation error" in exc_info.exception.error_message
 
@@ -104,8 +104,6 @@ class TestStringMethods(unittest.TestCase):
         with mock.patch.dict(aggregation_column_wrangler.os.environ, {
             'bucket_name': 'some-bucket-name',
             'out_file_name': 'file_to_get_from_s3.json',
-            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
-                             '82618934671237/SomethingURL.fifo',
             'checkpoint': '3',
             'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'sqs_message_group_id': 'random',
@@ -137,7 +135,8 @@ class TestStringMethods(unittest.TestCase):
                                  "total_column": "enterprise_ref",
                                  "additional_aggregated_column": "region",
                                  "period_column": "period",
-                                 "run_id": "bob"
+                                 "run_id": "bob",
+                                 "queue_url": "Earl"
                                 }}, context_object)
             assert "Incomplete Lambda response" in exc_info.exception.error_message
 
@@ -148,8 +147,6 @@ class TestStringMethods(unittest.TestCase):
         with mock.patch.dict(aggregation_column_wrangler.os.environ, {
             'bucket_name': 'some-bucket-name',
             'out_file_name': 'file_to_get_from_s3.json',
-            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
-                             '82618934671237/SomethingURL.fifo',
             'checkpoint': '3',
             'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'sqs_message_group_id': 'random',
@@ -173,7 +170,8 @@ class TestStringMethods(unittest.TestCase):
                              "total_column": "enterprise_ref",
                              "additional_aggregated_column": "region",
                              "period_column": "period",
-                             "run_id": "bob"
+                             "run_id": "bob",
+                             "queue_url": "Earl"
                             }}, context_object)
             assert "General Error" in exc_info.exception.error_message
 
@@ -186,8 +184,6 @@ class TestStringMethods(unittest.TestCase):
         with mock.patch.dict(aggregation_column_wrangler.os.environ, {
             'bucket_name': 'some-bucket-name',
             'out_file_name': 'file_to_get_from_s3.json',
-            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
-                             '82618934671237/SomethingURL.fifo',
             'checkpoint': '3',
             'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'sqs_message_group_id': 'random',
@@ -216,7 +212,8 @@ class TestStringMethods(unittest.TestCase):
                              "total_column": "enterprise_ref",
                              "additional_aggregated_column": "region",
                              "period_column": "period",
-                             "run_id": "bob"
+                             "run_id": "bob",
+                             "queue_url": "Earl"
                             }}, context_object)
 
             assert "error message" in exc_info.exception.error_message
@@ -229,8 +226,6 @@ class TestMoto:
         with mock.patch.dict(aggregation_column_wrangler.os.environ, {
             'bucket_name': 'some-bucket-name',
             'out_file_name': 'file_to_get_from_s3.json',
-            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
-                             '82618934671237/SomethingURL.fifo',
             'checkpoint': '3',
             'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'sqs_message_group_id': 'random',
@@ -256,7 +251,8 @@ class TestMoto:
                              "total_column": "enterprise_ref",
                              "additional_aggregated_column": "region",
                              "period_column": "period",
-                             "run_id": "bob"
+                             "run_id": "bob",
+                             "queue_url": "Earl"
                             }}, context_object)
             assert "AWS Error" in exc_info.exception.error_message
 
@@ -264,8 +260,6 @@ class TestMoto:
         with mock.patch.dict(aggregation_column_wrangler.os.environ, {
             'bucket_name': 'some-bucket-name',
             'out_file_name': 'file_to_get_from_s3.json',
-            'sqs_queue_url': 'https://sqs.eu-west-2.amazonaws.com/'
-                             '82618934671237/SomethingURL.fifo',
             'checkpoint': '3',
             'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'sqs_message_group_id': 'random',
@@ -291,6 +285,7 @@ class TestMoto:
                              "total_column": "enterprise_ref",
                              "additional_aggregated_column": "region",
                              "period_column": "period",
-                             "run_id": "bob"
+                             "run_id": "bob",
+                             "queue_url": "Earl"
                             }}, context_object)
             assert "AWS Error" in exc_info.exception.error_message
