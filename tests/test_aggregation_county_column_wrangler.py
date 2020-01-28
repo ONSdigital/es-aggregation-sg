@@ -25,7 +25,6 @@ class TestCountyWranglerMethods:
             {
                 "bucket_name": "mock-bucket",
                 "out_file_name": "mock-file",
-                "sqs_queue_url": "mock-queue-url",
                 "checkpoint": "mockpoint",
                 "sns_topic_arn": "mock-topic-arn",
                 "sqs_message_group_id": "mock-message-id",
@@ -64,7 +63,8 @@ class TestCountyWranglerMethods:
                          "cell_total_column": "county_total",
                          "total_column": "Q608_total",
                          "additional_aggregated_column": "region",
-                         "run_id": "bob"
+                         "run_id": "bob",
+                         "queue_url": "Earl"
                          }
                 }, context_object)
 
@@ -89,7 +89,8 @@ class TestCountyWranglerMethods:
                          "cell_total_column": "county_total",
                          "total_column": "Q608_total",
                          "additional_aggregated_column": "region",
-                         "run_id": "bob"
+                         "run_id": "bob",
+                         "queue_url": "Earl"
                          }
                 }, context_object)
 
@@ -112,7 +113,8 @@ class TestCountyWranglerMethods:
                          "cell_total_column": "county_total",
                          "total_column": "Q608_total",
                          "additional_aggregated_column": "region",
-                         "run_id": "bob"
+                         "run_id": "bob",
+                         "queue_url": "Earl"
                          }
                 }, context_object)
 
@@ -137,7 +139,8 @@ class TestCountyWranglerMethods:
                              "cell_total_column": "county_total",
                              "total_column": "Q608_total",
                              "additional_aggregated_column": "region",
-                             "run_id": "bob"
+                             "run_id": "bob",
+                             "queue_url": "Earl"
                              }
                     }, context_object)
             assert "Key Error" in exc_info.exception.error_message
@@ -165,7 +168,8 @@ class TestCountyWranglerMethods:
                              "cell_total_column": "county_total",
                              "total_column": "Q608_total",
                              "additional_aggregated_column": "region",
-                             "run_id": "bob"
+                             "run_id": "bob",
+                             "queue_url": "Earl"
                              }
                     }, context_object)
             assert "Incomplete Lambda response" in exc_info.exception.error_message
@@ -181,7 +185,8 @@ class TestCountyWranglerMethods:
                          "cell_total_column": "county_total",
                          "total_column": "Q608_total",
                          "additional_aggregated_column": "region",
-                         "run_id": "bob"
+                         "run_id": "bob",
+                         "queue_url": "Earl"
                          }
                 }, context_object)
         assert "AWS Error" in exc_info.exception.error_message
@@ -198,7 +203,8 @@ class TestCountyWranglerMethods:
                              "cell_total_column": "county_total",
                              "total_column": "Q608_total",
                              "additional_aggregated_column": "region",
-                             "run_id": "bob"
+                             "run_id": "bob",
+                             "queue_url": "Earl"
                              }
                     }, context_object)
 
@@ -227,7 +233,8 @@ class TestCountyWranglerMethods:
                              "cell_total_column": "county_total",
                              "total_column": "Q608_total",
                              "additional_aggregated_column": "region",
-                             "run_id": "bob"
+                             "run_id": "bob",
+                             "queue_url": "Earl"
                              }
                     }, context_object)
             assert "This is an error message" in exc_info.exception.error_message
