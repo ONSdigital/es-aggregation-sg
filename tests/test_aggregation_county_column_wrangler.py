@@ -41,6 +41,7 @@ wrangler_runtime_variables_b = {
                     }
                      }
 
+
 class TestCountyWranglerMethods:
     @classmethod
     def setup_class(cls):

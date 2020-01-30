@@ -83,8 +83,10 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
     @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
     @mock.patch('aggregation_top2_wrangler.boto3.client')
     @mock.patch('aggregation_top2_wrangler.aws_functions.read_dataframe_from_s3')
-    def test_wrangler_happy_path(self, mock_get_from_s3, mock_lambda,
-                                 mock_sqs, mock_sns):
+    def test_wrangler_happy_path_multiple_columns(self,
+                                                  mock_get_from_s3,
+                                                  mock_lambda,
+                                                  mock_sqs, mock_sns):
         """
         Tests a correct run produces the correct success flags.
         """

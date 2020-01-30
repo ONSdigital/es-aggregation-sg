@@ -34,7 +34,7 @@ wrangler_runtime_variables_b = {
                      "aggregation_type": "sum",
                      "aggregated_column": "county",
                      "cell_total_column": "county_total",
-                     "total_columns": ["Q608_total","Q606_other_gravel"],
+                     "total_columns": ["Q608_total", "Q606_other_gravel"],
                      "additional_aggregated_column": "region",
                      "run_id": "bob",
                      "queue_url": "Earl"
@@ -80,8 +80,11 @@ class TestStringMethods(unittest.TestCase):
     @mock.patch('aggregation_column_wrangler.aws_functions.save_data')
     @mock.patch('aggregation_column_wrangler.boto3.client')
     @mock.patch('aggregation_column_wrangler.aws_functions.read_dataframe_from_s3')
-    def test_wrangler_happy_path_multiple_columns\
-                    (self, mock_get_from_s3, mock_lambda, mock_sqs, mock_sns):
+    def test_wrangler_happy_path_multiple_columns(self,
+                                                  mock_get_from_s3,
+                                                  mock_lambda,
+                                                  mock_sqs,
+                                                  mock_sns):
         with mock.patch.dict(aggregation_column_wrangler.os.environ, {
             'bucket_name': 'some-bucket-name',
             'out_file_name': 'file_to_get_from_s3.json',
