@@ -37,7 +37,7 @@ def lambda_handler(event, context):
     :param event: {"RuntimeVariables":{
         aggregated_column - A column to aggregate by. e.g. Enterprise_Reference.
         additional_aggregated_column - A column to aggregate by. e.g. Region.
-        total_columns - The name of the columns to produce aggregations for.
+        total_columns - The names of the columns to produce aggregations for.
         top1_column - The prefix for the largest_contibutor column
         top2_column - The prefix for the second_largest_contibutor column
     }}

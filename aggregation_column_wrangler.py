@@ -30,7 +30,7 @@ def lambda_handler(event, context):
         aggregated_column - A column to aggregate by. e.g. Enterprise_Reference.
         additional_aggregated_column - A column to aggregate by. e.g. Region.
         aggregation_type - How we wish to do the aggregation. e.g. sum, count, nunique.
-        total_columns - The name of the columns to produce aggregations for.
+        total_columns - The names of the columns to produce aggregations for.
         cell_total_column - Name of column to rename each total_column.
                         Is concatenated to the front of the total_column name.
     }}

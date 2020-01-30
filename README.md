@@ -46,7 +46,7 @@ Steps performed:
         aggregated_column - A column to aggregate by. e.g. Enterprise_Reference. <br>
         additional_aggregated_column - A column to aggregate by. e.g. Region. <br>
         aggregation_type - How we wish to do the aggregation. e.g. sum, count, nunique. <br>
-        total_columns - The name of the columns to produce aggregations for. <br>
+        total_columns - The names of the columns to produce aggregations for. <br>
         cell_total_column - Name of column to rename total_column. <br>
  }}
 
@@ -64,7 +64,7 @@ e.g. {"success": True/False, "checkpoint"/"error": 4/"Message"}
     event: {"RuntimeVariables":{ <br>
         aggregated_column - A column to aggregate by. e.g. Enterprise_Reference. <br>
         additional_aggregated_column - A column to aggregate by. e.g. Region. <br>
-        total_columns - The name of the columns to produce aggregations for. <br>
+        total_columns - The names of the columns to produce aggregations for. <br>
     }}
 
 **Outputs:** A JSON dict which contains a success marker and the input DataFrame with the following two columns appended: "largest_contributor" and "second_largest_contributor" <br>
