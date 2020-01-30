@@ -28,6 +28,19 @@ wrangler_runtime_variables = {
                          }
                      }
 
+wrangler_runtime_variables_b = {
+                    "RuntimeVariables":
+                    {
+                     "aggregation_type": "sum",
+                     "aggregated_column": "county",
+                     "cell_total_column": "county_total",
+                     "total_columns": ["Q608_total","Q606_other_gravel"],
+                     "additional_aggregated_column": "region",
+                     "run_id": "bob",
+                     "queue_url": "Earl"
+                    }
+                     }
+
 
 class TestStringMethods(unittest.TestCase):
 
@@ -60,6 +73,39 @@ class TestStringMethods(unittest.TestCase):
                 returned_value = aggregation_column_wrangler.\
                     lambda_handler(
                         wrangler_runtime_variables, context_object)
+
+            self.assertTrue(returned_value['success'])
+
+    @mock.patch('aggregation_column_wrangler.aws_functions.send_sns_message')
+    @mock.patch('aggregation_column_wrangler.aws_functions.save_data')
+    @mock.patch('aggregation_column_wrangler.boto3.client')
+    @mock.patch('aggregation_column_wrangler.aws_functions.read_dataframe_from_s3')
+    def test_wrangler_happy_path_multiple_columns\
+                    (self, mock_get_from_s3, mock_lambda, mock_sqs, mock_sns):
+        with mock.patch.dict(aggregation_column_wrangler.os.environ, {
+            'bucket_name': 'some-bucket-name',
+            'out_file_name': 'file_to_get_from_s3.json',
+            'checkpoint': '3',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'sqs_message_group_id': 'random',
+            'method_name': 'random',
+            'incoming_message_group': 'jam',
+            "in_file_name": "moo"
+            }
+        ):
+            with open("tests/fixtures/wrangler_input.json") as file:
+                input_data = json.load(file)
+
+            mock_get_from_s3.return_value = pd.DataFrame(input_data)
+
+            with open('tests/fixtures/method_output.json', "r") as file:
+                mock_lambda.return_value.invoke.return_value.get.return_value \
+                    .read.return_value.decode.return_value = json.dumps(
+                        {"success": True, "data": file.read()})
+
+                returned_value = aggregation_column_wrangler.\
+                    lambda_handler(
+                        wrangler_runtime_variables_b, context_object)
 
             self.assertTrue(returned_value['success'])
 

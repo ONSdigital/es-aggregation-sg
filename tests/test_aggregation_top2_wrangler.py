@@ -26,6 +26,18 @@ wrangler_runtime_variables = {"RuntimeVariables": {
                               "reference": 123456789
                               }}
 
+wrangler_runtime_variables_b = {"RuntimeVariables": {
+                              "total_columns": ["Q608_total", "Q606_other_gravel"],
+                              "aggregated_column": "county",
+                              "additional_aggregated_column": "region",
+                              "county_column": "county",
+                              "top1_column": "largest_contributor",
+                              "top2_column": "second_largest_contributor",
+                              "run_id": "bob",
+                              "queue_url": "Earl",
+                              "reference": 123456789
+                              }}
+
 context_object = MockContext()
 
 
@@ -64,6 +76,42 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
                         {"success": True, "data": in_file})
                 returned_value = aggregation_top2_wrangler.lambda_handler(
                     wrangler_runtime_variables, context_object)
+
+            self.assertTrue(returned_value['success'])
+
+    @mock.patch('aggregation_top2_wrangler.aws_functions.send_sns_message')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.save_data')
+    @mock.patch('aggregation_top2_wrangler.boto3.client')
+    @mock.patch('aggregation_top2_wrangler.aws_functions.read_dataframe_from_s3')
+    def test_wrangler_happy_path(self, mock_get_from_s3, mock_lambda,
+                                 mock_sqs, mock_sns):
+        """
+        Tests a correct run produces the correct success flags.
+        """
+        with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
+            'in_file_name': 'file_to_get_from_s3.json',
+            'bucket_name': 'some-bucket-name',
+            'sqs_message_group_id': 'random',
+            'checkpoint': '3',
+            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
+            'method_name': 'random',
+            'incoming_message_group': 'Grooop',
+            'out_file_name': 'bob'
+            }
+        ):
+            with open("tests/fixtures/top2_wrangler_input.json") as file:
+                input_data = json.load(file)
+
+            mock_get_from_s3.return_value = pd.DataFrame(input_data)
+
+            with open('tests/fixtures/top2_method_output_multi_col.json', "r") as file:
+                in_file = file.read()
+
+                mock_lambda.return_value.invoke.return_value.get.return_value \
+                    .read.return_value.decode.return_value = json.dumps(
+                        {"success": True, "data": in_file})
+                returned_value = aggregation_top2_wrangler.lambda_handler(
+                    wrangler_runtime_variables_b, context_object)
 
             self.assertTrue(returned_value['success'])
 
