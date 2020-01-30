@@ -30,12 +30,14 @@ def lambda_handler(event, context):
         aggregated_column - A column to aggregate by. e.g. Enterprise_Reference.
         additional_aggregated_column - A column to aggregate by. e.g. Region.
         aggregation_type - How we wish to do the aggregation. e.g. sum, count, nunique.
-        total_column - The column with the sum of the data.
-        cell_total_column - Name of column to rename total_column.
+        total_columns - The name of the columns to produce aggregations for.
+        cell_total_column - Name of column to rename each total_column.
+                        Is concatenated to the front of the total_column name.
     }}
 
     :param context: N/A
-    :return: {"success": True/False, "checkpoint"/"error": 4/"Message"}
+    :return: {"success": True, "checkpoint":4}
+            or LambdaFailure exception
     """
     current_module = "Aggregation by column - Wrangler"
     error_message = ""
@@ -58,7 +60,7 @@ def lambda_handler(event, context):
         aggregation_type = event['RuntimeVariables']['aggregation_type']
         aggregated_column = event['RuntimeVariables']['aggregated_column']
         cell_total_column = event['RuntimeVariables']['cell_total_column']
-        total_column = event['RuntimeVariables']['total_column']
+        total_columns = event['RuntimeVariables']['total_columns']
         additional_aggregated_column = \
             event['RuntimeVariables']['additional_aggregated_column']
         sqs_queue_url = event['RuntimeVariables']["queue_url"]
@@ -90,7 +92,7 @@ def lambda_handler(event, context):
 
         json_payload = {
             "input_json": formatted_data,
-            "total_column": total_column,
+            "total_columns": total_columns,
             "additional_aggregated_column": additional_aggregated_column,
             "aggregated_column": aggregated_column,
             "cell_total_column": cell_total_column,

@@ -29,17 +29,21 @@ def lambda_handler(event, context):
     """
     This wrangler is used to prepare data for the calculate top two
     statistical method.
-    The method requires a dataframe which must contain the input columns:
-     - largest_contributor
-     - second_largest contributor
+    The method requires a dataframe which must contain the columns specified by:
+    - aggregated column
+    - additional aggregated column
+    - total columns
 
     :param event: {"RuntimeVariables":{
         aggregated_column - A column to aggregate by. e.g. Enterprise_Reference.
         additional_aggregated_column - A column to aggregate by. e.g. Region.
-        total_column - The column with the sum of the data.
+        total_columns - The name of the columns to produce aggregations for.
+        top1_column - The prefix for the largest_contibutor column
+        top2_column - The prefix for the second_largest_contibutor column
     }}
     :param context: N/A
-    :return: {"success": True/False, "checkpoint"/"error": 4/"Message"}
+    :return: {"success": True, "checkpoint": 4}
+            or LambdaFailure exception
     """
     current_module = "Aggregation Calc Top Two - Wrangler."
     logger = logging.getLogger()
@@ -80,7 +84,7 @@ def lambda_handler(event, context):
 
         top1_column = event['RuntimeVariables']['top1_column']
         top2_column = event['RuntimeVariables']['top2_column']
-        total_column = event['RuntimeVariables']['total_column']
+        total_columns = event['RuntimeVariables']['total_columns']
         sqs_queue_url = event['RuntimeVariables']["queue_url"]
 
         # Read from S3 bucket
@@ -91,7 +95,7 @@ def lambda_handler(event, context):
         # type of content
         msg = "Checking required data columns are present and correctly typed."
         logger.info(msg)
-        req_col_list = [aggregated_column, total_column, additional_aggregated_column]
+        req_col_list = [aggregated_column, additional_aggregated_column] + total_columns
         for req_col in req_col_list:
             if req_col not in data.columns:
                 err_msg = 'Required column "' + req_col + '" not found in dataframe.'
@@ -119,7 +123,7 @@ def lambda_handler(event, context):
 
         json_payload = {
             "input_json": prepared_data,
-            "total_column": total_column,
+            "total_columns": total_columns,
             "additional_aggregated_column": additional_aggregated_column,
             "aggregated_column": aggregated_column,
             "top1_column": top1_column,
@@ -140,6 +144,10 @@ def lambda_handler(event, context):
         logger.info(msg)
         ret_data = pd.DataFrame(json.loads(json_response["data"]))
         req_col_list = [top1_column, top2_column]
+        req_col_list = [total_column + "_" + top_column
+                        for top_column in req_col_list
+                        for total_column in total_columns]
+
         for req_col in req_col_list:
             if req_col not in ret_data.columns:
                 err_msg = 'Required column "' + req_col + '" not found in output data.'

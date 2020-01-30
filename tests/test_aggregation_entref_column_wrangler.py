@@ -16,6 +16,18 @@ class MockContext:
 
 context_object = MockContext()
 
+wrangler_runtime_variables = {
+                    "RuntimeVariables": {
+                        "aggregation_type": "sum",
+                        "aggregated_column": "county",
+                        "cell_total_column": "county_total",
+                        "total_columns": ["Q608_total"],
+                        "additional_aggregated_column": "region",
+                        "run_id": "bob",
+                        "queue_url": "Earl"
+                         }
+                     }
+
 
 class TestStringMethods(unittest.TestCase):
 
@@ -47,17 +59,7 @@ class TestStringMethods(unittest.TestCase):
 
                 returned_value = aggregation_column_wrangler.\
                     lambda_handler(
-                        {"RuntimeVariables": {
-                             "period": 201809,
-                             "aggregation_type": "nunique",
-                             "aggregated_column": "county",
-                             "cell_total_column": "ent_ref_count",
-                             "total_column": "enterprise_ref",
-                             "additional_aggregated_column": "region",
-                             "period_column": "period",
-                             "run_id": "bob",
-                             "queue_url": "Earl"
-                            }}, context_object)
+                        wrangler_runtime_variables, context_object)
 
             self.assertTrue(returned_value['success'])
 
@@ -83,17 +85,7 @@ class TestStringMethods(unittest.TestCase):
                         self, exception_classes.LambdaFailure) as exc_info:
                     aggregation_column_wrangler.\
                         lambda_handler(
-                            {"RuntimeVariables": {
-                                 "period": 201809,
-                                 "aggregation_type": "nunique",
-                                 "aggregated_column": "county",
-                                 "cell_total_column": "ent_ref_count",
-                                 "total_column": "enterprise_ref",
-                                 "additional_aggregated_column": "region",
-                                 "period_column": "period",
-                                 "run_id": "bob",
-                                 "queue_url": "Earl"
-                                }}, context_object)
+                            wrangler_runtime_variables, context_object)
             assert "Parameter validation error" in exc_info.exception.error_message
 
     @mock.patch('aggregation_column_wrangler.aws_functions.send_sns_message')
@@ -127,17 +119,7 @@ class TestStringMethods(unittest.TestCase):
                         self, exception_classes.LambdaFailure) as exc_info:
                     aggregation_column_wrangler.\
                         lambda_handler(
-                            {"RuntimeVariables": {
-                                 "period": 201809,
-                                 "aggregation_type": "nunique",
-                                 "aggregated_column": "county",
-                                 "cell_total_column": "ent_ref_count",
-                                 "total_column": "enterprise_ref",
-                                 "additional_aggregated_column": "region",
-                                 "period_column": "period",
-                                 "run_id": "bob",
-                                 "queue_url": "Earl"
-                                }}, context_object)
+                            wrangler_runtime_variables, context_object)
             assert "Incomplete Lambda response" in exc_info.exception.error_message
 
     @mock.patch('aggregation_column_wrangler.aws_functions.send_sns_message')
@@ -162,17 +144,7 @@ class TestStringMethods(unittest.TestCase):
                     self, exception_classes.LambdaFailure) as exc_info:
                 aggregation_column_wrangler.\
                     lambda_handler(
-                        {"RuntimeVariables": {
-                             "period": 201809,
-                             "aggregation_type": "nunique",
-                             "aggregated_column": "county",
-                             "cell_total_column": "ent_ref_count",
-                             "total_column": "enterprise_ref",
-                             "additional_aggregated_column": "region",
-                             "period_column": "period",
-                             "run_id": "bob",
-                             "queue_url": "Earl"
-                            }}, context_object)
+                        wrangler_runtime_variables, context_object)
             assert "General Error" in exc_info.exception.error_message
 
     @mock.patch('aggregation_column_wrangler.aws_functions.send_sns_message')
@@ -204,17 +176,7 @@ class TestStringMethods(unittest.TestCase):
                     self, exception_classes.LambdaFailure) as exc_info:
                 aggregation_column_wrangler.\
                     lambda_handler(
-                        {"RuntimeVariables": {
-                             "period": 201809,
-                             "aggregation_type": "nunique",
-                             "aggregated_column": "county",
-                             "cell_total_column": "ent_ref_count",
-                             "total_column": "enterprise_ref",
-                             "additional_aggregated_column": "region",
-                             "period_column": "period",
-                             "run_id": "bob",
-                             "queue_url": "Earl"
-                            }}, context_object)
+                        wrangler_runtime_variables, context_object)
 
             assert "error message" in exc_info.exception.error_message
 
@@ -243,17 +205,7 @@ class TestMoto:
                     self, exception_classes.LambdaFailure) as exc_info:
                 aggregation_column_wrangler.\
                     lambda_handler(
-                        {"RuntimeVariables": {
-                             "period": 201809,
-                             "aggregation_type": "nunique",
-                             "aggregated_column": "county",
-                             "cell_total_column": "ent_ref_count",
-                             "total_column": "enterprise_ref",
-                             "additional_aggregated_column": "region",
-                             "period_column": "period",
-                             "run_id": "bob",
-                             "queue_url": "Earl"
-                            }}, context_object)
+                        wrangler_runtime_variables, context_object)
             assert "AWS Error" in exc_info.exception.error_message
 
     def test_client_error_exception(self):
@@ -277,15 +229,5 @@ class TestMoto:
                     self, exception_classes.LambdaFailure) as exc_info:
                 aggregation_column_wrangler.\
                     lambda_handler(
-                        {"RuntimeVariables": {
-                             "period": 201809,
-                             "aggregation_type": "nunique",
-                             "aggregated_column": "county",
-                             "cell_total_column": "ent_ref_count",
-                             "total_column": "enterprise_ref",
-                             "additional_aggregated_column": "region",
-                             "period_column": "period",
-                             "run_id": "bob",
-                             "queue_url": "Earl"
-                            }}, context_object)
+                        wrangler_runtime_variables, context_object)
             assert "AWS Error" in exc_info.exception.error_message

@@ -10,7 +10,7 @@ class EnvironSchema(marshmallow.Schema):
     Class to set up the environment variables schema.
     """
     input_json = marshmallow.fields.Str(required=True)
-    total_column = marshmallow.fields.Str(required=True)
+    total_columns = marshmallow.fields.List(marshmallow.fields.Str(), required=True)
     additional_aggregated_column = marshmallow.fields.Str(required=True)
     aggregated_column = marshmallow.fields.Str(required=True)
     cell_total_column = marshmallow.fields.Str(required=True)
@@ -24,10 +24,11 @@ def lambda_handler(event, context):
      (e.g.Sum) as a new column called cell_total_column(e.g.county_total).
 
     :param event: {
+        input_json - JSON String of the data.
         aggregated_column - A column to aggregate by. e.g. Enterprise_Reference.
         additional_aggregated_column - A column to aggregate by. e.g. Region.
         aggregation_type - How we wish to do the aggregation. e.g. sum, count, nunique.
-        total_column - The column with the sum of the data.
+        total_columns - The name of the columns to produce aggregations for.
         cell_total_column - Name of column to rename total_column.
     }
 
@@ -38,6 +39,7 @@ def lambda_handler(event, context):
     error_message = ""
     log_message = ""
     logger = logging.getLogger("Aggregation")
+    logger.setLevel(0)
     output_json = ""
     try:
         logger.info("Aggregation by column - Method begun.")
@@ -49,28 +51,36 @@ def lambda_handler(event, context):
             raise ValueError(f"Error validating environment parameters: {errors}")
 
         input_json = json.loads(config["input_json"])
-        total_column = config["total_column"]
+
         additional_aggregated_column = config["additional_aggregated_column"]
         aggregated_column = config["aggregated_column"]
         cell_total_column = config["cell_total_column"]
         aggregation_type = config["aggregation_type"]
+        # Total columns can go through as a list
+        total_columns = config['total_columns']
 
         input_dataframe = pd.DataFrame(input_json)
+        totals_dict = {total_column: aggregation_type for total_column in total_columns}
 
         logger.info("JSON data converted to DataFrame.")
 
         county_agg = input_dataframe.groupby([additional_aggregated_column,
                                               aggregated_column])
 
-        agg_by_county_output = county_agg.agg({total_column: aggregation_type})\
+        agg_by_county_output = county_agg.agg(totals_dict) \
             .reset_index()
 
-        agg_by_county_output.rename(
-            columns={total_column: cell_total_column},
-            inplace=True
-        )
+        for total_column in total_columns:
+            if("total" not in cell_total_column):
+                column_cell_total_column = cell_total_column
+            else:
+                column_cell_total_column = cell_total_column + "_" + total_column
+            agg_by_county_output = agg_by_county_output.rename(
+                columns={total_column: column_cell_total_column},
+                inplace=False
+            )
 
-        logger.info("County totals successfully calculated.")
+        logger.info("Column totals successfully calculated.")
 
         output_json = agg_by_county_output.to_json(orient='records')
         final_output = {"data": output_json}
