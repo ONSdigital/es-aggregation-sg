@@ -39,7 +39,7 @@ class TestCountyMethodMethods(unittest.TestCase):
 
             json_payload = {
                 "input_json": json_content,
-                "total_column": "Q608_total",
+                "total_columns": ["Q608_total"],
                 "additional_aggregated_column": "region",
                 "aggregated_column": "county",
                 "cell_total_column": "county_total",
@@ -64,13 +64,43 @@ class TestCountyMethodMethods(unittest.TestCase):
 
             assert_frame_equal(response_df, expected_df)
 
+    def test_method_happy_path_multiple_columns(self):
+        with open("tests/fixtures/imp_output_test.json", "r") as file:
+            json_content = file.read()
+
+            json_payload = {
+                "input_json": json_content,
+                "total_columns": ["Q608_total", "Q606_other_gravel"],
+                "additional_aggregated_column": "region",
+                "aggregated_column": "county",
+                "cell_total_column": "county_total",
+                "aggregation_type": "sum"
+            }
+
+            output = aggregation_column_method.lambda_handler(
+                json_payload,
+                context_object
+            )
+
+            expected_df = (
+                pd.read_json("tests/fixtures/agg_county_output_b.json")
+            )
+
+            response_df = (
+                pd.read_json(output["data"])
+            )
+            response_df = response_df.round(5)
+            expected_df = expected_df.round(5)
+
+            assert_frame_equal(response_df, expected_df)
+
     def test_method_general_exception(self):
         with open("tests/fixtures/imp_output_test.json", "r") as file:
             json_content = file.read()
 
             json_payload = {
                 "input_json": json_content,
-                "total_column": "Q608_total",
+                "total_columns": ["Q608_total"],
                 "additional_aggregated_column": "region",
                 "aggregated_column": "county",
                 "cell_total_column": "county_total",
@@ -95,7 +125,7 @@ class TestCountyMethodMethods(unittest.TestCase):
 
         json_payload = {
             "input_json": json_content,
-            "total_column": "Q608_total",
+            "total_columns": ["Q608_total"],
             "additional_aggregated_column": "region",
             "aggregated_column": "county",
             "cell_total_column": "county_total",

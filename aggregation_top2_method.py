@@ -10,7 +10,7 @@ class EnvironSchema(marshmallow.Schema):
     Class to set up the environment variables schema.
     """
     input_json = marshmallow.fields.Str(required=True)
-    total_column = marshmallow.fields.Str(required=True)
+    total_columns = marshmallow.fields.List(marshmallow.fields.Str(), required=True)
     additional_aggregated_column = marshmallow.fields.Str(required=True)
     aggregated_column = marshmallow.fields.Str(required=True)
     top1_column = marshmallow.fields.Str(required=True)
@@ -22,15 +22,14 @@ def lambda_handler(event, context):
     This method loops through each county and records largest & second largest value
      against each record in the group.
 
-    It requires input_json to contain the input columns:
-     - largest_contributor, created inside top2 wrangler.
-     - second_largest contributor, created inside top2 wrangler.
 
     :param event: {
         input_json - JSON String of the data.
         aggregated_column - A column to aggregate by. e.g. Enterprise_Reference.
         additional_aggregated_column - A column to aggregate by. e.g. Region.
-        total_column - The column with the sum of the data.
+        total_columns - The names of the columns to produce aggregations for.
+        top1_column - The prefix for the largest_contibutor column
+        top2_column - The prefix for the second_largest_contibutor column
     }
     :param context: N/A
     :return: Success - {"success": True/False, "data"/"error": "JSON String"/"Message"}
@@ -53,26 +52,31 @@ def lambda_handler(event, context):
 
         logger.info("Converting input json to dataframe")
         input_json = json.loads(config["input_json"])
-        total_column = config["total_column"]
+        total_columns = config["total_columns"]
         additional_aggregated_column = config["additional_aggregated_column"]
         aggregated_column = config["aggregated_column"]
         top1_column = config['top1_column']
         top2_column = config['top2_column']
 
         input_dataframe = pd.DataFrame(input_json)
-
+        top_two_output = pd.DataFrame()
         logger.info("Invoking calc_top_two function on input dataframe")
+        counter = 0
+        for total_column in total_columns:
+            response = calc_top_two(input_dataframe, total_column,
+                                    aggregated_column, additional_aggregated_column,
+                                    top1_column, top2_column)
 
-        response = calc_top_two(input_dataframe, total_column,
-                                aggregated_column, additional_aggregated_column,
-                                top1_column, top2_column)
-        response = response[[additional_aggregated_column,
-                             aggregated_column,
-                             top1_column,
-                             top2_column]]
+            response = response.drop_duplicates()
+            if (counter == 0):
+                top_two_output = response
+            else:
+                top_two_output = top_two_output.merge(response,
+                                                      on=[additional_aggregated_column,
+                                                          aggregated_column], how="left")
+            counter += 1
 
-        response = response.drop_duplicates()
-
+        response = top_two_output
         logger.info("Converting output dataframe to json")
         response_json = response.to_json(orient='records')
         final_output = {"data": response_json}
@@ -89,7 +93,7 @@ def lambda_handler(event, context):
                        + str(e.__traceback__.tb_lineno))
 
     finally:
-        if(len(error_message)) > 0:
+        if (len(error_message)) > 0:
             logger.error(log_message)
             return {"success": False, "error": error_message}
 
@@ -100,11 +104,21 @@ def lambda_handler(event, context):
 
 def calc_top_two(data, total_column, aggregated_column, additional_aggregated_column,
                  top1_column, top2_column):
-    # NB: No need for try/except as called from inside try clause in lambda_handler.
+    '''
 
+    :param data: Input Dataframe
+    :param total_column - The name of the column to produce aggregation for.
+    :param aggregated_column: A column to aggregate by. e.g. Enterprise_Reference.
+    :param additional_aggregated_column: A column to aggregate by. e.g. Region.
+    :param top1_column: top1_column - Prefix for the largest_contributor column.
+    :param top2_column: top2_column - Prefix for the second_largest_contributor column.
+
+    :return: data: input dataframe with the addition of top2 calulations for total_column
+    '''
     logger = logging.getLogger()
     logger.info("Executing function: calc_top_two")
-
+    top1_column = total_column + "_" + top1_column
+    top2_column = total_column + "_" + top2_column
     # Ensure additional columns are zeroed (Belt n Braces)
     data[top1_column] = 0
     data[top2_column] = 0
@@ -142,5 +156,8 @@ def calc_top_two(data, total_column, aggregated_column, additional_aggregated_co
 
     logger.info("Returning the output data")
     logger.info("Successfully completed function: calc_top_two")
-
+    data = data[[additional_aggregated_column,
+                 aggregated_column,
+                 top1_column,
+                 top2_column]]
     return data

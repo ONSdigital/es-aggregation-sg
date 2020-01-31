@@ -15,6 +15,31 @@ class MockContext:
 
 
 context_object = MockContext()
+wrangler_runtime_variables = {
+                    "RuntimeVariables":
+                    {
+                     "aggregation_type": "sum",
+                     "aggregated_column": "county",
+                     "cell_total_column": "county_total",
+                     "total_columns": ["Q608_total"],
+                     "additional_aggregated_column": "region",
+                     "run_id": "bob",
+                     "queue_url": "Earl"
+                    }
+
+                     }
+wrangler_runtime_variables_b = {
+                    "RuntimeVariables":
+                    {
+                     "aggregation_type": "sum",
+                     "aggregated_column": "county",
+                     "cell_total_column": "county_total",
+                     "total_columns": ["Q608_total", "Q606_other_gravel"],
+                     "additional_aggregated_column": "region",
+                     "run_id": "bob",
+                     "queue_url": "Earl"
+                    }
+                     }
 
 
 class TestCountyWranglerMethods:
@@ -56,17 +81,30 @@ class TestCountyWranglerMethods:
                 return_value.decode.return_value = json.dumps({"data": invoke_data,
                                                                "success": True})
             returned_value = aggregation_column_wrangler.\
-                lambda_handler({
-                    "RuntimeVariables":
-                        {"aggregation_type": "sum",
-                         "aggregated_column": "county",
-                         "cell_total_column": "county_total",
-                         "total_column": "Q608_total",
-                         "additional_aggregated_column": "region",
-                         "run_id": "bob",
-                         "queue_url": "Earl"
-                         }
-                }, context_object)
+                lambda_handler(wrangler_runtime_variables, context_object)
+
+            mock_sqs.return_value = {"Messages": [{"Body": json.dumps(input_data),
+                                                   "ReceiptHandle": "String"}]}
+
+            assert "success" in returned_value
+            assert returned_value["success"] is True
+
+    @mock.patch("aggregation_column_wrangler.aws_functions.save_data")
+    @mock.patch("aggregation_column_wrangler.boto3.client")
+    @mock.patch("aggregation_column_wrangler.aws_functions.read_dataframe_from_s3")
+    def test_happy_path_multiple_columns(self, mock_s3_return, mock_lambda, mock_sqs):
+        invoke_data = ''
+        with open("tests/fixtures/imp_output_test.json", 'r') as input_file:
+            invoke_data = input_file.read()
+        with open("tests/fixtures/imp_output_test.json") as input_file:
+            input_data = json.load(input_file)
+
+            mock_s3_return.return_value = pd.DataFrame(input_data)
+            mock_lambda.return_value.invoke.return_value.get.return_value.read.\
+                return_value.decode.return_value = json.dumps({"data": invoke_data,
+                                                               "success": True})
+            returned_value = aggregation_column_wrangler.\
+                lambda_handler(wrangler_runtime_variables_b, context_object)
 
             mock_sqs.return_value = {"Messages": [{"Body": json.dumps(input_data),
                                                    "ReceiptHandle": "String"}]}
@@ -82,17 +120,7 @@ class TestCountyWranglerMethods:
         with unittest.TestCase.assertRaises(
                 self, exception_classes.LambdaFailure) as exc_info:
             aggregation_column_wrangler.\
-                lambda_handler({
-                    "RuntimeVariables":
-                        {"aggregation_type": "sum",
-                         "aggregated_column": "county",
-                         "cell_total_column": "county_total",
-                         "total_column": "Q608_total",
-                         "additional_aggregated_column": "region",
-                         "run_id": "bob",
-                         "queue_url": "Earl"
-                         }
-                }, context_object)
+                lambda_handler(wrangler_runtime_variables, context_object)
 
         assert "General Error" in exc_info.exception.error_message
 
@@ -106,17 +134,7 @@ class TestCountyWranglerMethods:
         with unittest.TestCase.assertRaises(
                 self, exception_classes.LambdaFailure) as exc_info:
             aggregation_column_wrangler.\
-                lambda_handler({
-                    "RuntimeVariables":
-                        {"aggregation_type": "sum",
-                         "aggregated_column": "county",
-                         "cell_total_column": "county_total",
-                         "total_column": "Q608_total",
-                         "additional_aggregated_column": "region",
-                         "run_id": "bob",
-                         "queue_url": "Earl"
-                         }
-                }, context_object)
+                lambda_handler(wrangler_runtime_variables, context_object)
 
         aggregation_column_wrangler.os.environ["method_name"] = "mock_method"
         assert "Error validating environment params" in exc_info.exception.error_message
@@ -132,17 +150,7 @@ class TestCountyWranglerMethods:
             with unittest.TestCase.assertRaises(
                     self, exception_classes.LambdaFailure) as exc_info:
                 aggregation_column_wrangler.\
-                    lambda_handler({
-                        "RuntimeVariables":
-                            {"aggregation_type": "sum",
-                             "aggregated_column": "county",
-                             "cell_total_column": "county_total",
-                             "total_column": "Q608_total",
-                             "additional_aggregated_column": "region",
-                             "run_id": "bob",
-                             "queue_url": "Earl"
-                             }
-                    }, context_object)
+                    lambda_handler(wrangler_runtime_variables, context_object)
             assert "Key Error" in exc_info.exception.error_message
 
     @mock.patch("aggregation_column_wrangler.aws_functions.save_data")
@@ -161,34 +169,14 @@ class TestCountyWranglerMethods:
             with unittest.TestCase.assertRaises(
                     self, exception_classes.LambdaFailure) as exc_info:
                 aggregation_column_wrangler.\
-                    lambda_handler({
-                        "RuntimeVariables":
-                            {"aggregation_type": "sum",
-                             "aggregated_column": "county",
-                             "cell_total_column": "county_total",
-                             "total_column": "Q608_total",
-                             "additional_aggregated_column": "region",
-                             "run_id": "bob",
-                             "queue_url": "Earl"
-                             }
-                    }, context_object)
+                    lambda_handler(wrangler_runtime_variables, context_object)
             assert "Incomplete Lambda response" in exc_info.exception.error_message
 
     def test_client_error_exception(self):
         with unittest.TestCase.assertRaises(
                 self, exception_classes.LambdaFailure) as exc_info:
             aggregation_column_wrangler.\
-                lambda_handler({
-                    "RuntimeVariables":
-                        {"aggregation_type": "sum",
-                         "aggregated_column": "county",
-                         "cell_total_column": "county_total",
-                         "total_column": "Q608_total",
-                         "additional_aggregated_column": "region",
-                         "run_id": "bob",
-                         "queue_url": "Earl"
-                         }
-                }, context_object)
+                lambda_handler(wrangler_runtime_variables, context_object)
         assert "AWS Error" in exc_info.exception.error_message
 
     @mock_sqs
@@ -196,17 +184,7 @@ class TestCountyWranglerMethods:
         with unittest.TestCase.assertRaises(
                 self, exception_classes.LambdaFailure) as exc_info:
             aggregation_column_wrangler.\
-                    lambda_handler({
-                        "RuntimeVariables":
-                            {"aggregation_type": "sum",
-                             "aggregated_column": "county",
-                             "cell_total_column": "county_total",
-                             "total_column": "Q608_total",
-                             "additional_aggregated_column": "region",
-                             "run_id": "bob",
-                             "queue_url": "Earl"
-                             }
-                    }, context_object)
+                    lambda_handler(wrangler_runtime_variables, context_object)
 
         assert "AWS Error" in exc_info.exception.error_message
 
@@ -226,17 +204,7 @@ class TestCountyWranglerMethods:
             with unittest.TestCase.assertRaises(
                     self, exception_classes.LambdaFailure) as exc_info:
                 aggregation_column_wrangler.\
-                    lambda_handler({
-                        "RuntimeVariables":
-                            {"aggregation_type": "sum",
-                             "aggregated_column": "county",
-                             "cell_total_column": "county_total",
-                             "total_column": "Q608_total",
-                             "additional_aggregated_column": "region",
-                             "run_id": "bob",
-                             "queue_url": "Earl"
-                             }
-                    }, context_object)
+                    lambda_handler(wrangler_runtime_variables, context_object)
             assert "This is an error message" in exc_info.exception.error_message
             mock_sqs.return_value = {"Messages": [{"Body": json.dumps(input_data),
                                                    "ReceiptHandle": "String"}]}

@@ -46,10 +46,9 @@ Steps performed:
         aggregated_column - A column to aggregate by. e.g. Enterprise_Reference. <br>
         additional_aggregated_column - A column to aggregate by. e.g. Region. <br>
         aggregation_type - How we wish to do the aggregation. e.g. sum, count, nunique. <br>
-        total_column - The column with the sum of the data. <br>
+        total_columns - The names of the columns to produce aggregations for. <br>
         cell_total_column - Name of column to rename total_column. <br>
-        queue_url: - The sqs queue url to use in sending/receiving sqs messages.<br>
-    }}
+ }}
 
 **Outputs:** A JSON dict which contains a success marker and the aggregated data with the column count/sum. <br>
 e.g. {"success": True/False, "checkpoint"/"error": 4/"Message"}
@@ -65,12 +64,12 @@ e.g. {"success": True/False, "checkpoint"/"error": 4/"Message"}
     event: {"RuntimeVariables":{ <br>
         aggregated_column - A column to aggregate by. e.g. Enterprise_Reference. <br>
         additional_aggregated_column - A column to aggregate by. e.g. Region. <br>
-        total_column - The column with the sum of the data. <br>
+        total_columns - The names of the columns to produce aggregations for. <br>
     }}
 
 **Outputs:** A JSON dict which contains a success marker and the input DataFrame with the following two columns appended: "largest_contributor" and "second_largest_contributor" <br>
-e.g. {"success": True, "checkpoint": 4}<br>
-or LambdaFailure Exception
+e.g. {"success": True/False, "checkpoint"/"error": 4/"Message"}
+
 <hr>
 
 #### Combiner
