@@ -95,7 +95,7 @@ def lambda_handler(event, context):
         # type of content
         msg = "Checking required data columns are present and correctly typed."
         logger.info(msg)
-        req_col_list = [aggregated_column, additional_aggregated_column] + total_columns
+        req_col_list = total_columns
         for req_col in req_col_list:
             if req_col not in data.columns:
                 err_msg = 'Required column "' + req_col + '" not found in dataframe.'
