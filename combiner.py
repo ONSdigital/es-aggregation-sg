@@ -70,7 +70,7 @@ def lambda_handler(event, context):
         sqs = boto3.client("sqs", "eu-west-2")
 
         # Get file from s3
-        imp_df = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
+        imp_df = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name, run_id)
 
         logger.info("Successfully retrieved data from s3")
         data = []
@@ -94,11 +94,14 @@ def lambda_handler(event, context):
         third_agg = json.loads(data[2])
 
         first_agg_df = aws_functions.read_dataframe_from_s3(first_agg['bucket'],
-                                                            first_agg['key'])
+                                                            first_agg['key'],
+                                                            run_id)
         second_agg_df = aws_functions.read_dataframe_from_s3(second_agg['bucket'],
-                                                             second_agg['key'])
+                                                             second_agg['key'],
+                                                             run_id)
         third_agg_df = aws_functions.read_dataframe_from_s3(third_agg['bucket'],
-                                                            third_agg['key'])
+                                                            third_agg['key'],
+                                                            run_id)
 
         # merge the imputation output from s3 with the 3 aggregation outputs
         first_merge = pd.merge(
@@ -120,7 +123,8 @@ def lambda_handler(event, context):
 
         # send output onwards
         aws_functions.save_data(bucket_name, out_file_name, final_output,
-                                sqs_queue_url, sqs_message_group_id)
+                                sqs_queue_url, sqs_message_group_id,
+                                run_id)
         logger.info("Successfully sent message to sqs")
 
         aws_functions.send_sns_message(checkpoint, sns_topic_arn,
