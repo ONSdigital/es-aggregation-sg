@@ -88,7 +88,7 @@ def lambda_handler(event, context):
         sqs_queue_url = event['RuntimeVariables']["queue_url"]
 
         # Read from S3 bucket
-        data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
+        data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name, run_id)
         logger.info("Completed reading data from s3")
 
         # Ensure mandatory columns are present and have the correct
@@ -165,7 +165,7 @@ def lambda_handler(event, context):
         logger.info("Sending function response downstream.")
         aws_functions.save_data(bucket_name, out_file_name,
                                 json_response["data"], sqs_queue_url,
-                                sqs_message_group_id)
+                                sqs_message_group_id, run_id)
         logger.info("Successfully sent the data to S3")
         aws_functions.send_sns_message(checkpoint, sns_topic_arn, "Aggregation - Top 2.")
         logger.info("Successfully sent the SNS message")

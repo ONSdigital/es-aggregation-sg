@@ -84,7 +84,7 @@ def lambda_handler(event, context):
         out_file_name = cell_total_column + "_" + out_file_name
 
         # Read from S3 bucket
-        data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
+        data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name, run_id)
         logger.info("Completed reading data from s3")
 
         formatted_data = data.to_json(orient='records')
@@ -110,7 +110,7 @@ def lambda_handler(event, context):
             raise exception_classes.MethodFailure(json_response['error'])
 
         aws_functions.save_data(bucket_name, out_file_name, json_response["data"],
-                                sqs_queue_url, sqs_message_group_id)
+                                sqs_queue_url, sqs_message_group_id, run_id)
         logger.info("Successfully sent the data to SQS")
 
         aws_functions.send_sns_message(checkpoint,
