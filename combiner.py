@@ -98,7 +98,7 @@ def lambda_handler(event, context):
                                                             run_id)
         second_agg_df = aws_functions.read_dataframe_from_s3(second_agg['bucket'],
                                                              second_agg['key'],
-                                                            run_id)
+                                                             run_id)
         third_agg_df = aws_functions.read_dataframe_from_s3(third_agg['bucket'],
                                                             third_agg['key'],
                                                             run_id)
@@ -124,7 +124,7 @@ def lambda_handler(event, context):
         # send output onwards
         aws_functions.save_data(bucket_name, out_file_name, final_output,
                                 sqs_queue_url, sqs_message_group_id,
-                                                            run_id)
+                                run_id)
         logger.info("Successfully sent message to sqs")
 
         aws_functions.send_sns_message(checkpoint, sns_topic_arn,
