@@ -64,9 +64,9 @@ def lambda_handler(event, context):
         sqs_message_group_id_brick = config["sqs_message_group_id_brick"]
         sqs_message_group_id_region = config["sqs_message_group_id_region"]
 
-        in_file_name = event['RuntimeVariables']["in_file_name"]['pre_aggregation']
+        in_file_name = event['RuntimeVariables']["in_file_name"]['bricks_splitter']
         incoming_message_group = \
-            event['RuntimeVariables']["incoming_message_group"]['pre_aggregation']
+            event['RuntimeVariables']["incoming_message_group"]['bricks_splitter']
         factors_parameters = event['RuntimeVariables']["factors_parameters"]
         regionless_code = factors_parameters['RuntimeVariables']['regionless_code']
         region_column = factors_parameters['RuntimeVariables']['region_column']
@@ -108,7 +108,7 @@ def lambda_handler(event, context):
 
         for check_type in brick_type.keys():
             for current_column in column_list:
-                data.drop([check_type + "-" + current_column], axis=1, inplace=True)
+                data.drop([check_type + "_" + current_column], axis=1, inplace=True)
 
         data_region = data.to_json(orient="records")
 
@@ -244,7 +244,7 @@ def calculate_row_type(row, brick_type, column_list):
         total_for_type = 0
 
         for current_column in column_list:
-            total_for_type += row[check_type + "-" + current_column]
+            total_for_type += row[check_type + "_" + current_column]
 
         if total_for_type > 0:
             return brick_type[check_type]
@@ -253,8 +253,8 @@ def calculate_row_type(row, brick_type, column_list):
 def sum_columns(row, brick_type, column_list):
 
     for check_type in brick_type.keys():
-        if row[check_type] == brick_type[check_type]:
+        if row["brick_type"] == brick_type[check_type]:
             for current_column in column_list:
-                row[current_column] = row[check_type + current_column]
+                row[current_column] = row[check_type + "_" + current_column]
 
     return row
