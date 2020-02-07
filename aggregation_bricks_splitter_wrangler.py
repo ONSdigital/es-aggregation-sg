@@ -17,11 +17,11 @@ class InputSchema(Schema):
     checkpoint = fields.Str(required=True)
     bucket_name = fields.Str(required=True)
     method_name = fields.Str(required=True)
-    out_file_name_region = fields.Str(required=True)
     out_file_name_brick = fields.Str(required=True)
+    out_file_name_region = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
-    sqs_message_group_id_region = fields.Str(required=True)
     sqs_message_group_id_brick = fields.Str(required=True)
+    sqs_message_group_id_region = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -58,11 +58,11 @@ def lambda_handler(event, context):
         checkpoint = config["checkpoint"]
         bucket_name = config["bucket_name"]
         method_name = config["method_name"]
-        out_file_name_region = config["out_file_name_region"]
         out_file_name_brick = config["out_file_name_brick"]
+        out_file_name_region = config["out_file_name_region"]
         sns_topic_arn = config["sns_topic_arn"]
-        sqs_message_group_id_region = config["sqs_message_group_id_region"]
         sqs_message_group_id_brick = config["sqs_message_group_id_brick"]
+        sqs_message_group_id_region = config["sqs_message_group_id_region"]
 
         in_file_name = event['RuntimeVariables']["in_file_name"]['pre_aggregation']
         incoming_message_group = \

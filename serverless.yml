@@ -25,6 +25,29 @@ custom:
   accountId: ${self:custom.accounts.account-id}
 
 functions:
+  deploy-bricks-pre-agg-wrangler:
+    name: es-aggregation-bricks-splitter-wrangler
+    handler: aggregation_bricks_splitter_wrangler.lambda_handler
+    package:
+      include:
+        - aggregation_bricks_splitter_wrangler.py
+      exclude:
+        - ./**
+    layers:
+      - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:es_python_layer:latest
+      - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:dev-es-common-functions:latest
+    tags:
+      app: results
+    environment:
+      checkpoint: 4
+      bucket_name: results-s3-bucket
+      out_file_name_brick: aggregation_brick_prep_out.json
+      out_file_name_region: aggregation_region_prep_out.json
+      method_name: es-aggregation-column-method
+      sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
+      sqs_message_group_id_brick: aggregation-brick-prep
+      sqs_message_group_id_region: aggregation-region-prep
+
   deploy-column-wrangler:
     name: es-aggregation-column-wrangler
     handler: aggregation_column_wrangler.lambda_handler
