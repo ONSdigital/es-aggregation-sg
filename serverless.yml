@@ -25,7 +25,7 @@ custom:
   accountId: ${self:custom.accounts.account-id}
 
 functions:
-  deploy-bricks-pre-agg-wrangler:
+  deploy-bricks-splitter-wrangler:
     name: es-aggregation-bricks-splitter-wrangler
     handler: aggregation_bricks_splitter_wrangler.lambda_handler
     package:
@@ -33,6 +33,7 @@ functions:
         - aggregation_bricks_splitter_wrangler.py
       exclude:
         - ./**
+      individually: true
     layers:
       - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:es_python_layer:latest
       - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:dev-es-common-functions:latest
@@ -56,6 +57,7 @@ functions:
         - aggregation_column_wrangler.py
       exclude:
         - ./**
+      individually: true
     layers:
       - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:es_python_layer:latest
       - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:dev-es-common-functions:latest
@@ -78,6 +80,7 @@ functions:
         - aggregation_column_method.py
       exclude:
         - ./**
+      individually: true
     layers:
       - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:es_python_layer:latest
     tags:
@@ -91,6 +94,7 @@ functions:
         - aggregation_top2_wrangler.py
       exclude:
         - ./**
+      individually: true
     layers:
       - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:es_python_layer:latest
       - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:dev-es-common-functions:latest
@@ -113,6 +117,7 @@ functions:
         - aggregation_top2_method.py
       exclude:
         - ./**
+      individually: true
     layers:
       - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:es_python_layer:latest
     tags:

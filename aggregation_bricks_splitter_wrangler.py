@@ -55,6 +55,7 @@ def lambda_handler(event, context):
         if errors:
             raise ValueError(f"Error validating environment params: {errors}")
 
+        # Set Variables.
         checkpoint = config["checkpoint"]
         bucket_name = config["bucket_name"]
         method_name = config["method_name"]
@@ -74,9 +75,11 @@ def lambda_handler(event, context):
 
         logger.info("Vaildated params")
 
+        # Pulls In Data.
         data, receipt_handler = aws_functions.get_dataframe(sqs_queue_url, bucket_name,
                                                             in_file_name,
-                                                            incoming_message_group)
+                                                            incoming_message_group,
+                                                            run_id)
 
         logger.info("Succesfully retrieved data.")
 
@@ -100,16 +103,20 @@ def lambda_handler(event, context):
             "closing_stock_facings",
             "closing_stock_engineering"
         ]
-        # Check which is returned and set brick_type
+        # Identify The Brick Type Of The Row.
         data["brick_type"] = data.apply(lambda x: calculate_row_type(x, brick_type,
                                                                      column_list), axis=1)
-        # Filter
+        # Collate Each Rows 12 Good Brick Type Columns And 24 Empty Columns Down
+        # Into 12 With The Same Name.
         data = data.apply(lambda x: sum_columns(x, brick_type, column_list), axis=1)
 
+        # Old Columns With Brick Type In The Name Are Dropped.
         for check_type in brick_type.keys():
             for current_column in column_list:
                 data.drop([check_type + "_" + current_column], axis=1, inplace=True)
 
+        # Add GB Region For Aggregation By Region.
+        logger.info("Creating File For Aggregation By Region.")
         data_region = data.to_json(orient="records")
 
         payload = {
@@ -118,7 +125,7 @@ def lambda_handler(event, context):
             "region_column": region_column
         }
 
-        # Pass the data for processing (adding of the regionless region)
+        # Pass the data for processing (adding of the regionless region.
         imputed_data = lambda_client.invoke(
             FunctionName=method_name,
             Payload=json.dumps(payload),
@@ -133,8 +140,12 @@ def lambda_handler(event, context):
 
         aws_functions.save_data(bucket_name, out_file_name_region,
                                 json_response["data"], sqs_queue_url,
-                                sqs_message_group_id_region)
+                                sqs_message_group_id_region, run_id)
+        logger.info("Successfully sent data to s3")
 
+        # Collate Brick Types Clay And Sand Lime Into A Single Type And Add To Data
+        # For Aggregation By Brick Type.
+        logger.info("Creating File For Aggregation By Brick Type.")
         data_brick = data
 
         data = data[data["brick_type"] in [3, 4]]
@@ -144,7 +155,7 @@ def lambda_handler(event, context):
 
         aws_functions.save_data(bucket_name, out_file_name_brick,
                                 json.loads(data_brick), sqs_queue_url,
-                                sqs_message_group_id_brick)
+                                sqs_message_group_id_brick, run_id)
         logger.info("Successfully sent data to s3")
 
         if receipt_handler:
