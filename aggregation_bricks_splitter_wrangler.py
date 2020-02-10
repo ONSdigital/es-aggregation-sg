@@ -65,10 +65,10 @@ def lambda_handler(event, context):
         sqs_message_group_id_brick = config["sqs_message_group_id_brick"]
         sqs_message_group_id_region = config["sqs_message_group_id_region"]
 
+        factors_parameters = event['RuntimeVariables']["factors_parameters"]
         in_file_name = event['RuntimeVariables']["in_file_name"]['bricks_splitter']
         incoming_message_group = \
             event['RuntimeVariables']["incoming_message_group"]['bricks_splitter']
-        factors_parameters = event['RuntimeVariables']["factors_parameters"]
         regionless_code = factors_parameters['RuntimeVariables']['regionless_code']
         region_column = factors_parameters['RuntimeVariables']['region_column']
         sqs_queue_url = event['RuntimeVariables']["queue_url"]
@@ -138,6 +138,7 @@ def lambda_handler(event, context):
         if not json_response['success']:
             raise exception_classes.MethodFailure(json_response['error'])
 
+        aws_functions.save_to_s3(bucket_name, out_file_name_region, json_response["data"], run_id)
         aws_functions.save_data(bucket_name, out_file_name_region,
                                 json_response["data"], sqs_queue_url,
                                 sqs_message_group_id_region, run_id)
@@ -146,15 +147,16 @@ def lambda_handler(event, context):
         # Collate Brick Types Clay And Sand Lime Into A Single Type And Add To Data
         # For Aggregation By Brick Type.
         logger.info("Creating File For Aggregation By Brick Type.")
-        data_brick = data
+        data_brick = data.copy()
 
-        data = data[data["brick_type"] in [3, 4]]
+        data = data[data["brick_type"].isin([3, 4])]
         data["brick_type"] = 1
 
         data_brick = pd.concat([data_brick, data])
-
+        output = data_brick.to_json(orient='records')
+        aws_functions.save_to_s3(bucket_name, out_file_name_brick, output, run_id)
         aws_functions.save_data(bucket_name, out_file_name_brick,
-                                json.loads(data_brick), sqs_queue_url,
+                                output, sqs_queue_url,
                                 sqs_message_group_id_brick, run_id)
         logger.info("Successfully sent data to s3")
 

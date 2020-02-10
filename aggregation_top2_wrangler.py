@@ -18,7 +18,6 @@ class EnvironSchema(Schema):
     """
     checkpoint = fields.Str(required=True)
     bucket_name = fields.Str(required=True)
-    in_file_name = fields.Str(required=True)
     method_name = fields.Str(required=True)
     out_file_name = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
@@ -71,21 +70,19 @@ def lambda_handler(event, context):
 
         checkpoint = config['checkpoint']
         bucket_name = config['bucket_name']
-        in_file_name = config['in_file_name']
         method_name = config['method_name']
         out_file_name = config['out_file_name']
         sns_topic_arn = config['sns_topic_arn']
         sqs_message_group_id = config['sqs_message_group_id']
 
         aggregated_column = event['RuntimeVariables']['aggregated_column']
-
         additional_aggregated_column = \
             event['RuntimeVariables']['additional_aggregated_column']
-
+        in_file_name = event['in_file_name']['aggregation_by_column']
+        sqs_queue_url = event['RuntimeVariables']["queue_url"]
         top1_column = event['RuntimeVariables']['top1_column']
         top2_column = event['RuntimeVariables']['top2_column']
         total_columns = event['RuntimeVariables']['total_columns']
-        sqs_queue_url = event['RuntimeVariables']["queue_url"]
 
         # Read from S3 bucket
         data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name, run_id)

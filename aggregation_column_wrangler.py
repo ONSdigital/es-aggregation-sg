@@ -15,7 +15,6 @@ class InputSchema(Schema):
     """
     checkpoint = fields.Str(required=True)
     bucket_name = fields.Str(required=True)
-    in_file_name = fields.Str(required=True)
     method_name = fields.Str(required=True)
     out_file_name = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
@@ -57,13 +56,14 @@ def lambda_handler(event, context):
         # Needs to be declared inside the lambda_handler
         lambda_client = boto3.client('lambda', region_name="eu-west-2")
 
-        aggregation_type = event['RuntimeVariables']['aggregation_type']
-        aggregated_column = event['RuntimeVariables']['aggregated_column']
-        cell_total_column = event['RuntimeVariables']['cell_total_column']
-        total_columns = event['RuntimeVariables']['total_columns']
         additional_aggregated_column = \
             event['RuntimeVariables']['additional_aggregated_column']
+        aggregated_column = event['RuntimeVariables']['aggregated_column']
+        aggregation_type = event['RuntimeVariables']['aggregation_type']
+        cell_total_column = event['RuntimeVariables']['cell_total_column']
+        in_file_name = event['in_file_name']['aggregation_by_column']
         sqs_queue_url = event['RuntimeVariables']["queue_url"]
+        total_columns = event['RuntimeVariables']['total_columns']
 
         # ENV vars
         config, errors = InputSchema().load(os.environ)
@@ -73,7 +73,6 @@ def lambda_handler(event, context):
 
         checkpoint = config['checkpoint']
         bucket_name = config['bucket_name']
-        in_file_name = config['in_file_name']
         method_name = config['method_name']
         out_file_name = config['out_file_name']
         sns_topic_arn = config['sns_topic_arn']
