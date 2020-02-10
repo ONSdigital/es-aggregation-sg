@@ -71,9 +71,12 @@ def lambda_handler(event, context):
             if (counter == 0):
                 top_two_output = response
             else:
+                to_aggregate = [aggregated_column]
+                if additional_aggregated_column != "":
+                    to_aggregate.append(additional_aggregated_column)
+
                 top_two_output = top_two_output.merge(response,
-                                                      on=[additional_aggregated_column,
-                                                          aggregated_column], how="left")
+                                                      on=to_aggregate, how="left")
             counter += 1
 
         response = top_two_output
@@ -123,9 +126,12 @@ def calc_top_two(data, total_column, aggregated_column, additional_aggregated_co
     data[top1_column] = 0
     data[top2_column] = 0
 
+    to_aggregate = [aggregated_column]
+    if additional_aggregated_column != "":
+        to_aggregate.append(additional_aggregated_column)
+
     # Organise the unique groups to be used for top2 lookup
-    aggregations = data[[aggregated_column,
-                         additional_aggregated_column]].drop_duplicates()
+    aggregations = data[to_aggregate].drop_duplicates()
     aggregations_list = json.loads(aggregations.to_json(orient='records'))
 
     # Find top 2 in each unique group
@@ -133,9 +139,9 @@ def calc_top_two(data, total_column, aggregated_column, additional_aggregated_co
         logger.info("Looking for top 2 in: " + str(aggregation))
 
         # Extract and sort the data
-        current_data = data[
-            (data[aggregated_column] == aggregation[aggregated_column]) &
-            (data[additional_aggregated_column] == aggregation[additional_aggregated_column])]  # noqa
+        current_data = data[data[aggregated_column] == aggregation[aggregated_column]]
+        if additional_aggregated_column != "":
+            data[data[additional_aggregated_column] == aggregation[additional_aggregated_column]]  # noqa
         sorted_data = current_data.sort_values(by=[total_column], ascending=False)
         sorted_data = sorted_data[total_column].reset_index(drop=True)
 
@@ -148,16 +154,36 @@ def calc_top_two(data, total_column, aggregated_column, additional_aggregated_co
 
         # Save to the output data
         data[[top1_column, top2_column]] = data.apply(
-            lambda x: pd.Series([top_one, top_two])
-            if (x[aggregated_column] == aggregation[aggregated_column]) &
-               (x[additional_aggregated_column] == aggregation[additional_aggregated_column])  # noqa
-            else pd.Series([x[top1_column], x[top2_column]]),
+            lambda x: update_columns(x, aggregation, aggregated_column,
+                                     additional_aggregated_column,
+                                     top1_column, top2_column,
+                                     top_one, top_two),
             axis=1)
 
     logger.info("Returning the output data")
     logger.info("Successfully completed function: calc_top_two")
-    data = data[[additional_aggregated_column,
-                 aggregated_column,
-                 top1_column,
-                 top2_column]]
+    filter_output = [
+        aggregated_column,
+        top1_column,
+        top2_column
+    ]
+
+    if additional_aggregated_column != "":
+        filter_output.append(additional_aggregated_column)
+
+    data = data[filter_output]
     return data
+
+
+def update_columns(data, aggregation, aggregated_column, additional_aggregated_column,
+                   top1_column, top2_column, top_one, top_two):
+
+    if data[aggregated_column] != aggregation[aggregated_column]:
+        return pd.Series([data[top1_column], data[top2_column]])
+    elif additional_aggregated_column != "":
+        if data[additional_aggregated_column] != aggregation[additional_aggregated_column]:
+            return pd.Series([data[top1_column], data[top2_column]])
+        else:
+            return pd.Series([top_one, top_two])
+    else:
+        return pd.Series([top_one, top_two])
