@@ -63,7 +63,7 @@ def lambda_handler(event, context):
         additional_aggregated_column =\
             event['RuntimeVariables']['additional_aggregated_column']
         aggregated_column = event['RuntimeVariables']['aggregated_column']
-        in_file_name = event['in_file_name']['aggregation_by_column']
+        in_file_name = event['RuntimeVariables']['in_file_name']['aggregation_by_column']
         sqs_queue_url = event['RuntimeVariables']["queue_url"]
         # Clients
         sqs = boto3.client("sqs", "eu-west-2")
