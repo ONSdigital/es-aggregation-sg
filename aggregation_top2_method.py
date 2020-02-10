@@ -68,7 +68,7 @@ def lambda_handler(event, context):
                                     top1_column, top2_column)
 
             response = response.drop_duplicates()
-            if (counter == 0):
+            if counter == 0:
                 top_two_output = response
             else:
                 to_aggregate = [aggregated_column]
@@ -107,8 +107,7 @@ def lambda_handler(event, context):
 
 def calc_top_two(data, total_column, aggregated_column, additional_aggregated_column,
                  top1_column, top2_column):
-    '''
-
+    """
     :param data: Input Dataframe
     :param total_column - The name of the column to produce aggregation for.
     :param aggregated_column: A column to aggregate by. e.g. Enterprise_Reference.
@@ -117,7 +116,7 @@ def calc_top_two(data, total_column, aggregated_column, additional_aggregated_co
     :param top2_column: top2_column - Prefix for the second_largest_contributor column.
 
     :return: data: input dataframe with the addition of top2 calulations for total_column
-    '''
+    """
     logger = logging.getLogger()
     logger.info("Executing function: calc_top_two")
     top1_column = total_column + "_" + top1_column
