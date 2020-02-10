@@ -88,11 +88,6 @@ def lambda_handler(event, context):
         data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name, run_id)
         logger.info("Completed reading data from s3")
 
-        # Ensure mandatory columns are present and have the correct
-        # type of content
-        msg = "Checking required data columns are present and correctly typed."
-        logger.info(msg)
-
         # Add output columns
         logger.info("Appending two further required columns.")
         data[top1_column] = 0
@@ -121,11 +116,6 @@ def lambda_handler(event, context):
 
         if not json_response['success']:
             raise exception_classes.MethodFailure(json_response['error'])
-
-        # Ensure appended columns are present in output and have the
-        # correct type of content
-        msg = "Checking required output columns are present and correctly typed."
-        logger.info(msg)
 
         # Sending output to SQS, notice to SNS
         logger.info("Sending function response downstream.")
