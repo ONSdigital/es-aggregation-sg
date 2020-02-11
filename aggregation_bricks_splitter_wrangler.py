@@ -138,7 +138,6 @@ def lambda_handler(event, context):
         if not json_response['success']:
             raise exception_classes.MethodFailure(json_response['error'])
 
-        aws_functions.save_to_s3(bucket_name, out_file_name_region, json_response["data"], run_id)
         aws_functions.save_data(bucket_name, out_file_name_region,
                                 json_response["data"], sqs_queue_url,
                                 sqs_message_group_id_region, run_id)

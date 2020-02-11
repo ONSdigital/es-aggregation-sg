@@ -3,8 +3,6 @@ import logging
 import os
 
 import boto3
-import numpy as np
-import pandas as pd
 from botocore.exceptions import ClientError, IncompleteReadError
 from es_aws_functions import aws_functions, exception_classes
 from marshmallow import Schema, fields

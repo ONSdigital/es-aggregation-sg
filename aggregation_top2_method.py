@@ -180,7 +180,8 @@ def update_columns(data, aggregation, aggregated_column, additional_aggregated_c
     if data[aggregated_column] != aggregation[aggregated_column]:
         return pd.Series([data[top1_column], data[top2_column]])
     elif additional_aggregated_column != "":
-        if data[additional_aggregated_column] != aggregation[additional_aggregated_column]:
+        if data[additional_aggregated_column] != aggregation[
+           additional_aggregated_column]:
             return pd.Series([data[top1_column], data[top2_column]])
         else:
             return pd.Series([top_one, top_two])
