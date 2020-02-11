@@ -24,7 +24,9 @@ wrangler_runtime_variables = {
                      "total_columns": ["Q608_total"],
                      "additional_aggregated_column": "region",
                      "run_id": "bob",
-                     "queue_url": "Earl"
+                     "queue_url": "Earl",
+                     "in_file_name": {"aggregation_by_column":
+                                      "moo"}
                     }
 
                      }
@@ -37,7 +39,9 @@ wrangler_runtime_variables_b = {
                      "total_columns": ["Q608_total", "Q606_other_gravel"],
                      "additional_aggregated_column": "region",
                      "run_id": "bob",
-                     "queue_url": "Earl"
+                     "queue_url": "Earl",
+                     "in_file_name": {"aggregation_by_column":
+                                      "moo"}
                     }
                      }
 
@@ -54,8 +58,7 @@ class TestCountyWranglerMethods:
                 "sns_topic_arn": "mock-topic-arn",
                 "sqs_message_group_id": "mock-message-id",
                 "method_name": "mock-method",
-                "incoming_message_group": "yes",
-                'in_file_name': 'esFree'
+                "incoming_message_group": "yes"
             }
         )
 

@@ -23,7 +23,9 @@ wrangler_runtime_variables = {"RuntimeVariables": {
                               "top2_column": "second_largest_contributor",
                               "run_id": "bob",
                               "queue_url": "Earl",
-                              "reference": 123456789
+                              "reference": 123456789,
+                              "in_file_name": {"aggregation_by_column":
+                                                   "file_to_get_from_s3.json"}
                               }}
 
 wrangler_runtime_variables_b = {"RuntimeVariables": {
@@ -35,7 +37,9 @@ wrangler_runtime_variables_b = {"RuntimeVariables": {
                               "top2_column": "second_largest_contributor",
                               "run_id": "bob",
                               "queue_url": "Earl",
-                              "reference": 123456789
+                              "reference": 123456789,
+                              "in_file_name": {"aggregation_by_column":
+                                                   "file_to_get_from_s3.json"}
                               }}
 
 context_object = MockContext()
@@ -53,7 +57,6 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
         Tests a correct run produces the correct success flags.
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
-            'in_file_name': 'file_to_get_from_s3.json',
             'bucket_name': 'some-bucket-name',
             'sqs_message_group_id': 'random',
             'checkpoint': '3',
@@ -91,7 +94,6 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
         Tests a correct run produces the correct success flags.
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
-            'in_file_name': 'file_to_get_from_s3.json',
             'bucket_name': 'some-bucket-name',
             'sqs_message_group_id': 'random',
             'checkpoint': '3',
@@ -159,7 +161,6 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
         (IndexError)
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
-            'in_file_name': 'file_to_get_from_s3.json',
             'bucket_name': 'some-bucket-name',
             'sqs_message_group_id': 'random',
             'checkpoint': '3',
@@ -200,7 +201,6 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
         (TypeError)
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
-            'in_file_name': 'file_to_get_from_s3.json',
             'bucket_name': 'some-bucket-name',
             'sqs_message_group_id': 'random',
             'checkpoint': '3',
@@ -237,7 +237,6 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
         (IndexError)
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
-            'in_file_name': 'file_to_get_from_s3.json',
             'bucket_name': 'some-bucket-name',
             'sqs_message_group_id': 'random',
             'checkpoint': '3',
@@ -277,7 +276,6 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
         (TypeError)
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
-            'in_file_name': 'file_to_get_from_s3.json',
             'bucket_name': 'some-bucket-name',
             'sqs_message_group_id': 'random',
             'checkpoint': '3',
@@ -314,7 +312,6 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
         (IncompleteReadError)
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
-            'in_file_name': 'file_to_get_from_s3.json',
             'bucket_name': 'some-bucket-name',
             'sqs_message_group_id': 'random',
             'checkpoint': '3',
@@ -349,7 +346,6 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
         (Exception)
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
-            'in_file_name': 'file_to_get_from_s3.json',
             'bucket_name': 'some-bucket-name',
             'sqs_message_group_id': 'random',
             'checkpoint': '3',
@@ -385,7 +381,6 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
         Tests a correct run produces the correct success flags.
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
-            'in_file_name': 'file_to_get_from_s3.json',
             'bucket_name': 'some-bucket-name',
             'sqs_message_group_id': 'random',
             'checkpoint': '3',
@@ -415,7 +410,6 @@ class TestMoto:
     @mock_sqs
     def test_fail_to_get_from_sqs(self):
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
-            'in_file_name': 'file_to_get_from_s3.json',
             'bucket_name': 'some-bucket-name',
             'sqs_message_group_id': 'random',
             'checkpoint': '3',
@@ -433,7 +427,6 @@ class TestMoto:
 
     def test_client_error_exception(self):
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
-            'in_file_name': 'file_to_get_from_s3.json',
             'bucket_name': 'some-bucket-name',
             'sqs_message_group_id': 'random',
             'checkpoint': '3',
