@@ -178,7 +178,7 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
 
             with open('tests/fixtures/top2_method_output.json', "rb") as file:
                 mock_lambda.return_value.invoke.return_value = (
-                    {"Payload": StreamingBody(file, 4389)}
+                    {"Payload": StreamingBody(file, 322)}
                 )
                 with unittest.TestCase.assertRaises(
                         self, exception_classes.LambdaFailure) as exc_info:
