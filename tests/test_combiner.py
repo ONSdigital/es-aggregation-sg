@@ -113,7 +113,8 @@ class TestCombininator(unittest.TestCase):
                                               "additional_aggregated_column": "region",
                                               "run_id": "bob",
                                               "queue_url": sqs_queue_url,
-                                              "in_file_name": {"aggregation_by_column": "sss"}
+                                              "in_file_name": {
+                                                  "aggregation_by_column": "sss"}
                                               }}, context_object)
                 assert "There was no data in sqs queue" in \
                        exc_info.exception.error_message
@@ -144,7 +145,8 @@ class TestCombininator(unittest.TestCase):
                                               "additional_aggregated_column": "region",
                                               "run_id": "bob",
                                               "queue_url": sqs_queue_url,
-                                              "in_file_name": {"aggregation_by_column": "sss"}
+                                              "in_file_name": {
+                                                  "aggregation_by_column": "sss"}
                                               }}, context_object)
                 assert "Bad data encountered in" in exc_info.exception.error_message
 
@@ -172,7 +174,8 @@ class TestCombininator(unittest.TestCase):
                                               "additional_aggregated_column": "region",
                                               "run_id": "bob",
                                               "queue_url": sqs_queue_url,
-                                              "in_file_name": {"aggregation_by_column": "sss"}
+                                              "in_file_name": {
+                                                  "aggregation_by_column": "sss"}
                                               }}, context_object)
             assert "AWS Error" in exc_info.exception.error_message
 
@@ -247,6 +250,7 @@ class TestCombininator(unittest.TestCase):
                                               "additional_aggregated_column": "region",
                                               "run_id": "bob",
                                               "queue_url": sqs_queue_url,
-                                              "in_file_name": {"aggregation_by_column": "sss"}
+                                              "in_file_name": {
+                                                  "aggregation_by_column": "sss"}
                                               }}, context_object)
                 assert "General Error" in exc_info.exception.error_message

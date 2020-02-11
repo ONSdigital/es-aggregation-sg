@@ -4,7 +4,7 @@ import unittest
 import mock
 import pandas as pd
 from botocore.response import StreamingBody
-from es_aws_functions import exception_classes, test_generic_library
+from es_aws_functions import exception_classes
 from moto import mock_sqs
 
 import aggregation_top2_wrangler
