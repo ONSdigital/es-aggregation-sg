@@ -46,8 +46,6 @@ functions:
       out_file_name_region: aggregation_region_prep_out.json
       method_name: es-add-regionless-method
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
-      sqs_message_group_id_brick: aggregation-brick-prep
-      sqs_message_group_id_region: aggregation-region-prep
 
   deploy-column-wrangler:
     name: es-aggregation-column-wrangler
