@@ -26,9 +26,11 @@ class InputSchema(Schema):
 
 def lambda_handler(event, context):
     """
-    The wrangler converts the data from JSON format into a dataframe and then adds new
-    Atypical columns (one for each question) onto the dataframe.
-    These columns are initially populated with 0 values.
+    The wrangler converts the data from JSON format into a dataframe and then edits data.
+    This process consolidates 36 columns of data down to 12 and adds brick_type, then
+    creates two outputs. One with the GB region added and one with a
+    consolidated brick_type.
+
     :param event: Contains all the variables which are required for the specific run.
     :param context: N/A
     :return:  Success & Checkpoint/Error - Type: JSON
