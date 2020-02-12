@@ -26,13 +26,13 @@ class InputSchema(Schema):
 
 def lambda_handler(event, context):
     """
-        The wrangler converts the data from JSON format into a dataframe and then adds new
-        Atypical columns (one for each question) onto the dataframe.
-        These columns are initially populated with 0 values.
-        :param event: Contains all the variables which are required for the specific run.
-        :param context: N/A
-        :return:  Success & Checkpoint/Error - Type: JSON
-        """
+    The wrangler converts the data from JSON format into a dataframe and then adds new
+    Atypical columns (one for each question) onto the dataframe.
+    These columns are initially populated with 0 values.
+    :param event: Contains all the variables which are required for the specific run.
+    :param context: N/A
+    :return:  Success & Checkpoint/Error - Type: JSON
+    """
     current_module = "Pre Aggregation Data Wrangler."
     error_message = ""
     log_message = ""
@@ -88,6 +88,8 @@ def lambda_handler(event, context):
             "concrete": 2,
             "sandlime": 4
         }
+
+        new_type = 1  # This number represents Clay & Sandlime Combined
 
         column_list = [
             "opening_stock_commons",
@@ -148,8 +150,8 @@ def lambda_handler(event, context):
         logger.info("Creating File For Aggregation By Brick Type.")
         data_brick = data.copy()
 
-        data = data[data["brick_type"].isin([3, 4])]
-        data["brick_type"] = 1
+        data = data[data["brick_type"] != brick_type["concrete"]]
+        data["brick_type"] = new_type
 
         data_brick = pd.concat([data_brick, data])
         output = data_brick.to_json(orient='records')
