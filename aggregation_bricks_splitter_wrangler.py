@@ -33,6 +33,7 @@ def lambda_handler(event, context):
 
     :param event: Contains all the variables which are required for the specific run.
     :param context: N/A
+
     :return:  Success & Checkpoint/Error - Type: JSON
     """
     current_module = "Pre Aggregation Data Wrangler."
@@ -142,9 +143,8 @@ def lambda_handler(event, context):
         if not json_response['success']:
             raise exception_classes.MethodFailure(json_response['error'])
 
-        aws_functions.save_data(bucket_name, out_file_name_region,
-                                json_response["data"], sqs_queue_url,
-                                sqs_message_group_id_region, run_id)
+        aws_functions.save_to_s3(bucket_name, out_file_name_region,
+                                 json_response["data"], run_id)
         logger.info("Successfully sent data to s3")
 
         # Collate Brick Types Clay And Sand Lime Into A Single Type And Add To Data
@@ -158,9 +158,7 @@ def lambda_handler(event, context):
         data_brick = pd.concat([data_brick, data])
         output = data_brick.to_json(orient='records')
         aws_functions.save_to_s3(bucket_name, out_file_name_brick, output, run_id)
-        aws_functions.save_data(bucket_name, out_file_name_brick,
-                                output, sqs_queue_url,
-                                sqs_message_group_id_brick, run_id)
+
         logger.info("Successfully sent data to s3")
 
         if receipt_handler:
@@ -255,6 +253,16 @@ def lambda_handler(event, context):
 
 
 def calculate_row_type(row, brick_type, column_list):
+    """
+    Takes a row and adds up all columns of the current type.
+    If there is data we know it is the current type.
+
+    :param row: Contains all data. - Row.
+    :param brick_type: Dictionary of the possible brick types. - Dict.
+    :param column_list: List of the columns that need to be added. - List.
+
+    :return:  brick_type - Int.
+    """
 
     for check_type in brick_type.keys():
         total_for_type = 0
@@ -267,6 +275,16 @@ def calculate_row_type(row, brick_type, column_list):
 
 
 def sum_columns(row, brick_type, column_list):
+    """
+    Takes a row and the columns with data, then adds that data to the generically
+    named columns.
+
+    :param row: Contains all data. - Row.
+    :param brick_type: Dictionary of the possible brick types. - Dict.
+    :param column_list: List of the columns that need to be added to. - List.
+
+    :return:  Updated row. - Row.
+    """
 
     for check_type in brick_type.keys():
         if row["brick_type"] == brick_type[check_type]:
