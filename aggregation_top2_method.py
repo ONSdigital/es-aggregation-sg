@@ -176,6 +176,20 @@ def calc_top_two(data, total_column, aggregated_column, additional_aggregated_co
 
 def update_columns(data, aggregation, aggregated_column, additional_aggregated_column,
                    top1_column, top2_column, top_one, top_two):
+    """
+    Used to check if current row id for the current cell. If it is update to contain top2
+    data. Else overwrite data with itself.
+    :param data: Input Dataframe.
+    :param aggregation: Dict containing the values to identify the current unique cell.
+    :param aggregated_column: A column to aggregate by. e.g. Enterprise_Reference.
+    :param additional_aggregated_column: A column to aggregate by. e.g. Region.
+    :param top1_column: top1_column - Prefix for the largest_contributor column.
+    :param top2_column: top2_column - Prefix for the second_largest_contributor column.
+    :param top_one: Top value for the current cell.
+    :param top_two: Second top value for the current cell.
+
+    :return: data: Series containing two elements. The chosen top and second top data.
+    """
 
     if data[aggregated_column] != aggregation[aggregated_column]:
         return pd.Series([data[top1_column], data[top2_column]])
