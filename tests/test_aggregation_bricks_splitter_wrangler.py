@@ -10,11 +10,11 @@ from pandas.util.testing import assert_frame_equal
 import aggregation_bricks_splitter_wrangler as lambda_wrangler_function
 
 wrangler_environment_variables = {
-    "bucket_name": "mock-bucket",
-    "out_file_name_brick": "mock-file",
-    "out_file_name_region": "mock-file",
+    "bucket_name": "test_bucket",
+    "out_file_name_bricks": "test_splitter_bricks_output.json",
+    "out_file_name_region": "test_splitter_region_prepared_output.json",
     "checkpoint": "mock-point",
-    "sns_topic_arn": "mock-topic-arn",
+    "sns_topic_arn": "fake_sns_arn",
     "method_name": "mock-method"
 }
 
@@ -28,8 +28,8 @@ wrangler_runtime_variables = {
          }
      },
      "run_id": "001",
-     "queue_url": "mock-url",
-     "in_file_name": {"bricks_splitter": "mock-in"},
+     "queue_url": "test_queue",
+     "in_file_name": {"bricks_splitter": "test_splitter_input.json"},
      "incoming_message_group": {"bricks_splitter": "mock-id"}
     }
 }
@@ -76,7 +76,7 @@ def test_general_error(which_lambda, which_runtime_variables,
 @mock.patch('aggregation_bricks_splitter_wrangler.aws_functions.get_dataframe',
             side_effect=test_generic_library.replacement_get_dataframe)
 def test_incomplete_read_error(mock_s3_get):
-    file_list = ["test_wrangler_input.json"]
+    file_list = ["test_splitter_input.json"]
 
     test_generic_library.incomplete_read_error(lambda_wrangler_function,
                                                wrangler_runtime_variables,
@@ -102,7 +102,7 @@ def test_key_error(which_lambda, expected_message,
 @mock.patch('aggregation_bricks_splitter_wrangler.aws_functions.get_dataframe',
             side_effect=test_generic_library.replacement_get_dataframe)
 def test_method_error(mock_s3_get):
-    file_list = ["test_wrangler_input.json"]
+    file_list = ["test_splitter_input.json"]
 
     test_generic_library.wrangler_method_error(lambda_wrangler_function,
                                                wrangler_runtime_variables,
@@ -130,8 +130,8 @@ def test_value_error(which_lambda, expected_message, assertion):
 @mock_s3
 @mock.patch('aggregation_bricks_splitter_wrangler.aws_functions.get_dataframe',
             side_effect=test_generic_library.replacement_get_dataframe)
-@mock.patch('aggregation_bricks_splitter_wrangler.aws_functions.save_data',
-            side_effect=test_generic_library.replacement_save_data)
+@mock.patch('aggregation_bricks_splitter_wrangler.aws_functions.save_to_s3',
+            side_effect=test_generic_library.replacement_save_to_s3)
 def test_wrangler_success(mock_s3_get, mock_s3_put):
     """
     Runs the wrangler function.
@@ -141,11 +141,11 @@ def test_wrangler_success(mock_s3_get, mock_s3_put):
     bucket_name = wrangler_environment_variables["bucket_name"]
     client = test_generic_library.create_bucket(bucket_name)
 
-    file_list = ["test_wrangler_input.json"]
+    file_list = ["test_splitter_input.json"]
 
     test_generic_library.upload_files(client, bucket_name, file_list)
 
-    with open("tests/fixtures/test_method_output.json", "r") as file_2:
+    with open("tests/fixtures/test_splitter_region_prepared_output.json", "r") as file_2:
         test_data_out = file_2.read()
 
     with mock.patch.dict(lambda_wrangler_function.os.environ,
@@ -166,11 +166,11 @@ def test_wrangler_success(mock_s3_get, mock_s3_put):
                 wrangler_runtime_variables, test_generic_library.context_object
             )
 
-    with open("tests/fixtures/test_wrangler_prepared_output.json", "r") as file_3:
+    with open("tests/fixtures/test_splitter_bricks_prepared_output.json", "r") as file_3:
         test_data_prepared = file_3.read()
     prepared_data = pd.DataFrame(json.loads(test_data_prepared))
 
-    with open("tests/fixtures/" + wrangler_environment_variables["out_file_name"],
+    with open("tests/fixtures/" + wrangler_environment_variables["out_file_name_bricks"],
               "r") as file_4:
         test_data_produced = file_4.read()
     produced_data = pd.DataFrame(json.loads(test_data_produced))

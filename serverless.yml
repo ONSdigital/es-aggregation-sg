@@ -42,7 +42,7 @@ functions:
     environment:
       checkpoint: 4
       bucket_name: results-s3-bucket
-      out_file_name_brick: aggregation_brick_prep_out.json
+      out_file_name_bricks: aggregation_bricks_prep_out.json
       out_file_name_region: aggregation_region_prep_out.json
       method_name: es-add-regionless-method
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults

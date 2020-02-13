@@ -9,7 +9,7 @@ from es_aws_functions import aws_functions, exception_classes
 from marshmallow import Schema, fields
 
 
-class InputSchema(Schema):
+class EnvironSchema(Schema):
     """
     Schema to ensure that environment variables are present and in the correct format.
     :return: None
@@ -17,7 +17,7 @@ class InputSchema(Schema):
     checkpoint = fields.Str(required=True)
     bucket_name = fields.Str(required=True)
     method_name = fields.Str(required=True)
-    out_file_name_brick = fields.Str(required=True)
+    out_file_name_bricks = fields.Str(required=True)
     out_file_name_region = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
 
@@ -52,7 +52,7 @@ def lambda_handler(event, context):
         # Environment Variables.
         sqs = boto3.client('sqs', region_name="eu-west-2")
         lambda_client = boto3.client('lambda', region_name="eu-west-2")
-        config, errors = InputSchema().load(os.environ)
+        config, errors = EnvironSchema().load(os.environ)
         if errors:
             raise ValueError(f"Error validating environment params: {errors}")
 
@@ -60,7 +60,7 @@ def lambda_handler(event, context):
         checkpoint = config["checkpoint"]
         bucket_name = config["bucket_name"]
         method_name = config["method_name"]
-        out_file_name_brick = config["out_file_name_brick"]
+        out_file_name_bricks = config["out_file_name_bricks"]
         out_file_name_region = config["out_file_name_region"]
         sns_topic_arn = config["sns_topic_arn"]
 
@@ -153,7 +153,7 @@ def lambda_handler(event, context):
 
         data_brick = pd.concat([data_brick, data])
         output = data_brick.to_json(orient='records')
-        aws_functions.save_to_s3(bucket_name, out_file_name_brick, output, run_id)
+        aws_functions.save_to_s3(bucket_name, out_file_name_bricks, output, run_id)
 
         logger.info("Successfully sent data to s3")
 
