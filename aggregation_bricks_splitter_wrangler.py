@@ -71,6 +71,8 @@ def lambda_handler(event, context):
         regionless_code = factors_parameters['RuntimeVariables']['regionless_code']
         region_column = factors_parameters['RuntimeVariables']['region_column']
         sqs_queue_url = event['RuntimeVariables']["queue_url"]
+        unique_identifier = event['RuntimeVariables']['unique_identifier']
+        column_list = event['RuntimeVariables']['total_columns']
 
         logger.info("Vaildated params")
 
@@ -90,26 +92,16 @@ def lambda_handler(event, context):
 
         new_type = 1  # This number represents Clay & Sandlime Combined
 
-        column_list = [
-            "opening_stock_commons",
-            "opening_stock_facings",
-            "opening_stock_engineering",
-            "produced_commons",
-            "produced_facings",
-            "produced_engineering",
-            "deliveries_commons",
-            "deliveries_facings",
-            "deliveries_engineering",
-            "closing_stock_commons",
-            "closing_stock_facings",
-            "closing_stock_engineering"
-        ]
         # Identify The Brick Type Of The Row.
-        data["brick_type"] = data.apply(lambda x: calculate_row_type(x, brick_type,
-                                                                     column_list), axis=1)
+        data[unique_identifier[0]] = data.apply(lambda x: calculate_row_type(x,
+                                                                             brick_type,
+                                                                             column_list
+                                                                             ), axis=1)
+
         # Collate Each Rows 12 Good Brick Type Columns And 24 Empty Columns Down
         # Into 12 With The Same Name.
-        data = data.apply(lambda x: sum_columns(x, brick_type, column_list), axis=1)
+        data = data.apply(lambda x: sum_columns(x, brick_type, column_list,
+                                                unique_identifier), axis=1)
 
         # Old Columns With Brick Type In The Name Are Dropped.
         for check_type in brick_type.keys():
@@ -143,7 +135,7 @@ def lambda_handler(event, context):
 
         totals_dict = {total_column: "sum" for total_column in column_list}
 
-        data_region = region_dataframe.groupby(['region', 'enterprise_reference']).agg(
+        data_region = region_dataframe.groupby([unique_identifier[2], unique_identifier[1]]).agg(
             totals_dict).reset_index()
 
         region_output = data_region.to_json(orient='records')
@@ -158,13 +150,13 @@ def lambda_handler(event, context):
         logger.info("Creating File For Aggregation By Brick Type.")
         data_brick = data.copy()
 
-        data = data[data["brick_type"] != brick_type["concrete"]]
-        data["brick_type"] = new_type
+        data = data[data[unique_identifier[0]] != brick_type["concrete"]]
+        data[unique_identifier[0]] = new_type
 
         data_brick = pd.concat([data_brick, data])
 
-        brick_dataframe = data_brick.groupby(['brick_type', 'enterprise_reference']).agg(
-            totals_dict).reset_index()
+        brick_dataframe = data_brick.groupby([unique_identifier[0], unique_identifier[1]
+                                              ]).agg(totals_dict).reset_index()
 
         brick_output = brick_dataframe.to_json(orient='records')
         aws_functions.save_to_s3(bucket_name, out_file_name_bricks, brick_output, run_id)
@@ -284,7 +276,7 @@ def calculate_row_type(row, brick_type, column_list):
             return brick_type[check_type]
 
 
-def sum_columns(row, brick_type, column_list):
+def sum_columns(row, brick_type, column_list, unique_identifier):
     """
     Takes a row and the columns with data, then adds that data to the generically
     named columns.
@@ -297,7 +289,7 @@ def sum_columns(row, brick_type, column_list):
     """
 
     for check_type in brick_type.keys():
-        if row["brick_type"] == brick_type[check_type]:
+        if row[unique_identifier[0]] == brick_type[check_type]:
             for current_column in column_list:
                 row[current_column] = row[check_type + "_" + current_column]
 
