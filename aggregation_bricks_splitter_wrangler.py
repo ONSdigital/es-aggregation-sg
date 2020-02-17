@@ -135,8 +135,9 @@ def lambda_handler(event, context):
 
         totals_dict = {total_column: "sum" for total_column in column_list}
 
-        data_region = region_dataframe.groupby([unique_identifier[2], unique_identifier[1]]).agg(
-            totals_dict).reset_index()
+        data_region = region_dataframe.groupby([unique_identifier[2],
+                                                unique_identifier[1]]
+                                               ).agg(totals_dict).reset_index()
 
         region_output = data_region.to_json(orient='records')
 
