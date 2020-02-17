@@ -40,7 +40,7 @@ def lambda_handler(event, context):
     log_message = ""
     logger = logging.getLogger("Aggregation")
     logger.setLevel(0)
-    output_json = ""
+
     try:
         logger.info("Aggregation by column - Method begun.")
 
