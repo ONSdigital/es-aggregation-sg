@@ -139,8 +139,16 @@ def lambda_handler(event, context):
         if not json_response['success']:
             raise exception_classes.MethodFailure(json_response['error'])
 
+        region_dataframe = pd.DataFrame(json_response["data"])
+
+        data_region = region_dataframe.agg(['region'],
+                                           ['enterprise_ref']).sum_columns(column_list)
+
+        region_output = data_region.to_json(orient='records')
+
         aws_functions.save_to_s3(bucket_name, out_file_name_region,
-                                 json_response["data"], run_id)
+                                 region_output, run_id)
+
         logger.info("Successfully sent data to s3")
 
         # Collate Brick Types Clay And Sand Lime Into A Single Type And Add To Data
@@ -152,8 +160,12 @@ def lambda_handler(event, context):
         data["brick_type"] = new_type
 
         data_brick = pd.concat([data_brick, data])
-        output = data_brick.to_json(orient='records')
-        aws_functions.save_to_s3(bucket_name, out_file_name_bricks, output, run_id)
+
+        brick_dataframe = data_brick.agg(['brick_type'],
+                                      ['enterprise_ref']).sum_columns(column_list)
+
+        brick_output = brick_dataframe.to_json(orient='records')
+        aws_functions.save_to_s3(bucket_name, out_file_name_bricks, brick_output, run_id)
 
         logger.info("Successfully sent data to s3")
 
