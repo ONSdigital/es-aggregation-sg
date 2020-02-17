@@ -9,6 +9,12 @@ from pandas.util.testing import assert_frame_equal
 
 import aggregation_bricks_splitter_wrangler as lambda_wrangler_function
 
+example_brick_type = {
+    "clay": 3,
+    "concrete": 2,
+    "sandlime": 4
+}
+
 wrangler_environment_variables = {
     "bucket_name": "test_bucket",
     "out_file_name_bricks": "test_splitter_bricks_output.json",
@@ -203,7 +209,27 @@ def test_wrangler_success(mock_s3_get, mock_s3_put):
         produced_data_region = file_6.read()
     produced_data_region = pd.DataFrame(json.loads(produced_data_region))
 
-
     assert output
     assert_frame_equal(prepared_data_bricks, produced_data_bricks)
     assert_frame_equal(prepared_data_region, produced_data_region)
+
+
+def test_sum_columns():
+    column_list = wrangler_runtime_variables["RuntimeVariables"]["total_columns"]
+    unique_identifier = wrangler_runtime_variables["RuntimeVariables"]["unique_identifier"]
+
+    with open("tests/fixtures/test_sum_columns_input.json", "r") as file_1:
+        test_data_in = file_1.read()
+    input_data = pd.DataFrame(json.loads(test_data_in))
+
+    input_data = input_data.apply(lambda x: lambda_wrangler_function.sum_columns(
+        x, example_brick_type, column_list, unique_identifier), axis=1)
+
+    with open("tests/fixtures/test_sum_columns_prepared_output.json", "r") as file_2:
+        test_data_prepared = file_2.read()
+    output_data = pd.DataFrame(json.loads(test_data_prepared))
+
+    input_data.sort_index(axis=1, inplace=True)
+    output_data.sort_index(axis=1, inplace=True)
+
+    assert_frame_equal(input_data, output_data)
