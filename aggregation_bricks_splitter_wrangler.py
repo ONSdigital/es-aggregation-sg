@@ -139,10 +139,12 @@ def lambda_handler(event, context):
         if not json_response['success']:
             raise exception_classes.MethodFailure(json_response['error'])
 
-        region_dataframe = pd.DataFrame(json_response["data"])
+        region_dataframe = pd.DataFrame(json.loads(json_response["data"]))
 
-        data_region = region_dataframe.agg(['region'],
-                                           ['enterprise_ref']).sum_columns(column_list)
+        totals_dict = {total_column: "sum" for total_column in column_list}
+
+        data_region = region_dataframe.groupby(['region', 'enterprise_reference']).agg(
+            totals_dict).reset_index()
 
         region_output = data_region.to_json(orient='records')
 
@@ -161,8 +163,8 @@ def lambda_handler(event, context):
 
         data_brick = pd.concat([data_brick, data])
 
-        brick_dataframe = data_brick.agg(['brick_type'],
-                                      ['enterprise_ref']).sum_columns(column_list)
+        brick_dataframe = data_brick.groupby(['brick_type', 'enterprise_reference']).agg(
+            totals_dict).reset_index()
 
         brick_output = brick_dataframe.to_json(orient='records')
         aws_functions.save_to_s3(bucket_name, out_file_name_bricks, brick_output, run_id)
@@ -179,76 +181,76 @@ def lambda_handler(event, context):
 
     except AttributeError as e:
         error_message = (
-            "Bad data encountered in "
-            + current_module
-            + " |- "
-            + str(e.args)
-            + " | Request ID: "
-            + str(context.aws_request_id)
-            + " | Run_id: " + str(run_id)
+                "Bad data encountered in "
+                + current_module
+                + " |- "
+                + str(e.args)
+                + " | Request ID: "
+                + str(context.aws_request_id)
+                + " | Run_id: " + str(run_id)
         )
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
     except ValueError as e:
         error_message = (
-            "Parameter validation error in "
-            + current_module
-            + " |- "
-            + str(e.args)
-            + " | Request ID: "
-            + str(context.aws_request_id)
-            + " | Run_id: " + str(run_id)
+                "Parameter validation error in "
+                + current_module
+                + " |- "
+                + str(e.args)
+                + " | Request ID: "
+                + str(context.aws_request_id)
+                + " | Run_id: " + str(run_id)
         )
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
     except ClientError as e:
         error_message = (
-            "AWS Error ("
-            + str(e.response["Error"]["Code"])
-            + ") "
-            + current_module
-            + " |- "
-            + str(e.args)
-            + " | Request ID: "
-            + str(context.aws_request_id)
-            + " | Run_id: " + str(run_id)
+                "AWS Error ("
+                + str(e.response["Error"]["Code"])
+                + ") "
+                + current_module
+                + " |- "
+                + str(e.args)
+                + " | Request ID: "
+                + str(context.aws_request_id)
+                + " | Run_id: " + str(run_id)
         )
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
     except KeyError as e:
         error_message = (
-            "Key Error in "
-            + current_module
-            + " |- "
-            + str(e.args)
-            + " | Request ID: "
-            + str(context.aws_request_id)
-            + " | Run_id: " + str(run_id)
+                "Key Error in "
+                + current_module
+                + " |- "
+                + str(e.args)
+                + " | Request ID: "
+                + str(context.aws_request_id)
+                + " | Run_id: " + str(run_id)
         )
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
     except IncompleteReadError as e:
         error_message = (
-            "Incomplete Lambda response encountered in "
-            + current_module
-            + " |- "
-            + str(e.args)
-            + " | Request ID: "
-            + str(context.aws_request_id)
-            + " | Run_id: " + str(run_id)
+                "Incomplete Lambda response encountered in "
+                + current_module
+                + " |- "
+                + str(e.args)
+                + " | Request ID: "
+                + str(context.aws_request_id)
+                + " | Run_id: " + str(run_id)
         )
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
     except exception_classes.MethodFailure as e:
         error_message = e.error_message
         log_message = "Error in " + method_name + "." \
-            + " | Run_id: " + str(run_id)
+                      + " | Run_id: " + str(run_id)
     except Exception as e:
         error_message = (
-            "General Error in "
-            + current_module
-            + " ("
-            + str(type(e))
-            + ") |- "
-            + str(e.args)
-            + " | Request ID: "
-            + str(context.aws_request_id)
-            + " | Run_id: " + str(run_id)
+                "General Error in "
+                + current_module
+                + " ("
+                + str(type(e))
+                + ") |- "
+                + str(e.args)
+                + " | Request ID: "
+                + str(context.aws_request_id)
+                + " | Run_id: " + str(run_id)
         )
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
     finally:
