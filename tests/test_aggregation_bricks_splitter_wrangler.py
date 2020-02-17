@@ -25,23 +25,22 @@ wrangler_environment_variables = {
 }
 
 wrangler_runtime_variables = {
-    "RuntimeVariables":
-    {
-     "factors_parameters": {
-         "RuntimeVariables": {
-             "regionless_code": "99",
-             "region_column": "region"
-         }
-     },
-     "run_id": "001",
-     "queue_url": "test_queue",
-     "in_file_name": {"bricks_splitter": "test_splitter_input.json"},
-     "incoming_message_group": {"bricks_splitter": "mock-id"},
-     "unique_identifier": [
-         "brick_type",
-         "enterprise_reference",
-         "region"
-     ],
+    "RuntimeVariables": {
+        "factors_parameters": {
+            "RuntimeVariables": {
+                "regionless_code": "99",
+                "region_column": "region"
+            }
+        },
+        "run_id": "001",
+        "queue_url": "test_queue",
+        "in_file_name": {"bricks_splitter": "test_splitter_input.json"},
+        "incoming_message_group": {"bricks_splitter": "mock-id"},
+        "unique_identifier": [
+            "brick_type",
+            "enterprise_reference",
+            "region"
+        ],
         "total_columns": [
             "opening_stock_commons",
             "opening_stock_facings",
@@ -216,7 +215,8 @@ def test_wrangler_success(mock_s3_get, mock_s3_put):
 
 def test_sum_columns():
     column_list = wrangler_runtime_variables["RuntimeVariables"]["total_columns"]
-    unique_identifier = wrangler_runtime_variables["RuntimeVariables"]["unique_identifier"]
+    unique_identifier = wrangler_runtime_variables[
+        "RuntimeVariables"]["unique_identifier"]
 
     with open("tests/fixtures/test_sum_columns_input.json", "r") as file_1:
         test_data_in = file_1.read()
