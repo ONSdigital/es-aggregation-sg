@@ -212,37 +212,23 @@ def test_wrangler_success(mock_s3_get, mock_s3_put):
     assert_frame_equal(prepared_data_bricks, produced_data_bricks)
     assert_frame_equal(prepared_data_region, produced_data_region)
 
-def test_calculate_row_type():
-    brick_type = {"clay": 3, "concrete": 2, "sandlime": 4}
 
-    column_list = [
-        "opening_stock_commons",
-         "opening_stock_facings",
-         "opening_stock_engineering",
-         "produced_commons",
-         "produced_facings",
-         "produced_engineering",
-         "deliveries_commons",
-         "deliveries_facings",
-         "deliveries_engineering",
-         "closing_stock_commons",
-         "closing_stock_facings",
-         "closing_stock_engineering"
-    ]
+def test_calculate_row_type():
+    column_list = wrangler_runtime_variables["RuntimeVariables"]["total_columns"]
 
     with open("tests/fixtures/test_splitter_calculate_row_type_input.json", "r") as file:
         data = file.read()
+    dataframe = pd.read_json(data)
 
-        dataframe = pd.read_json(data)
+    dataframe['brick_type'] = dataframe.apply(
+        lambda x: lambda_wrangler_function.calculate_row_type(
+            x, example_brick_type, column_list
+        ), axis=1
+    )
 
-        dataframe['brick_type'] = dataframe.apply(
-            lambda x: lambda_wrangler_function.calculate_row_type(
-                x, brick_type, column_list
-            ), axis=1
-        )
+    assert(dataframe['brick_type'][0] == 3)
 
-        assert(dataframe['brick_type'][0] == 3)
-        
+
 def test_sum_columns():
     column_list = wrangler_runtime_variables["RuntimeVariables"]["total_columns"]
     unique_identifier = wrangler_runtime_variables[
