@@ -12,7 +12,7 @@ import aggregation_bricks_splitter_wrangler as lambda_wrangler_function
 wrangler_environment_variables = {
     "bucket_name": "test_bucket",
     "out_file_name_bricks": "test_splitter_bricks_output.json",
-    "out_file_name_region": "test_splitter_region_prepared_output.json",
+    "out_file_name_region": "test_splitter_region_output.json",
     "checkpoint": "mock-point",
     "sns_topic_arn": "fake_sns_arn",
     "method_name": "mock-method"
@@ -30,7 +30,26 @@ wrangler_runtime_variables = {
      "run_id": "001",
      "queue_url": "test_queue",
      "in_file_name": {"bricks_splitter": "test_splitter_input.json"},
-     "incoming_message_group": {"bricks_splitter": "mock-id"}
+     "incoming_message_group": {"bricks_splitter": "mock-id"},
+     "unique_identifier": [
+         "brick_type",
+         "enterprise_reference",
+         "region"
+     ],
+        "total_columns": [
+            "opening_stock_commons",
+            "opening_stock_facings",
+            "opening_stock_engineering",
+            "produced_commons",
+            "produced_facings",
+            "produced_engineering",
+            "deliveries_commons",
+            "deliveries_facings",
+            "deliveries_engineering",
+            "closing_stock_commons",
+            "closing_stock_facings",
+            "closing_stock_engineering"
+        ],
     }
 }
 
@@ -145,7 +164,7 @@ def test_wrangler_success(mock_s3_get, mock_s3_put):
 
     test_generic_library.upload_files(client, bucket_name, file_list)
 
-    with open("tests/fixtures/test_splitter_region_prepared_output.json", "r") as file_2:
+    with open("tests/fixtures/test_splitter_region_gb_return.json", "r") as file_2:
         test_data_out = file_2.read()
 
     with mock.patch.dict(lambda_wrangler_function.os.environ,
@@ -167,13 +186,24 @@ def test_wrangler_success(mock_s3_get, mock_s3_put):
             )
 
     with open("tests/fixtures/test_splitter_bricks_prepared_output.json", "r") as file_3:
-        test_data_prepared = file_3.read()
-    prepared_data = pd.DataFrame(json.loads(test_data_prepared))
+        test_data_bricks_prepared = file_3.read()
+    prepared_data_bricks = pd.DataFrame(json.loads(test_data_bricks_prepared))
 
     with open("tests/fixtures/" + wrangler_environment_variables["out_file_name_bricks"],
               "r") as file_4:
-        test_data_produced = file_4.read()
-    produced_data = pd.DataFrame(json.loads(test_data_produced))
+        test_data_bricks_produced = file_4.read()
+    produced_data_bricks = pd.DataFrame(json.loads(test_data_bricks_produced))
+
+    with open("tests/fixtures/test_splitter_region_prepared_output.json", "r") as file_5:
+        test_data_region_prepared = file_5.read()
+    prepared_data_region = pd.DataFrame(json.loads(test_data_region_prepared))
+
+    with open("tests/fixtures/" + wrangler_environment_variables["out_file_name_region"],
+              "r") as file_6:
+        produced_data_region = file_6.read()
+    produced_data_region = pd.DataFrame(json.loads(produced_data_region))
+
 
     assert output
-    assert_frame_equal(produced_data, prepared_data)
+    assert_frame_equal(prepared_data_bricks, produced_data_bricks)
+    assert_frame_equal(prepared_data_region, produced_data_region)
