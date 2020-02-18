@@ -2,7 +2,6 @@ import json
 from unittest import mock
 
 import pandas as pd
-import pytest
 from es_aws_functions import test_generic_library
 from moto import mock_s3
 from pandas.util.testing import assert_frame_equal
@@ -63,37 +62,20 @@ wrangler_runtime_variables = {
 #                                     Generic                                            #
 ##########################################################################################
 
-@pytest.mark.parametrize(
-    "which_lambda,which_runtime_variables,which_environment_variables,"
-    "which_data,expected_message,assertion",
-    [
-        (lambda_wrangler_function, wrangler_runtime_variables,
-         wrangler_environment_variables, None,
-         "AWS Error", test_generic_library.wrangler_assert)
-    ])
-def test_client_error(which_lambda, which_runtime_variables,
-                      which_environment_variables, which_data,
-                      expected_message, assertion):
-    test_generic_library.client_error(which_lambda, which_runtime_variables,
-                                      which_environment_variables, which_data,
-                                      expected_message, assertion)
+def test_client_error():
+    test_generic_library.client_error(
+        lambda_wrangler_function,
+        wrangler_runtime_variables,
+        wrangler_environment_variables, None,
+        "AWS Error", test_generic_library.wrangler_assert)
 
 
-@pytest.mark.parametrize(
-    "which_lambda,which_runtime_variables,which_environment_variables,mockable_function,"
-    "expected_message,assertion",
-    [
-        (lambda_wrangler_function, wrangler_runtime_variables,
-         wrangler_environment_variables,
-         "aggregation_bricks_splitter_wrangler.EnvironSchema",
-         "General Error", test_generic_library.wrangler_assert)
-    ])
-def test_general_error(which_lambda, which_runtime_variables,
-                       which_environment_variables, mockable_function,
-                       expected_message, assertion):
-    test_generic_library.general_error(which_lambda, which_runtime_variables,
-                                       which_environment_variables, mockable_function,
-                                       expected_message, assertion)
+def test_general_error():
+    test_generic_library.general_error(
+        lambda_wrangler_function, wrangler_runtime_variables,
+        wrangler_environment_variables,
+        "aggregation_bricks_splitter_wrangler.EnvironSchema", "General Error",
+        test_generic_library.wrangler_assert)
 
 
 @mock_s3
@@ -102,24 +84,19 @@ def test_general_error(which_lambda, which_runtime_variables,
 def test_incomplete_read_error(mock_s3_get):
     file_list = ["test_splitter_input.json"]
 
-    test_generic_library.incomplete_read_error(lambda_wrangler_function,
-                                               wrangler_runtime_variables,
-                                               wrangler_environment_variables,
-                                               file_list,
-                                               "aggregation_bricks_splitter_wrangler")
+    test_generic_library.incomplete_read_error(
+        lambda_wrangler_function,
+        wrangler_runtime_variables,
+        wrangler_environment_variables,
+        file_list,
+        "aggregation_bricks_splitter_wrangler")
 
 
-@pytest.mark.parametrize(
-    "which_lambda,expected_message,assertion,which_environment_variables",
-    [
-        (lambda_wrangler_function, wrangler_environment_variables,
-         "Key Error", test_generic_library.wrangler_assert)
-    ])
-def test_key_error(which_lambda, expected_message,
-                   assertion, which_environment_variables):
-    test_generic_library.key_error(which_lambda,
-                                   expected_message, assertion,
-                                   which_environment_variables)
+def test_key_error():
+    test_generic_library.key_error(
+        lambda_wrangler_function,
+        wrangler_environment_variables, "Key Error",
+        test_generic_library.wrangler_assert)
 
 
 @mock_s3
@@ -128,23 +105,18 @@ def test_key_error(which_lambda, expected_message,
 def test_method_error(mock_s3_get):
     file_list = ["test_splitter_input.json"]
 
-    test_generic_library.wrangler_method_error(lambda_wrangler_function,
-                                               wrangler_runtime_variables,
-                                               wrangler_environment_variables,
-                                               file_list,
-                                               "aggregation_bricks_splitter_wrangler")
+    test_generic_library.wrangler_method_error(
+        lambda_wrangler_function,
+        wrangler_runtime_variables,
+        wrangler_environment_variables,
+        file_list,
+        "aggregation_bricks_splitter_wrangler")
 
 
-@pytest.mark.parametrize(
-    "which_lambda,expected_message,assertion",
-    [
-     (lambda_wrangler_function,
-      "Error validating environment params",
-      test_generic_library.wrangler_assert)
-    ])
-def test_value_error(which_lambda, expected_message, assertion):
+def test_value_error():
     test_generic_library.value_error(
-        which_lambda, expected_message, assertion)
+        lambda_wrangler_function, "Error validating environment params",
+        test_generic_library.wrangler_assert)
 
 ##########################################################################################
 #                                     Specific                                           #
