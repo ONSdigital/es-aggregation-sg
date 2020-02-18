@@ -25,14 +25,15 @@ custom:
   accountId: ${self:custom.accounts.account-id}
 
 functions:
-  deploy-column-wrangler:
-    name: es-aggregation-column-wrangler
-    handler: aggregation_column_wrangler.lambda_handler
+  deploy-bricks-splitter-wrangler:
+    name: es-aggregation-bricks-splitter-wrangler
+    handler: aggregation_bricks_splitter_wrangler.lambda_handler
     package:
       include:
-        - aggregation_column_wrangler.py
+        - aggregation_bricks_splitter_wrangler.py
       exclude:
         - ./**
+      individually: true
     layers:
       - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:es_python_layer:latest
       - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:dev-es-common-functions:latest
@@ -41,7 +42,28 @@ functions:
     environment:
       checkpoint: 4
       bucket_name: results-s3-bucket
-      in_file_name: imputation_apply_out.json
+      out_file_name_bricks: aggregation_bricks_prep_out.json
+      out_file_name_region: aggregation_region_prep_out.json
+      method_name: es-add-regionless-method
+      sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
+
+  deploy-column-wrangler:
+    name: es-aggregation-column-wrangler
+    handler: aggregation_column_wrangler.lambda_handler
+    package:
+      include:
+        - aggregation_column_wrangler.py
+      exclude:
+        - ./**
+      individually: true
+    layers:
+      - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:es_python_layer:latest
+      - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:dev-es-common-functions:latest
+    tags:
+      app: results
+    environment:
+      checkpoint: 4
+      bucket_name: results-s3-bucket
       out_file_name: aggregation_column_out.json
       method_name: es-aggregation-column-method
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
@@ -55,6 +77,7 @@ functions:
         - aggregation_column_method.py
       exclude:
         - ./**
+      individually: true
     layers:
       - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:es_python_layer:latest
     tags:
@@ -68,6 +91,7 @@ functions:
         - aggregation_top2_wrangler.py
       exclude:
         - ./**
+      individually: true
     layers:
       - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:es_python_layer:latest
       - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:dev-es-common-functions:latest
@@ -76,7 +100,6 @@ functions:
     environment:
       checkpoint: 4
       bucket_name: results-s3-bucket
-      in_file_name: imputation_apply_out.json
       method_name: es-aggregation-top2-method
       out_file_name: top2_out.json
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
@@ -90,6 +113,7 @@ functions:
         - aggregation_top2_method.py
       exclude:
         - ./**
+      individually: true
     layers:
       - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:es_python_layer:latest
     tags:
@@ -103,6 +127,7 @@ functions:
         - combiner.py
       exclude:
         - ./**
+      individually: true
     layers:
       - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:es_python_layer:latest
       - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:dev-es-common-functions:latest
@@ -111,7 +136,6 @@ functions:
     environment:
       checkpoint: 4
       bucket_name: results-s3-bucket
-      in_file_name: imputation_apply_out.json
       out_file_name: aggregation_out.json
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
       sqs_message_group_id: aggregation-combiner-out

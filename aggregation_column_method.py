@@ -40,7 +40,7 @@ def lambda_handler(event, context):
     log_message = ""
     logger = logging.getLogger("Aggregation")
     logger.setLevel(0)
-    output_json = ""
+
     try:
         logger.info("Aggregation by column - Method begun.")
 
@@ -64,8 +64,11 @@ def lambda_handler(event, context):
 
         logger.info("JSON data converted to DataFrame.")
 
-        county_agg = input_dataframe.groupby([additional_aggregated_column,
-                                              aggregated_column])
+        to_aggregate = [aggregated_column]
+        if additional_aggregated_column != "":
+            to_aggregate.append(additional_aggregated_column)
+
+        county_agg = input_dataframe.groupby(to_aggregate)
 
         agg_by_county_output = county_agg.agg(totals_dict) \
             .reset_index()

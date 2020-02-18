@@ -16,7 +16,6 @@ class EnvironSchema(Schema):
 
     checkpoint = fields.Str(required=True)
     bucket_name = fields.Str(required=True)
-    in_file_name = fields.Str(required=True)
     out_file_name = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
     sqs_message_group_id = fields.Str(required=True)
@@ -57,14 +56,14 @@ def lambda_handler(event, context):
         # Enviroment variables
         checkpoint = config["checkpoint"]
         bucket_name = config["bucket_name"]
-        in_file_name = config["in_file_name"]
         out_file_name = config['out_file_name']
         sns_topic_arn = config["sns_topic_arn"]
         sqs_message_group_id = config["sqs_message_group_id"]
 
-        aggregated_column = event['RuntimeVariables']['aggregated_column']
         additional_aggregated_column =\
             event['RuntimeVariables']['additional_aggregated_column']
+        aggregated_column = event['RuntimeVariables']['aggregated_column']
+        in_file_name = event['RuntimeVariables']['in_file_name']['aggregation_by_column']
         sqs_queue_url = event['RuntimeVariables']["queue_url"]
         # Clients
         sqs = boto3.client("sqs", "eu-west-2")
@@ -103,18 +102,19 @@ def lambda_handler(event, context):
                                                             third_agg['key'],
                                                             run_id)
 
+        to_aggregate = [aggregated_column]
+        if additional_aggregated_column != "":
+            to_aggregate.append(additional_aggregated_column)
+
         # merge the imputation output from s3 with the 3 aggregation outputs
         first_merge = pd.merge(
-            imp_df, first_agg_df, on=[additional_aggregated_column,
-                                      aggregated_column], how="left")
+            imp_df, first_agg_df, on=to_aggregate, how="left")
 
         second_merge = pd.merge(
-            first_merge, second_agg_df, on=[additional_aggregated_column,
-                                            aggregated_column], how="left")
+            first_merge, second_agg_df, on=to_aggregate, how="left")
 
         third_merge = pd.merge(
-            second_merge, third_agg_df, on=[additional_aggregated_column,
-                                            aggregated_column], how="left")
+            second_merge, third_agg_df, on=to_aggregate, how="left")
 
         logger.info("Successfully merged dataframes")
 

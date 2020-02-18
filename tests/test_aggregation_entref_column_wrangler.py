@@ -24,7 +24,9 @@ wrangler_runtime_variables = {
                         "total_columns": ["Q608_total"],
                         "additional_aggregated_column": "region",
                         "run_id": "bob",
-                        "queue_url": "Earl"
+                        "queue_url": "Earl",
+                        "in_file_name": {"aggregation_by_column":
+                                         "moo"}
                          }
                      }
 
@@ -37,7 +39,9 @@ wrangler_runtime_variables_b = {
                      "total_columns": ["Q608_total", "Q606_other_gravel"],
                      "additional_aggregated_column": "region",
                      "run_id": "bob",
-                     "queue_url": "Earl"
+                     "queue_url": "Earl",
+                     "in_file_name": {"aggregation_by_column":
+                                      "moo"}
                     }
                      }
 
@@ -56,8 +60,7 @@ class TestStringMethods(unittest.TestCase):
             'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'sqs_message_group_id': 'random',
             'method_name': 'random',
-            'incoming_message_group': 'jam',
-            "in_file_name": "moo"
+            'incoming_message_group': 'jam'
             }
         ):
             with open("tests/fixtures/wrangler_input.json") as file:
@@ -92,8 +95,7 @@ class TestStringMethods(unittest.TestCase):
             'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'sqs_message_group_id': 'random',
             'method_name': 'random',
-            'incoming_message_group': 'jam',
-            "in_file_name": "moo"
+            'incoming_message_group': 'jam'
             }
         ):
             with open("tests/fixtures/wrangler_input.json") as file:
@@ -150,7 +152,6 @@ class TestStringMethods(unittest.TestCase):
             'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
-            "in_file_name": "moo",
             "county_column": "county",
             "ent_ref_column": "enterprise_ref",
             "cell_total_column": "ent_ref_count"
@@ -183,7 +184,6 @@ class TestStringMethods(unittest.TestCase):
             'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
-            "in_file_name": "moo",
             "county_column": "county",
             "ent_ref_column": "enterprise_ref",
             "cell_total_column": "ent_ref_count"
@@ -209,8 +209,7 @@ class TestStringMethods(unittest.TestCase):
             'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'sqs_message_group_id': 'random',
             'method_name': 'random',
-            'incoming_message_group': 'jam',
-            "in_file_name": "moo"
+            'incoming_message_group': 'jam'
             }
         ):
             with open("tests/fixtures/wrangler_input.json") as file:
@@ -242,7 +241,6 @@ class TestMoto:
             'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
-            "in_file_name": "moo",
             "period_column": "period",
             "additional_aggregated_column": "region",
             "county_column": "county",
@@ -266,7 +264,6 @@ class TestMoto:
             'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
-            "in_file_name": "moo",
             "period_column": "period",
             "additional_aggregated_column": "region",
             "county_column": "county",

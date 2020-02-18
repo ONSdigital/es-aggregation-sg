@@ -3,8 +3,6 @@ import logging
 import os
 
 import boto3
-import numpy as np
-import pandas as pd
 from botocore.exceptions import ClientError, IncompleteReadError
 from es_aws_functions import aws_functions, exception_classes
 from marshmallow import Schema, fields
@@ -18,7 +16,6 @@ class EnvironSchema(Schema):
     """
     checkpoint = fields.Str(required=True)
     bucket_name = fields.Str(required=True)
-    in_file_name = fields.Str(required=True)
     method_name = fields.Str(required=True)
     out_file_name = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
@@ -71,43 +68,23 @@ def lambda_handler(event, context):
 
         checkpoint = config['checkpoint']
         bucket_name = config['bucket_name']
-        in_file_name = config['in_file_name']
         method_name = config['method_name']
         out_file_name = config['out_file_name']
         sns_topic_arn = config['sns_topic_arn']
         sqs_message_group_id = config['sqs_message_group_id']
 
         aggregated_column = event['RuntimeVariables']['aggregated_column']
-
         additional_aggregated_column = \
             event['RuntimeVariables']['additional_aggregated_column']
-
+        in_file_name = event['RuntimeVariables']['in_file_name']['aggregation_by_column']
+        sqs_queue_url = event['RuntimeVariables']["queue_url"]
         top1_column = event['RuntimeVariables']['top1_column']
         top2_column = event['RuntimeVariables']['top2_column']
         total_columns = event['RuntimeVariables']['total_columns']
-        sqs_queue_url = event['RuntimeVariables']["queue_url"]
 
         # Read from S3 bucket
         data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name, run_id)
         logger.info("Completed reading data from s3")
-
-        # Ensure mandatory columns are present and have the correct
-        # type of content
-        msg = "Checking required data columns are present and correctly typed."
-        logger.info(msg)
-        req_col_list = total_columns
-        for req_col in req_col_list:
-            if req_col not in data.columns:
-                err_msg = 'Required column "' + req_col + '" not found in dataframe.'
-                raise IndexError(err_msg)
-            row_index = 0
-            for row in data.to_records():
-                if not isinstance(row[req_col], np.int64):
-                    err_msg = 'Required column "' + req_col
-                    err_msg += '" has wrong data type (' + str(type(row[req_col]))
-                    err_msg += ' at row index ' + str(row_index) + '.'
-                    raise TypeError(err_msg)
-                row_index += 1
 
         # Add output columns
         logger.info("Appending two further required columns.")
@@ -137,29 +114,6 @@ def lambda_handler(event, context):
 
         if not json_response['success']:
             raise exception_classes.MethodFailure(json_response['error'])
-
-        # Ensure appended columns are present in output and have the
-        # correct type of content
-        msg = "Checking required output columns are present and correctly typed."
-        logger.info(msg)
-        ret_data = pd.DataFrame(json.loads(json_response["data"]))
-        req_col_list = [top1_column, top2_column]
-        req_col_list = [total_column + "_" + top_column
-                        for top_column in req_col_list
-                        for total_column in total_columns]
-
-        for req_col in req_col_list:
-            if req_col not in ret_data.columns:
-                err_msg = 'Required column "' + req_col + '" not found in output data.'
-                raise IndexError(err_msg)
-            row_index = 0
-            for row in ret_data.to_records():
-                if not isinstance(row[req_col], np.int64):
-                    err_msg = 'Output column "' + req_col
-                    err_msg += '" has wrong data type (' + str(type(row[req_col]))
-                    err_msg += ' at row index ' + str(row_index) + '.'
-                    raise TypeError(err_msg)
-                row_index += 1
 
         # Sending output to SQS, notice to SNS
         logger.info("Sending function response downstream.")
