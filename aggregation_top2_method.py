@@ -177,8 +177,8 @@ def calc_top_two(data, total_column, aggregated_column, additional_aggregated_co
 def update_columns(data, aggregation, aggregated_column, additional_aggregated_column,
                    top1_column, top2_column, top_one, top_two):
     """
-    Used to check if current row id for the current cell. If it is update to contain top2
-    data. Else overwrite data with itself.
+    Used to check if for the current cell the responder needs to update what it contains
+    for top2 data or if it should overwrite data with its currently held value.
     :param data: Input Dataframe.
     :param aggregation: Dict containing the values to identify the current unique cell.
     :param aggregated_column: A column to aggregate by. e.g. Enterprise_Reference.

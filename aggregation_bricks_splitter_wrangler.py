@@ -93,10 +93,8 @@ def lambda_handler(event, context):
         new_type = 1  # This number represents Clay & Sandlime Combined
 
         # Identify The Brick Type Of The Row.
-        data[unique_identifier[0]] = data.apply(lambda x: calculate_row_type(x,
-                                                                             brick_type,
-                                                                             column_list
-                                                                             ), axis=1)
+        data[unique_identifier[0]] = data.apply(
+            lambda x: calculate_row_type(x, brick_type, column_list), axis=1)
 
         # Collate Each Rows 12 Good Brick Type Columns And 24 Empty Columns Down
         # Into 12 With The Same Name.
