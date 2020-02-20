@@ -16,9 +16,7 @@ class InputSchema(Schema):
     checkpoint = fields.Str(required=True)
     bucket_name = fields.Str(required=True)
     method_name = fields.Str(required=True)
-    out_file_name = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
-    sqs_message_group_id = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -56,29 +54,33 @@ def lambda_handler(event, context):
         # Needs to be declared inside the lambda_handler
         lambda_client = boto3.client('lambda', region_name="eu-west-2")
 
-        additional_aggregated_column = \
-            event['RuntimeVariables']['additional_aggregated_column']
-        aggregated_column = event['RuntimeVariables']['aggregated_column']
-        aggregation_type = event['RuntimeVariables']['aggregation_type']
-        cell_total_column = event['RuntimeVariables']['cell_total_column']
-        in_file_name = event['RuntimeVariables']['in_file_name']['aggregation_by_column']
-        sqs_queue_url = event['RuntimeVariables']["queue_url"]
-        total_columns = event['RuntimeVariables']['total_columns']
-
         # ENV vars
         config, errors = InputSchema().load(os.environ)
 
         if errors:
             raise ValueError(f"Error validating environment params: {errors}")
 
+        logger.info("Vaildated params")
+
+        # Environment Variables
         checkpoint = config['checkpoint']
         bucket_name = config['bucket_name']
         method_name = config['method_name']
-        out_file_name = config['out_file_name']
         sns_topic_arn = config['sns_topic_arn']
-        sqs_message_group_id = config['sqs_message_group_id']
 
-        logger.info("Validated params.")
+        # Runtime Variables
+        additional_aggregated_column = \
+            event['RuntimeVariables']['additional_aggregated_column']
+        aggregated_column = event['RuntimeVariables']['aggregated_column']
+        aggregation_type = event['RuntimeVariables']['aggregation_type']
+        cell_total_column = event['RuntimeVariables']['cell_total_column']
+        in_file_name = event['RuntimeVariables']['in_file_name']
+        out_file_name = event['RuntimeVariables']['out_file_name']
+        outgoing_message_group_id = event['RuntimeVariables']["outgoing_message_group_id"]
+        sqs_queue_url = event['RuntimeVariables']["queue_url"]
+        total_columns = event['RuntimeVariables']['total_columns']
+
+        logger.info("Retrieved configuration variables.")
 
         out_file_name = cell_total_column + "_" + out_file_name
 
@@ -109,7 +111,7 @@ def lambda_handler(event, context):
             raise exception_classes.MethodFailure(json_response['error'])
 
         aws_functions.save_data(bucket_name, out_file_name, json_response["data"],
-                                sqs_queue_url, sqs_message_group_id, run_id)
+                                sqs_queue_url, outgoing_message_group_id, run_id)
         logger.info("Successfully sent the data to SQS")
 
         aws_functions.send_sns_message(checkpoint,

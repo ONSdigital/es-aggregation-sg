@@ -54,6 +54,8 @@ def lambda_handler(event, context):
         if errors:
             raise ValueError(f"Error validating environment params: {errors}")
 
+        logger.info("Vaildated params")
+
         # Environment Variables
         bucket_name = config["bucket_name"]
         checkpoint = config["checkpoint"]
@@ -72,7 +74,7 @@ def lambda_handler(event, context):
         sqs_queue_url = event['RuntimeVariables']["queue_url"]
         unique_identifier = event['RuntimeVariables']['unique_identifier']
 
-        logger.info("Vaildated params")
+        logger.info("Retrieved configuration variables.")
 
         # Pulls In Data.
         data, receipt_handler = aws_functions.get_dataframe(sqs_queue_url, bucket_name,
