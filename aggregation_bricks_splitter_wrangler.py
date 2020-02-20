@@ -14,8 +14,8 @@ class EnvironSchema(Schema):
     Schema to ensure that environment variables are present and in the correct format.
     :return: None
     """
-    bucket_name = fields.Str(required=True)
     checkpoint = fields.Str(required=True)
+    bucket_name = fields.Str(required=True)
     method_name = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
 
@@ -57,8 +57,8 @@ def lambda_handler(event, context):
         logger.info("Vaildated params")
 
         # Environment Variables
-        bucket_name = config["bucket_name"]
         checkpoint = config["checkpoint"]
+        bucket_name = config["bucket_name"]
         method_name = config["method_name"]
         sns_topic_arn = config["sns_topic_arn"]
 
