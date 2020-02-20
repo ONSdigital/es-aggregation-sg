@@ -16,8 +16,6 @@ example_brick_type = {
 
 wrangler_environment_variables = {
     "bucket_name": "test_bucket",
-    "out_file_name_bricks": "test_splitter_bricks_output.json",
-    "out_file_name_region": "test_splitter_region_output.json",
     "checkpoint": "mock-point",
     "sns_topic_arn": "fake_sns_arn",
     "method_name": "mock-method"
@@ -33,8 +31,10 @@ wrangler_runtime_variables = {
         },
         "run_id": "001",
         "queue_url": "test_queue",
-        "in_file_name": {"bricks_splitter": "test_splitter_input.json"},
-        "incoming_message_group": {"bricks_splitter": "mock-id"},
+        "in_file_name": "test_splitter_input",
+        "incoming_message_group_id": "mock-id",
+        "out_file_name_bricks": "test_splitter_bricks_output.json",
+        "out_file_name_region": "test_splitter_region_output.json",
         "unique_identifier": [
             "brick_type",
             "enterprise_reference",
@@ -166,8 +166,8 @@ def test_wrangler_success(mock_s3_get, mock_s3_put):
         test_data_bricks_prepared = file_3.read()
     prepared_data_bricks = pd.DataFrame(json.loads(test_data_bricks_prepared))
 
-    with open("tests/fixtures/" + wrangler_environment_variables["out_file_name_bricks"],
-              "r") as file_4:
+    with open("tests/fixtures/" + wrangler_runtime_variables["RuntimeVariables"][
+              "out_file_name_bricks"], "r") as file_4:
         test_data_bricks_produced = file_4.read()
     produced_data_bricks = pd.DataFrame(json.loads(test_data_bricks_produced))
 
@@ -175,8 +175,8 @@ def test_wrangler_success(mock_s3_get, mock_s3_put):
         test_data_region_prepared = file_5.read()
     prepared_data_region = pd.DataFrame(json.loads(test_data_region_prepared))
 
-    with open("tests/fixtures/" + wrangler_environment_variables["out_file_name_region"],
-              "r") as file_6:
+    with open("tests/fixtures/" + wrangler_runtime_variables["RuntimeVariables"][
+              "out_file_name_region"], "r") as file_6:
         produced_data_region = file_6.read()
     produced_data_region = pd.DataFrame(json.loads(produced_data_region))
 

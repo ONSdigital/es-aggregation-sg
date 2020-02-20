@@ -42,8 +42,6 @@ functions:
     environment:
       checkpoint: 4
       bucket_name: results-s3-bucket
-      out_file_name_bricks: aggregation_bricks_prep_out.json
-      out_file_name_region: aggregation_region_prep_out.json
       method_name: es-add-regionless-method
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
 
@@ -64,10 +62,8 @@ functions:
     environment:
       checkpoint: 4
       bucket_name: results-s3-bucket
-      out_file_name: aggregation_column_out.json
       method_name: es-aggregation-column-method
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
-      sqs_message_group_id: aggregation-by-county
 
   deploy-column-method:
     name: es-aggregation-column-method
@@ -101,9 +97,7 @@ functions:
       checkpoint: 4
       bucket_name: results-s3-bucket
       method_name: es-aggregation-top2-method
-      out_file_name: top2_out.json
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
-      sqs_message_group_id: aggregation-by-top2
 
   deploy-top2-method:
     name: es-aggregation-top2-method
@@ -136,9 +130,7 @@ functions:
     environment:
       checkpoint: 4
       bucket_name: results-s3-bucket
-      out_file_name: aggregation_out.json
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
-      sqs_message_group_id: aggregation-combiner-out
 
 plugins:
   - serverless-latest-layer-version
