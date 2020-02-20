@@ -16,9 +16,7 @@ class EnvironSchema(Schema):
 
     checkpoint = fields.Str(required=True)
     bucket_name = fields.Str(required=True)
-    out_file_name = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
-    sqs_message_group_id = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -53,18 +51,22 @@ def lambda_handler(event, context):
 
         logger.info("Validated params")
 
-        # Enviroment variables
+        # Environment Variables
         checkpoint = config["checkpoint"]
         bucket_name = config["bucket_name"]
-        out_file_name = config['out_file_name']
         sns_topic_arn = config["sns_topic_arn"]
-        sqs_message_group_id = config["sqs_message_group_id"]
 
+        # Runtime Variables
         additional_aggregated_column =\
             event['RuntimeVariables']['additional_aggregated_column']
         aggregated_column = event['RuntimeVariables']['aggregated_column']
-        in_file_name = event['RuntimeVariables']['in_file_name']['aggregation_by_column']
+        in_file_name = event['RuntimeVariables']['in_file_name']
+        out_file_name = event['RuntimeVariables']['out_file_name']
+        outgoing_message_group_id = event['RuntimeVariables']["outgoing_message_group_id"]
         sqs_queue_url = event['RuntimeVariables']["queue_url"]
+
+        logger.info("Retrieved configuration variables.")
+
         # Clients
         sqs = boto3.client("sqs", "eu-west-2")
 
@@ -123,7 +125,7 @@ def lambda_handler(event, context):
 
         # send output onwards
         aws_functions.save_data(bucket_name, out_file_name, final_output,
-                                sqs_queue_url, sqs_message_group_id,
+                                sqs_queue_url, outgoing_message_group_id,
                                 run_id)
         logger.info("Successfully sent message to sqs")
 
