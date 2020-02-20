@@ -54,7 +54,7 @@ def lambda_handler(event, context):
         if errors:
             raise ValueError(f"Error validating environment params: {errors}")
 
-        logger.info("Vaildated params")
+        logger.info("Validated params")
 
         # Environment Variables
         checkpoint = config["checkpoint"]

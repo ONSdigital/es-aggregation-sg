@@ -63,7 +63,7 @@ def lambda_handler(event, context):
         config, errors = schema.load(os.environ)
         if errors:
             raise ValueError(f"Error validating environment params: {errors}")
-        logger.info("Vaildated params")
+        logger.info("Validated params")
 
         # Environment Variables
         bucket_name = config['bucket_name']
