@@ -23,7 +23,8 @@ class TestCombininator(unittest.TestCase):
             "os.environ",
             {
                 "checkpoint": "mock_checkpoint",
-                "sns_topic_arn": "not_an_arn"
+                "sns_topic_arn": "not_an_arn",
+                "run_environment": "development"
             }
         ):
             with unittest.TestCase.assertRaises(
@@ -48,7 +49,8 @@ class TestCombininator(unittest.TestCase):
             {
                 "checkpoint": "mock_checkpoint",
                 "sns_topic_arn": "not_an_arn",
-                "bucket_name": "mrsbucket"
+                "bucket_name": "mrsbucket",
+                "run_environment": "development"
             }
         ):
             with open("tests/fixtures/factorsdata.json") as file:
@@ -100,7 +102,8 @@ class TestCombininator(unittest.TestCase):
                 "sns_topic_arn": "not_an_arn",
                 "out_file_name": "mock_method",
                 "bucket_name": "BertieBucket",
-                "outgoing_message_group_id": "Bob"
+                "outgoing_message_group_id": "Bob",
+                "run_environment": "development"
             }
         ):
             with open("tests/fixtures/factorsdata.json") as file:
@@ -135,7 +138,8 @@ class TestCombininator(unittest.TestCase):
                 "sns_topic_arn": "not_an_arn",
                 "out_file_name": "mock_method",
                 "bucket_name": "BertieBucket",
-                "outgoing_message_group_id": "Bob"
+                "outgoing_message_group_id": "Bob",
+                "run_environment": "development"
             }
         ):
             with mock.patch("combiner.aws_functions.read_dataframe_from_s3") as mock_bot:
@@ -167,7 +171,8 @@ class TestCombininator(unittest.TestCase):
                 "sns_topic_arn": "not_an_arn",
                 "out_file_name": "mock_method",
                 "bucket_name": "BertieBucket",
-                "outgoing_message_group_id": "Bob"
+                "outgoing_message_group_id": "Bob",
+                "run_environment": "development"
             }
         ):
             with unittest.TestCase.assertRaises(
@@ -197,7 +202,8 @@ class TestCombininator(unittest.TestCase):
                 "sns_topic_arn": "not_an_arn",
                 "out_file_name": "mock_method",
                 "bucket_name": "Bertie Bucket",
-                "outgoing_message_group_id": "Bob"
+                "outgoing_message_group_id": "Bob",
+                "run_environment": "development"
             }
         ):
             with open("tests/fixtures/factorsdata.json") as file:
@@ -244,7 +250,8 @@ class TestCombininator(unittest.TestCase):
                 "sns_topic_arn": "not_an_arn",
                 "out_file_name": "mock_method",
                 "bucket_name": "BertieBucket",
-                "outgoing_message_group_id": "Bob"
+                "outgoing_message_group_id": "Bob",
+                "run_environment": "development"
             }
         ):
             with mock.patch("combiner.aws_functions.read_dataframe_from_s3") as mock_bot:
