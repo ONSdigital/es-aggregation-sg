@@ -25,9 +25,11 @@ wrangler_runtime_variables = {
                         "additional_aggregated_column": "region",
                         "run_id": "bob",
                         "queue_url": "Earl",
-                        "in_file_name": {"aggregation_by_column":
-                                         "moo"}
-                         }
+                        "in_file_name": "moo",
+                        'out_file_name': 'file_to_get_from_s3.json',
+                        'outgoing_message_group_id': 'random',
+                        'incoming_message_group_id': 'jam'
+                         },
                      }
 
 wrangler_runtime_variables_b = {
@@ -40,8 +42,10 @@ wrangler_runtime_variables_b = {
                      "additional_aggregated_column": "region",
                      "run_id": "bob",
                      "queue_url": "Earl",
-                     "in_file_name": {"aggregation_by_column":
-                                      "moo"}
+                     "in_file_name": "moo",
+                     'out_file_name': 'file_to_get_from_s3.json',
+                     'outgoing_message_group_id': 'random',
+                     'incoming_message_group_id': 'jam'
                     }
                      }
 
@@ -55,12 +59,9 @@ class TestStringMethods(unittest.TestCase):
     def test_wrangler_happy_path(self, mock_get_from_s3, mock_lambda, mock_sqs, mock_sns):
         with mock.patch.dict(aggregation_column_wrangler.os.environ, {
             'bucket_name': 'some-bucket-name',
-            'out_file_name': 'file_to_get_from_s3.json',
             'checkpoint': '3',
             'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
-            'sqs_message_group_id': 'random',
             'method_name': 'random',
-            'incoming_message_group': 'jam'
             }
         ):
             with open("tests/fixtures/wrangler_input.json") as file:

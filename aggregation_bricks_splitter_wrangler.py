@@ -17,8 +17,6 @@ class EnvironSchema(Schema):
     checkpoint = fields.Str(required=True)
     bucket_name = fields.Str(required=True)
     method_name = fields.Str(required=True)
-    out_file_name_bricks = fields.Str(required=True)
-    out_file_name_region = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
 
 
@@ -56,30 +54,32 @@ def lambda_handler(event, context):
         if errors:
             raise ValueError(f"Error validating environment params: {errors}")
 
-        # Set Variables.
+        logger.info("Validated params")
+
+        # Environment Variables
         checkpoint = config["checkpoint"]
         bucket_name = config["bucket_name"]
         method_name = config["method_name"]
-        out_file_name_bricks = config["out_file_name_bricks"]
-        out_file_name_region = config["out_file_name_region"]
         sns_topic_arn = config["sns_topic_arn"]
 
+        # Runtime Variables
+        column_list = event['RuntimeVariables']['total_columns']
         factors_parameters = event['RuntimeVariables']["factors_parameters"]
-        in_file_name = event['RuntimeVariables']["in_file_name"]['bricks_splitter']
-        incoming_message_group = \
-            event['RuntimeVariables']["incoming_message_group"]['bricks_splitter']
-        regionless_code = factors_parameters['RuntimeVariables']['regionless_code']
+        in_file_name = event['RuntimeVariables']['in_file_name']
+        incoming_message_group_id = event['RuntimeVariables']['incoming_message_group_id']
+        out_file_name_bricks = event['RuntimeVariables']['out_file_name_bricks']
+        out_file_name_region = event['RuntimeVariables']['out_file_name_region']
         region_column = factors_parameters['RuntimeVariables']['region_column']
+        regionless_code = factors_parameters['RuntimeVariables']['regionless_code']
         sqs_queue_url = event['RuntimeVariables']["queue_url"]
         unique_identifier = event['RuntimeVariables']['unique_identifier']
-        column_list = event['RuntimeVariables']['total_columns']
 
-        logger.info("Vaildated params")
+        logger.info("Retrieved configuration variables.")
 
         # Pulls In Data.
         data, receipt_handler = aws_functions.get_dataframe(sqs_queue_url, bucket_name,
                                                             in_file_name,
-                                                            incoming_message_group,
+                                                            incoming_message_group_id,
                                                             run_id)
 
         logger.info("Succesfully retrieved data.")

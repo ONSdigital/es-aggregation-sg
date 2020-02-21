@@ -23,15 +23,16 @@ class TestCombininator(unittest.TestCase):
             "os.environ",
             {
                 "checkpoint": "mock_checkpoint",
-                "sns_topic_arn": "not_an_arn",
-                "out_file_name": "mock_method",
-                "bucket_name": "bertiebucket"
+                "sns_topic_arn": "not_an_arn"
             }
         ):
             with unittest.TestCase.assertRaises(
                     self, exception_classes.LambdaFailure) as exc_info:
-                combiner.lambda_handler({"RuntimeVariables": {"run_id": "bob",
-                                                              "queue_url": "Earl"}},
+                combiner.lambda_handler({"RuntimeVariables": {
+                    "run_id": "bob",
+                    "out_file_name": "mock_method",
+                    "outgoing_message_group_id": "Bob",
+                    "queue_url": "Earl"}},
                                         context_object)
             assert "Error validating environment" in exc_info.exception.error_message
 
@@ -47,9 +48,7 @@ class TestCombininator(unittest.TestCase):
             {
                 "checkpoint": "mock_checkpoint",
                 "sns_topic_arn": "not_an_arn",
-                "out_file_name": "mock_method",
-                "bucket_name": "mrsbucket",
-                "sqs_message_group_id": "Bob"
+                "bucket_name": "mrsbucket"
             }
         ):
             with open("tests/fixtures/factorsdata.json") as file:
@@ -80,8 +79,10 @@ class TestCombininator(unittest.TestCase):
                     {"RuntimeVariables": {"aggregated_column": "county",
                                           "additional_aggregated_column": "region",
                                           "run_id": "bob",
+                                          "out_file_name": "mock_method",
+                                          "outgoing_message_group_id": "Bob",
                                           "queue_url": sqs_queue_url,
-                                          "in_file_name": {"aggregation_by_column": "sss"}
+                                          "in_file_name": "sss"
                                           }}, context_object)
 
                 assert out["success"]
@@ -99,7 +100,7 @@ class TestCombininator(unittest.TestCase):
                 "sns_topic_arn": "not_an_arn",
                 "out_file_name": "mock_method",
                 "bucket_name": "BertieBucket",
-                "sqs_message_group_id": "Bob"
+                "outgoing_message_group_id": "Bob"
             }
         ):
             with open("tests/fixtures/factorsdata.json") as file:
@@ -112,9 +113,10 @@ class TestCombininator(unittest.TestCase):
                         {"RuntimeVariables": {"aggregated_column": "county",
                                               "additional_aggregated_column": "region",
                                               "run_id": "bob",
+                                              "out_file_name": "mock_method",
+                                              "outgoing_message_group_id": "Bob",
                                               "queue_url": sqs_queue_url,
-                                              "in_file_name": {
-                                                  "aggregation_by_column": "sss"}
+                                              "in_file_name": "sss"
                                               }}, context_object)
                 assert "There was no data in sqs queue" in \
                        exc_info.exception.error_message
@@ -133,7 +135,7 @@ class TestCombininator(unittest.TestCase):
                 "sns_topic_arn": "not_an_arn",
                 "out_file_name": "mock_method",
                 "bucket_name": "BertieBucket",
-                "sqs_message_group_id": "Bob"
+                "outgoing_message_group_id": "Bob"
             }
         ):
             with mock.patch("combiner.aws_functions.read_dataframe_from_s3") as mock_bot:
@@ -145,8 +147,9 @@ class TestCombininator(unittest.TestCase):
                                               "additional_aggregated_column": "region",
                                               "run_id": "bob",
                                               "queue_url": sqs_queue_url,
-                                              "in_file_name": {
-                                                  "aggregation_by_column": "sss"}
+                                              "out_file_name": "mock_method",
+                                              "outgoing_message_group_id": "Bob",
+                                              "in_file_name": "sss"
                                               }}, context_object)
                 assert "Bad data encountered in" in exc_info.exception.error_message
 
@@ -164,7 +167,7 @@ class TestCombininator(unittest.TestCase):
                 "sns_topic_arn": "not_an_arn",
                 "out_file_name": "mock_method",
                 "bucket_name": "BertieBucket",
-                "sqs_message_group_id": "Bob"
+                "outgoing_message_group_id": "Bob"
             }
         ):
             with unittest.TestCase.assertRaises(
@@ -174,8 +177,9 @@ class TestCombininator(unittest.TestCase):
                                               "additional_aggregated_column": "region",
                                               "run_id": "bob",
                                               "queue_url": sqs_queue_url,
-                                              "in_file_name": {
-                                                  "aggregation_by_column": "sss"}
+                                              "out_file_name": "mock_method",
+                                              "outgoing_message_group_id": "Bob",
+                                              "in_file_name": "sss"
                                               }}, context_object)
             assert "AWS Error" in exc_info.exception.error_message
 
@@ -193,7 +197,7 @@ class TestCombininator(unittest.TestCase):
                 "sns_topic_arn": "not_an_arn",
                 "out_file_name": "mock_method",
                 "bucket_name": "Bertie Bucket",
-                "sqs_message_group_id": "Bob"
+                "outgoing_message_group_id": "Bob"
             }
         ):
             with open("tests/fixtures/factorsdata.json") as file:
@@ -220,7 +224,9 @@ class TestCombininator(unittest.TestCase):
                                     "additional_aggregated_column": "region",
                                     "run_id": "bob",
                                     "queue_url": sqs_queue_url,
-                                    "in_file_name": {"aggregation_by_column": "sss"}
+                                    "out_file_name": "mock_method",
+                                    "outgoing_message_group_id": "Bob",
+                                    "in_file_name": "sss"
                                     }}, context_object)
                         assert "Key Error" in exc_info.exception.error_message
 
@@ -238,7 +244,7 @@ class TestCombininator(unittest.TestCase):
                 "sns_topic_arn": "not_an_arn",
                 "out_file_name": "mock_method",
                 "bucket_name": "BertieBucket",
-                "sqs_message_group_id": "Bob"
+                "outgoing_message_group_id": "Bob"
             }
         ):
             with mock.patch("combiner.aws_functions.read_dataframe_from_s3") as mock_bot:
@@ -250,7 +256,8 @@ class TestCombininator(unittest.TestCase):
                                               "additional_aggregated_column": "region",
                                               "run_id": "bob",
                                               "queue_url": sqs_queue_url,
-                                              "in_file_name": {
-                                                  "aggregation_by_column": "sss"}
+                                              "out_file_name": "mock_method",
+                                              "outgoing_message_group_id": "Bob",
+                                              "in_file_name": "sss"
                                               }}, context_object)
                 assert "General Error" in exc_info.exception.error_message

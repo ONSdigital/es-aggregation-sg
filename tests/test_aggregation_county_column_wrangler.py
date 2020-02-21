@@ -25,8 +25,10 @@ wrangler_runtime_variables = {
                      "additional_aggregated_column": "region",
                      "run_id": "bob",
                      "queue_url": "Earl",
-                     "in_file_name": {"aggregation_by_column":
-                                      "moo"}
+                     "in_file_name": "moo",
+                     "outgoing_message_group_id": "mock-message-id",
+                     "out_file_name": "mock-file",
+                     "incoming_message_group_id": "yes"
                     }
 
                      }
@@ -40,8 +42,10 @@ wrangler_runtime_variables_b = {
                      "additional_aggregated_column": "region",
                      "run_id": "bob",
                      "queue_url": "Earl",
-                     "in_file_name": {"aggregation_by_column":
-                                      "moo"}
+                     "in_file_name": "moo",
+                     "out_file_name": "mock-file",
+                     "outgoing_message_group_id": "mock-message-id",
+                     "incoming_message_group_id": "yes"
                     }
                      }
 
@@ -53,12 +57,9 @@ class TestCountyWranglerMethods:
             "os.environ",
             {
                 "bucket_name": "mock-bucket",
-                "out_file_name": "mock-file",
                 "checkpoint": "mockpoint",
                 "sns_topic_arn": "mock-topic-arn",
-                "sqs_message_group_id": "mock-message-id",
-                "method_name": "mock-method",
-                "incoming_message_group": "yes"
+                "method_name": "mock-method"
             }
         )
 

@@ -14,12 +14,10 @@ class EnvironSchema(Schema):
     correct format.
     :return: None
     """
-    checkpoint = fields.Str(required=True)
     bucket_name = fields.Str(required=True)
+    checkpoint = fields.Str(required=True)
     method_name = fields.Str(required=True)
-    out_file_name = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
-    sqs_message_group_id = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -55,32 +53,37 @@ def lambda_handler(event, context):
         # Retrieve run_id before input validation
         # Because it is used in exception handling
         run_id = event['RuntimeVariables']['run_id']
+
+        # Needs to be declared inside of the lambda handler
+        lambda_client = boto3.client('lambda', region_name="eu-west-2")
+        logger.info("Setting-up environment configs")
+
         # Import environment variables using marshmallow validation
         schema = EnvironSchema()
         config, errors = schema.load(os.environ)
         if errors:
             raise ValueError(f"Error validating environment params: {errors}")
+        logger.info("Validated params")
 
-        # Needs to be declared inside of the lambda handler
-        lambda_client = boto3.client('lambda', region_name="eu-west-2")
-
-        logger.info("Setting-up environment configs")
-
-        checkpoint = config['checkpoint']
+        # Environment Variables
         bucket_name = config['bucket_name']
+        checkpoint = config['checkpoint']
         method_name = config['method_name']
-        out_file_name = config['out_file_name']
         sns_topic_arn = config['sns_topic_arn']
-        sqs_message_group_id = config['sqs_message_group_id']
 
+        # Runtime Variables
         aggregated_column = event['RuntimeVariables']['aggregated_column']
         additional_aggregated_column = \
             event['RuntimeVariables']['additional_aggregated_column']
-        in_file_name = event['RuntimeVariables']['in_file_name']['aggregation_by_column']
+        in_file_name = event['RuntimeVariables']['in_file_name']
+        out_file_name = event['RuntimeVariables']['out_file_name']
+        outgoing_message_group_id = event['RuntimeVariables']["outgoing_message_group_id"]
         sqs_queue_url = event['RuntimeVariables']["queue_url"]
         top1_column = event['RuntimeVariables']['top1_column']
         top2_column = event['RuntimeVariables']['top2_column']
         total_columns = event['RuntimeVariables']['total_columns']
+
+        logger.info("Retrieved configuration variables.")
 
         # Read from S3 bucket
         data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name, run_id)
@@ -119,7 +122,7 @@ def lambda_handler(event, context):
         logger.info("Sending function response downstream.")
         aws_functions.save_data(bucket_name, out_file_name,
                                 json_response["data"], sqs_queue_url,
-                                sqs_message_group_id, run_id)
+                                outgoing_message_group_id, run_id)
         logger.info("Successfully sent the data to S3")
         aws_functions.send_sns_message(checkpoint, sns_topic_arn, "Aggregation - Top 2.")
         logger.info("Successfully sent the SNS message")

@@ -23,9 +23,11 @@ wrangler_runtime_variables = {"RuntimeVariables": {
                               "top2_column": "second_largest_contributor",
                               "run_id": "bob",
                               "queue_url": "Earl",
+                              'outgoing_message_group_id': 'random',
+                              'incoming_message_group_id': 'Grooop',
+                              'out_file_name': 'bob',
                               "reference": 123456789,
-                              "in_file_name": {"aggregation_by_column":
-                                                   "file_to_get_from_s3.json"}
+                              "in_file_name": "file_to_get_from_s3.json"
                               }}
 
 wrangler_runtime_variables_b = {"RuntimeVariables": {
@@ -37,9 +39,11 @@ wrangler_runtime_variables_b = {"RuntimeVariables": {
                               "top2_column": "second_largest_contributor",
                               "run_id": "bob",
                               "queue_url": "Earl",
+                              'outgoing_message_group_id': 'random',
+                              'incoming_message_group_id': 'Grooop',
+                              'out_file_name': 'bob',
                               "reference": 123456789,
-                              "in_file_name": {"aggregation_by_column":
-                                                   "file_to_get_from_s3.json"}
+                              "in_file_name": "file_to_get_from_s3.json"
                               }}
 
 context_object = MockContext()
@@ -58,12 +62,9 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
         """
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
             'bucket_name': 'some-bucket-name',
-            'sqs_message_group_id': 'random',
             'checkpoint': '3',
             'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
-            'method_name': 'random',
-            'incoming_message_group': 'Grooop',
-            'out_file_name': 'bob'
+            'method_name': 'random'
             }
         ):
             with open("tests/fixtures/top2_wrangler_input.json") as file:
