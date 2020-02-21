@@ -23,6 +23,8 @@ provider:
 custom:
   accounts: ${ssm:/aws/reference/secretsmanager/results-aws-accounts~true}
   accountId: ${self:custom.accounts.account-id}
+  currentEnvironment: ${ssm:/aws/reference/secretsmanager/results-aws-environment~true}
+  environmentType: ${self:custom.currentEnvironment.environment-type}
 
 functions:
   deploy-bricks-splitter-wrangler:
@@ -130,6 +132,7 @@ functions:
     environment:
       checkpoint: 4
       bucket_name: results-s3-bucket
+      run_environment: ${self:custom.environmentType}
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
 
 plugins:

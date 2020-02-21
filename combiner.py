@@ -16,6 +16,7 @@ class EnvironSchema(Schema):
 
     checkpoint = fields.Str(required=True)
     bucket_name = fields.Str(required=True)
+    run_environment = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
 
 
@@ -54,6 +55,7 @@ def lambda_handler(event, context):
         # Environment Variables
         checkpoint = config["checkpoint"]
         bucket_name = config["bucket_name"]
+        run_environment = config['run_environment']
         sns_topic_arn = config["sns_topic_arn"]
 
         # Runtime Variables
@@ -127,11 +129,20 @@ def lambda_handler(event, context):
         aws_functions.save_data(bucket_name, out_file_name, final_output,
                                 sqs_queue_url, outgoing_message_group_id,
                                 run_id)
-        logger.info("Successfully sent message to sqs")
+        logger.info("Successfully sent data to s3.")
+
+        if run_environment != "development":
+            logger.info(aws_functions.delete_data(first_agg['bucket'], first_agg['key'],
+                                                  run_id))
+            logger.info(aws_functions.delete_data(second_agg['bucket'], second_agg['key'],
+                                                  run_id))
+            logger.info(aws_functions.delete_data(third_agg['bucket'], third_agg['key'],
+                                                  run_id))
+            logger.info("Successfully deleted input data.")
 
         aws_functions.send_sns_message(checkpoint, sns_topic_arn,
                                        "Aggregation - Combiner.")
-        logger.info("Successfully sent data to sns")
+        logger.info("Successfully sent data to sns.")
 
     except exception_classes.NoDataInQueueError as e:
         error_message = (
