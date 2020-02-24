@@ -76,6 +76,7 @@ def lambda_handler(event, context):
         additional_aggregated_column = \
             event['RuntimeVariables']['additional_aggregated_column']
         in_file_name = event['RuntimeVariables']['in_file_name']
+        location = event['RuntimeVariables']['location']
         out_file_name = event['RuntimeVariables']['out_file_name']
         outgoing_message_group_id = event['RuntimeVariables']["outgoing_message_group_id"]
         sqs_queue_url = event['RuntimeVariables']["queue_url"]
@@ -86,7 +87,7 @@ def lambda_handler(event, context):
         logger.info("Retrieved configuration variables.")
 
         # Read from S3 bucket
-        data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name, run_id)
+        data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name, location)
         logger.info("Completed reading data from s3")
 
         # Add output columns
@@ -122,7 +123,7 @@ def lambda_handler(event, context):
         logger.info("Sending function response downstream.")
         aws_functions.save_data(bucket_name, out_file_name,
                                 json_response["data"], sqs_queue_url,
-                                outgoing_message_group_id, run_id)
+                                outgoing_message_group_id, location)
         logger.info("Successfully sent the data to S3")
         aws_functions.send_sns_message(checkpoint, sns_topic_arn, "Aggregation - Top 2.")
         logger.info("Successfully sent the SNS message")

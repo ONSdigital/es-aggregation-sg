@@ -26,6 +26,7 @@ wrangler_runtime_variables = {
                         "run_id": "bob",
                         "queue_url": "Earl",
                         "in_file_name": "moo",
+                        "location": "Here",
                         'out_file_name': 'file_to_get_from_s3.json',
                         'outgoing_message_group_id': 'random',
                         'incoming_message_group_id': 'jam'
@@ -43,6 +44,7 @@ wrangler_runtime_variables_b = {
                      "run_id": "bob",
                      "queue_url": "Earl",
                      "in_file_name": "moo",
+                     "location": "Here",
                      'out_file_name': 'file_to_get_from_s3.json',
                      'outgoing_message_group_id': 'random',
                      'incoming_message_group_id': 'jam'

@@ -32,6 +32,7 @@ class TestCombininator(unittest.TestCase):
                 combiner.lambda_handler({"RuntimeVariables": {
                     "run_id": "bob",
                     "out_file_name": "mock_method",
+                    "location": "Here",
                     "outgoing_message_group_id": "Bob",
                     "queue_url": "Earl"}},
                                         context_object)
@@ -82,6 +83,7 @@ class TestCombininator(unittest.TestCase):
                                           "additional_aggregated_column": "region",
                                           "run_id": "bob",
                                           "out_file_name": "mock_method",
+                                          "location": "Here",
                                           "outgoing_message_group_id": "Bob",
                                           "queue_url": sqs_queue_url,
                                           "in_file_name": "sss"
@@ -117,6 +119,7 @@ class TestCombininator(unittest.TestCase):
                                               "additional_aggregated_column": "region",
                                               "run_id": "bob",
                                               "out_file_name": "mock_method",
+                                              "location": "Here",
                                               "outgoing_message_group_id": "Bob",
                                               "queue_url": sqs_queue_url,
                                               "in_file_name": "sss"
@@ -152,6 +155,7 @@ class TestCombininator(unittest.TestCase):
                                               "run_id": "bob",
                                               "queue_url": sqs_queue_url,
                                               "out_file_name": "mock_method",
+                                              "location": "Here",
                                               "outgoing_message_group_id": "Bob",
                                               "in_file_name": "sss"
                                               }}, context_object)
@@ -183,6 +187,7 @@ class TestCombininator(unittest.TestCase):
                                               "run_id": "bob",
                                               "queue_url": sqs_queue_url,
                                               "out_file_name": "mock_method",
+                                              "location": "Here",
                                               "outgoing_message_group_id": "Bob",
                                               "in_file_name": "sss"
                                               }}, context_object)
@@ -231,6 +236,7 @@ class TestCombininator(unittest.TestCase):
                                     "run_id": "bob",
                                     "queue_url": sqs_queue_url,
                                     "out_file_name": "mock_method",
+                                    "location": "Here",
                                     "outgoing_message_group_id": "Bob",
                                     "in_file_name": "sss"
                                     }}, context_object)
@@ -264,6 +270,7 @@ class TestCombininator(unittest.TestCase):
                                               "run_id": "bob",
                                               "queue_url": sqs_queue_url,
                                               "out_file_name": "mock_method",
+                                              "location": "Here",
                                               "outgoing_message_group_id": "Bob",
                                               "in_file_name": "sss"
                                               }}, context_object)

@@ -33,6 +33,7 @@ wrangler_runtime_variables = {
         "queue_url": "test_queue",
         "in_file_name": "test_splitter_input",
         "incoming_message_group_id": "mock-id",
+        "location": "Here",
         "out_file_name_bricks": "test_splitter_bricks_output.json",
         "out_file_name_region": "test_splitter_region_output.json",
         "unique_identifier": [

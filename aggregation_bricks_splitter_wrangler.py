@@ -67,6 +67,7 @@ def lambda_handler(event, context):
         factors_parameters = event['RuntimeVariables']["factors_parameters"]
         in_file_name = event['RuntimeVariables']['in_file_name']
         incoming_message_group_id = event['RuntimeVariables']['incoming_message_group_id']
+        location = event['RuntimeVariables']['location']
         out_file_name_bricks = event['RuntimeVariables']['out_file_name_bricks']
         out_file_name_region = event['RuntimeVariables']['out_file_name_region']
         region_column = factors_parameters['RuntimeVariables']['region_column']
@@ -80,7 +81,7 @@ def lambda_handler(event, context):
         data, receipt_handler = aws_functions.get_dataframe(sqs_queue_url, bucket_name,
                                                             in_file_name,
                                                             incoming_message_group_id,
-                                                            run_id)
+                                                            location)
 
         logger.info("Succesfully retrieved data.")
 
@@ -140,7 +141,7 @@ def lambda_handler(event, context):
         region_output = data_region.to_json(orient='records')
 
         aws_functions.save_to_s3(bucket_name, out_file_name_region,
-                                 region_output, run_id)
+                                 region_output, location)
 
         logger.info("Successfully sent data to s3")
 
@@ -158,7 +159,8 @@ def lambda_handler(event, context):
                                              ).agg(totals_dict).reset_index()
 
         brick_output = brick_dataframe.to_json(orient='records')
-        aws_functions.save_to_s3(bucket_name, out_file_name_bricks, brick_output, run_id)
+        aws_functions.save_to_s3(bucket_name, out_file_name_bricks,
+                                 brick_output, location)
 
         logger.info("Successfully sent data to s3")
 

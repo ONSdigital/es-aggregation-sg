@@ -63,6 +63,7 @@ def lambda_handler(event, context):
             event['RuntimeVariables']['additional_aggregated_column']
         aggregated_column = event['RuntimeVariables']['aggregated_column']
         in_file_name = event['RuntimeVariables']['in_file_name']
+        location = event['RuntimeVariables']['location']
         out_file_name = event['RuntimeVariables']['out_file_name']
         outgoing_message_group_id = event['RuntimeVariables']["outgoing_message_group_id"]
         sqs_queue_url = event['RuntimeVariables']["queue_url"]
@@ -73,7 +74,7 @@ def lambda_handler(event, context):
         sqs = boto3.client("sqs", "eu-west-2")
 
         # Get file from s3
-        imp_df = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name, run_id)
+        imp_df = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name, location)
 
         logger.info("Successfully retrieved data from s3")
         data = []
@@ -98,13 +99,13 @@ def lambda_handler(event, context):
 
         first_agg_df = aws_functions.read_dataframe_from_s3(first_agg['bucket'],
                                                             first_agg['key'],
-                                                            run_id)
+                                                            location)
         second_agg_df = aws_functions.read_dataframe_from_s3(second_agg['bucket'],
                                                              second_agg['key'],
-                                                             run_id)
+                                                             location)
         third_agg_df = aws_functions.read_dataframe_from_s3(third_agg['bucket'],
                                                             third_agg['key'],
-                                                            run_id)
+                                                            location)
 
         to_aggregate = [aggregated_column]
         if additional_aggregated_column != "":
@@ -128,16 +129,16 @@ def lambda_handler(event, context):
         # send output onwards
         aws_functions.save_data(bucket_name, out_file_name, final_output,
                                 sqs_queue_url, outgoing_message_group_id,
-                                run_id)
+                                location)
         logger.info("Successfully sent data to s3.")
 
         if run_environment != "development":
             logger.info(aws_functions.delete_data(first_agg['bucket'], first_agg['key'],
-                                                  run_id))
+                                                  location))
             logger.info(aws_functions.delete_data(second_agg['bucket'], second_agg['key'],
-                                                  run_id))
+                                                  location))
             logger.info(aws_functions.delete_data(third_agg['bucket'], third_agg['key'],
-                                                  run_id))
+                                                  location))
             logger.info("Successfully deleted input data.")
 
         aws_functions.send_sns_message(checkpoint, sns_topic_arn,
