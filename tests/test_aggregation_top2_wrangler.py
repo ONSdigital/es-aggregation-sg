@@ -25,6 +25,7 @@ wrangler_runtime_variables = {"RuntimeVariables": {
                               "queue_url": "Earl",
                               'outgoing_message_group_id': 'random',
                               'incoming_message_group_id': 'Grooop',
+                              "location": "Here",
                               'out_file_name': 'bob',
                               "reference": 123456789,
                               "in_file_name": "file_to_get_from_s3.json"
@@ -41,6 +42,7 @@ wrangler_runtime_variables_b = {"RuntimeVariables": {
                               "queue_url": "Earl",
                               'outgoing_message_group_id': 'random',
                               'incoming_message_group_id': 'Grooop',
+                              "location": "Here",
                               'out_file_name': 'bob',
                               "reference": 123456789,
                               "in_file_name": "file_to_get_from_s3.json"

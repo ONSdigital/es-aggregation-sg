@@ -26,6 +26,7 @@ wrangler_runtime_variables = {
                      "run_id": "bob",
                      "queue_url": "Earl",
                      "in_file_name": "moo",
+                     "location": "Here",
                      "outgoing_message_group_id": "mock-message-id",
                      "out_file_name": "mock-file",
                      "incoming_message_group_id": "yes"
@@ -43,6 +44,7 @@ wrangler_runtime_variables_b = {
                      "run_id": "bob",
                      "queue_url": "Earl",
                      "in_file_name": "moo",
+                     "location": "Here",
                      "out_file_name": "mock-file",
                      "outgoing_message_group_id": "mock-message-id",
                      "incoming_message_group_id": "yes"
