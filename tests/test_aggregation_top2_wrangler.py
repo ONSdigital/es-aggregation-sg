@@ -348,7 +348,7 @@ class TestMoto:
                     self, exception_classes.LambdaFailure) as exc_info:
                 aggregation_top2_wrangler.lambda_handler(
                     wrangler_runtime_variables, context_object)
-            assert "AWS Error" in exc_info.exception.error_message
+            assert "Could not find" in exc_info.exception.error_message
 
     def test_client_error_exception(self):
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
@@ -365,4 +365,4 @@ class TestMoto:
                     self, exception_classes.LambdaFailure) as exc_info:
                 aggregation_top2_wrangler.lambda_handler(
                     wrangler_runtime_variables, context_object)
-            assert "AWS Error" in exc_info.exception.error_message
+            assert "Could not find" in exc_info.exception.error_message
