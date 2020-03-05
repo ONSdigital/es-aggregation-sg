@@ -183,7 +183,7 @@ class TestCountyWranglerMethods:
                 self, exception_classes.LambdaFailure) as exc_info:
             aggregation_column_wrangler.\
                 lambda_handler(wrangler_runtime_variables, context_object)
-        assert "AWS Error" in exc_info.exception.error_message
+        assert "Could not find" in exc_info.exception.error_message
 
     @mock_sqs
     def test_fail_to_get_from_sqs(self):
@@ -192,7 +192,7 @@ class TestCountyWranglerMethods:
             aggregation_column_wrangler.\
                     lambda_handler(wrangler_runtime_variables, context_object)
 
-        assert "AWS Error" in exc_info.exception.error_message
+        assert "Could not find" in exc_info.exception.error_message
 
     @mock.patch("aggregation_column_wrangler.aws_functions.save_data")
     @mock.patch("aggregation_column_wrangler.boto3.client")

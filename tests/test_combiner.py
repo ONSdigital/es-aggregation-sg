@@ -191,7 +191,7 @@ class TestCombininator(unittest.TestCase):
                                               "outgoing_message_group_id": "Bob",
                                               "in_file_name": "sss"
                                               }}, context_object)
-            assert "AWS Error" in exc_info.exception.error_message
+            assert "Could not find" in exc_info.exception.error_message
 
     @mock_sqs
     @mock_s3
