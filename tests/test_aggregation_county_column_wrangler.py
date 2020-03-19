@@ -30,7 +30,7 @@ wrangler_runtime_variables = {
                      "outgoing_message_group_id": "mock-message-id",
                      "out_file_name": "mock-file",
                      "incoming_message_group_id": "yes",
-                    "sns_topic_arn": "mock-topic-arn"
+                     "sns_topic_arn": "mock-topic-arn"
                     }
 
                      }
@@ -49,7 +49,7 @@ wrangler_runtime_variables_b = {
                      "out_file_name": "mock-file",
                      "outgoing_message_group_id": "mock-message-id",
                      "incoming_message_group_id": "yes",
-                    "sns_topic_arn": "mock-topic-arn"
+                     "sns_topic_arn": "mock-topic-arn"
                     }
                      }
 
