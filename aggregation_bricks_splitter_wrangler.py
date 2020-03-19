@@ -17,7 +17,6 @@ class EnvironSchema(Schema):
     checkpoint = fields.Str(required=True)
     bucket_name = fields.Str(required=True)
     method_name = fields.Str(required=True)
-    sns_topic_arn = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -60,7 +59,6 @@ def lambda_handler(event, context):
         checkpoint = config["checkpoint"]
         bucket_name = config["bucket_name"]
         method_name = config["method_name"]
-        sns_topic_arn = config["sns_topic_arn"]
 
         # Runtime Variables
         column_list = event['RuntimeVariables']['total_columns']
@@ -72,6 +70,7 @@ def lambda_handler(event, context):
         out_file_name_region = event['RuntimeVariables']['out_file_name_region']
         region_column = factors_parameters['RuntimeVariables']['region_column']
         regionless_code = factors_parameters['RuntimeVariables']['regionless_code']
+        sns_topic_arn = event['RuntimeVariables']["sns_topic_arn"]
         sqs_queue_url = event['RuntimeVariables']["queue_url"]
         unique_identifier = event['RuntimeVariables']['unique_identifier']
 

@@ -28,7 +28,8 @@ wrangler_runtime_variables = {"RuntimeVariables": {
                               "location": "Here",
                               'out_file_name': 'bob',
                               "reference": 123456789,
-                              "in_file_name": "file_to_get_from_s3.json"
+                              "in_file_name": "file_to_get_from_s3.json",
+                              "sns_topic_arn": "fake_sns_arn"
                               }}
 
 wrangler_runtime_variables_b = {"RuntimeVariables": {
@@ -45,7 +46,8 @@ wrangler_runtime_variables_b = {"RuntimeVariables": {
                               "location": "Here",
                               'out_file_name': 'bob',
                               "reference": 123456789,
-                              "in_file_name": "file_to_get_from_s3.json"
+                              "in_file_name": "file_to_get_from_s3.json",
+                              "sns_topic_arn": "fake_sns_arn"
                               }}
 
 context_object = MockContext()
@@ -65,7 +67,6 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
         with mock.patch.dict(aggregation_top2_wrangler.os.environ, {
             'bucket_name': 'some-bucket-name',
             'checkpoint': '3',
-            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random'
             }
         ):
@@ -100,7 +101,6 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'bucket_name': 'some-bucket-name',
             'sqs_message_group_id': 'random',
             'checkpoint': '3',
-            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': 'Grooop',
             'out_file_name': 'bob'
@@ -168,7 +168,6 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'bucket_name': 'some-bucket-name',
             'sqs_message_group_id': 'random',
             'checkpoint': '3',
-            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
             'out_file_name': "boris",
@@ -204,7 +203,6 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'bucket_name': 'some-bucket-name',
             'sqs_message_group_id': 'random',
             'checkpoint': '3',
-            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
             'out_file_name': "boris"
@@ -240,7 +238,6 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'bucket_name': 'some-bucket-name',
             'sqs_message_group_id': 'random',
             'checkpoint': '3',
-            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
             'out_file_name': "boris"
@@ -274,7 +271,6 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'bucket_name': 'some-bucket-name',
             'sqs_message_group_id': 'random',
             'checkpoint': '3',
-            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
             'out_file_name': "boris"
@@ -309,7 +305,6 @@ class TestAggregationTop2Wrangler(unittest.TestCase):
             'bucket_name': 'some-bucket-name',
             'sqs_message_group_id': 'random',
             'checkpoint': '3',
-            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
             'out_file_name': "boris"
@@ -338,7 +333,6 @@ class TestMoto:
             'bucket_name': 'some-bucket-name',
             'sqs_message_group_id': 'random',
             'checkpoint': '3',
-            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
             'out_file_name': "boris"
@@ -355,7 +349,6 @@ class TestMoto:
             'bucket_name': 'some-bucket-name',
             'sqs_message_group_id': 'random',
             'checkpoint': '3',
-            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             'incoming_message_group': "Gruppe",
             'out_file_name': "boris"

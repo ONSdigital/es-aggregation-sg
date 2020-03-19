@@ -17,7 +17,6 @@ class EnvironSchema(Schema):
     checkpoint = fields.Str(required=True)
     bucket_name = fields.Str(required=True)
     run_environment = fields.Str(required=True)
-    sns_topic_arn = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -56,7 +55,6 @@ def lambda_handler(event, context):
         checkpoint = config["checkpoint"]
         bucket_name = config["bucket_name"]
         run_environment = config['run_environment']
-        sns_topic_arn = config["sns_topic_arn"]
 
         # Runtime Variables
         additional_aggregated_column =\
@@ -66,6 +64,7 @@ def lambda_handler(event, context):
         location = event['RuntimeVariables']['location']
         out_file_name = event['RuntimeVariables']['out_file_name']
         outgoing_message_group_id = event['RuntimeVariables']["outgoing_message_group_id"]
+        sns_topic_arn = event['RuntimeVariables']["sns_topic_arn"]
         sqs_queue_url = event['RuntimeVariables']["queue_url"]
 
         logger.info("Retrieved configuration variables.")

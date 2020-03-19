@@ -29,7 +29,8 @@ wrangler_runtime_variables = {
                      "location": "Here",
                      "outgoing_message_group_id": "mock-message-id",
                      "out_file_name": "mock-file",
-                     "incoming_message_group_id": "yes"
+                     "incoming_message_group_id": "yes",
+                    "sns_topic_arn": "mock-topic-arn"
                     }
 
                      }
@@ -47,7 +48,8 @@ wrangler_runtime_variables_b = {
                      "location": "Here",
                      "out_file_name": "mock-file",
                      "outgoing_message_group_id": "mock-message-id",
-                     "incoming_message_group_id": "yes"
+                     "incoming_message_group_id": "yes",
+                    "sns_topic_arn": "mock-topic-arn"
                     }
                      }
 
@@ -60,7 +62,6 @@ class TestCountyWranglerMethods:
             {
                 "bucket_name": "mock-bucket",
                 "checkpoint": "mockpoint",
-                "sns_topic_arn": "mock-topic-arn",
                 "method_name": "mock-method"
             }
         )
