@@ -3,7 +3,7 @@ service: es-aggregation-sg
 provider:
   name: aws
   deploymentBucket:
-    name: com.serverless.${self:provider.region}.results.ons.deploys
+    name: spp-results-sandbox-serverless
   role: arn:aws:iam::${self:custom.accountId}:role/lambda_invoke_lambda
   vpc:
     securityGroupIds:
@@ -21,10 +21,8 @@ provider:
     individually: true
 
 custom:
-  accounts: ${ssm:/aws/reference/secretsmanager/results-aws-accounts~true}
-  accountId: ${self:custom.accounts.account-id}
-  currentEnvironment: ${ssm:/aws/reference/secretsmanager/results-aws-environment~true}
-  environmentType: ${self:custom.currentEnvironment.environment-type}
+  accountId: ${env:aws_account_id}
+  environmentType: ${env:environment_type}
 
 functions:
   deploy-bricks-splitter-wrangler:
@@ -43,7 +41,7 @@ functions:
       app: results
     environment:
       checkpoint: 4
-      bucket_name: results-s3-bucket
+      bucket_name: spp-results-sandbox
       method_name: es-add-regionless-method
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
 
@@ -63,7 +61,7 @@ functions:
       app: results
     environment:
       checkpoint: 4
-      bucket_name: results-s3-bucket
+      bucket_name: spp-results-sandbox
       method_name: es-aggregation-column-method
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
 
@@ -97,7 +95,7 @@ functions:
       app: results
     environment:
       checkpoint: 4
-      bucket_name: results-s3-bucket
+      bucket_name: spp-results-sandbox
       method_name: es-aggregation-top2-method
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
 
@@ -131,7 +129,7 @@ functions:
       app: results
     environment:
       checkpoint: 4
-      bucket_name: results-s3-bucket
+      bucket_name: spp-results-sandbox
       run_environment: ${self:custom.environmentType}
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
 
