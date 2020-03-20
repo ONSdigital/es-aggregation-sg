@@ -29,7 +29,8 @@ wrangler_runtime_variables = {
                         "location": "Here",
                         'out_file_name': 'file_to_get_from_s3.json',
                         'outgoing_message_group_id': 'random',
-                        'incoming_message_group_id': 'jam'
+                        'incoming_message_group_id': 'jam',
+                        "sns_topic_arn": "fake_sns_arn"
                          },
                      }
 
@@ -47,7 +48,8 @@ wrangler_runtime_variables_b = {
                      "location": "Here",
                      'out_file_name': 'file_to_get_from_s3.json',
                      'outgoing_message_group_id': 'random',
-                     'incoming_message_group_id': 'jam'
+                     'incoming_message_group_id': 'jam',
+                     "sns_topic_arn": "fake_sns_arn"
                     }
                      }
 
@@ -62,7 +64,6 @@ class TestStringMethods(unittest.TestCase):
         with mock.patch.dict(aggregation_column_wrangler.os.environ, {
             'bucket_name': 'some-bucket-name',
             'checkpoint': '3',
-            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'method_name': 'random',
             }
         ):
@@ -95,7 +96,6 @@ class TestStringMethods(unittest.TestCase):
             'bucket_name': 'some-bucket-name',
             'out_file_name': 'file_to_get_from_s3.json',
             'checkpoint': '3',
-            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam'
@@ -151,7 +151,6 @@ class TestStringMethods(unittest.TestCase):
             'bucket_name': 'some-bucket-name',
             'out_file_name': 'file_to_get_from_s3.json',
             'checkpoint': '3',
-            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
@@ -183,7 +182,6 @@ class TestStringMethods(unittest.TestCase):
             'bucket_name': 'some-bucket-name',
             'out_file_name': 'file_to_get_from_s3.json',
             'checkpoint': '3',
-            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
@@ -209,7 +207,6 @@ class TestStringMethods(unittest.TestCase):
             'bucket_name': 'some-bucket-name',
             'out_file_name': 'file_to_get_from_s3.json',
             'checkpoint': '3',
-            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam'
@@ -240,7 +237,6 @@ class TestMoto:
             'bucket_name': 'some-bucket-name',
             'out_file_name': 'file_to_get_from_s3.json',
             'checkpoint': '3',
-            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',
@@ -263,7 +259,6 @@ class TestMoto:
             'bucket_name': 'some-bucket-name',
             'out_file_name': 'file_to_get_from_s3.json',
             'checkpoint': '3',
-            'sns_topic_arn': 'arn:aws:sns:eu-west-2:014669633018:some-topic',
             'sqs_message_group_id': 'random',
             'method_name': 'random',
             'incoming_message_group': 'jam',

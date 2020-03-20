@@ -43,7 +43,6 @@ functions:
       checkpoint: 4
       bucket_name: spp-results-sandbox
       method_name: es-add-regionless-method
-      sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
 
   deploy-column-wrangler:
     name: es-aggregation-column-wrangler
@@ -63,7 +62,6 @@ functions:
       checkpoint: 4
       bucket_name: spp-results-sandbox
       method_name: es-aggregation-column-method
-      sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
 
   deploy-column-method:
     name: es-aggregation-column-method
@@ -97,7 +95,6 @@ functions:
       checkpoint: 4
       bucket_name: spp-results-sandbox
       method_name: es-aggregation-top2-method
-      sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
 
   deploy-top2-method:
     name: es-aggregation-top2-method
@@ -131,7 +128,6 @@ functions:
       checkpoint: 4
       bucket_name: spp-results-sandbox
       run_environment: ${self:custom.environmentType}
-      sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
 
 plugins:
   - serverless-latest-layer-version

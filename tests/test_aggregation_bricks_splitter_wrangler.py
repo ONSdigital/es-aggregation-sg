@@ -17,7 +17,6 @@ example_brick_type = {
 wrangler_environment_variables = {
     "bucket_name": "test_bucket",
     "checkpoint": "mock-point",
-    "sns_topic_arn": "fake_sns_arn",
     "method_name": "mock-method"
 }
 
@@ -55,6 +54,7 @@ wrangler_runtime_variables = {
             "closing_stock_facings",
             "closing_stock_engineering"
         ],
+        "sns_topic_arn": "fake_sns_arn"
     }
 }
 

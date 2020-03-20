@@ -23,7 +23,6 @@ class TestCombininator(unittest.TestCase):
             "os.environ",
             {
                 "checkpoint": "mock_checkpoint",
-                "sns_topic_arn": "not_an_arn",
                 "run_environment": "development"
             }
         ):
@@ -34,7 +33,8 @@ class TestCombininator(unittest.TestCase):
                     "out_file_name": "mock_method",
                     "location": "Here",
                     "outgoing_message_group_id": "Bob",
-                    "queue_url": "Earl"}},
+                    "queue_url": "Earl",
+                    "sns_topic_arn": "fake_sns_arn"}},
                                         context_object)
             assert "Error validating environment" in exc_info.exception.error_message
 
@@ -49,7 +49,6 @@ class TestCombininator(unittest.TestCase):
             "os.environ",
             {
                 "checkpoint": "mock_checkpoint",
-                "sns_topic_arn": "not_an_arn",
                 "bucket_name": "mrsbucket",
                 "run_environment": "development"
             }
@@ -86,7 +85,8 @@ class TestCombininator(unittest.TestCase):
                                           "location": "Here",
                                           "outgoing_message_group_id": "Bob",
                                           "queue_url": sqs_queue_url,
-                                          "in_file_name": "sss"
+                                          "in_file_name": "sss",
+                                          "sns_topic_arn": "fake_sns_arn"
                                           }}, context_object)
 
                 assert out["success"]
@@ -101,7 +101,6 @@ class TestCombininator(unittest.TestCase):
             "os.environ",
             {
                 "checkpoint": "mock_checkpoint",
-                "sns_topic_arn": "not_an_arn",
                 "out_file_name": "mock_method",
                 "bucket_name": "BertieBucket",
                 "outgoing_message_group_id": "Bob",
@@ -122,7 +121,8 @@ class TestCombininator(unittest.TestCase):
                                               "location": "Here",
                                               "outgoing_message_group_id": "Bob",
                                               "queue_url": sqs_queue_url,
-                                              "in_file_name": "sss"
+                                              "in_file_name": "sss",
+                                              "sns_topic_arn": "fake_sns_arn"
                                               }}, context_object)
                 assert "There was no data in sqs queue" in \
                        exc_info.exception.error_message
@@ -138,7 +138,6 @@ class TestCombininator(unittest.TestCase):
             "os.environ",
             {
                 "checkpoint": "mock_checkpoint",
-                "sns_topic_arn": "not_an_arn",
                 "out_file_name": "mock_method",
                 "bucket_name": "BertieBucket",
                 "outgoing_message_group_id": "Bob",
@@ -157,7 +156,8 @@ class TestCombininator(unittest.TestCase):
                                               "out_file_name": "mock_method",
                                               "location": "Here",
                                               "outgoing_message_group_id": "Bob",
-                                              "in_file_name": "sss"
+                                              "in_file_name": "sss",
+                                              "sns_topic_arn": "fake_sns_arn"
                                               }}, context_object)
                 assert "Bad data encountered in" in exc_info.exception.error_message
 
@@ -172,7 +172,6 @@ class TestCombininator(unittest.TestCase):
             "os.environ",
             {
                 "checkpoint": "mock_checkpoint",
-                "sns_topic_arn": "not_an_arn",
                 "out_file_name": "mock_method",
                 "bucket_name": "BertieBucket",
                 "outgoing_message_group_id": "Bob",
@@ -189,7 +188,8 @@ class TestCombininator(unittest.TestCase):
                                               "out_file_name": "mock_method",
                                               "location": "Here",
                                               "outgoing_message_group_id": "Bob",
-                                              "in_file_name": "sss"
+                                              "in_file_name": "sss",
+                                              "sns_topic_arn": "fake_sns_arn"
                                               }}, context_object)
             assert "Could not find" in exc_info.exception.error_message
 
@@ -204,7 +204,6 @@ class TestCombininator(unittest.TestCase):
             "os.environ",
             {
                 "checkpoint": "mock_checkpoint",
-                "sns_topic_arn": "not_an_arn",
                 "out_file_name": "mock_method",
                 "bucket_name": "Bertie Bucket",
                 "outgoing_message_group_id": "Bob",
@@ -238,7 +237,8 @@ class TestCombininator(unittest.TestCase):
                                     "out_file_name": "mock_method",
                                     "location": "Here",
                                     "outgoing_message_group_id": "Bob",
-                                    "in_file_name": "sss"
+                                    "in_file_name": "sss",
+                                    "sns_topic_arn": "fake_sns_arn"
                                     }}, context_object)
                         assert "Key Error" in exc_info.exception.error_message
 
@@ -253,7 +253,6 @@ class TestCombininator(unittest.TestCase):
             "os.environ",
             {
                 "checkpoint": "mock_checkpoint",
-                "sns_topic_arn": "not_an_arn",
                 "out_file_name": "mock_method",
                 "bucket_name": "BertieBucket",
                 "outgoing_message_group_id": "Bob",
@@ -272,6 +271,7 @@ class TestCombininator(unittest.TestCase):
                                               "out_file_name": "mock_method",
                                               "location": "Here",
                                               "outgoing_message_group_id": "Bob",
-                                              "in_file_name": "sss"
+                                              "in_file_name": "sss",
+                                              "sns_topic_arn": "fake_sns_arn"
                                               }}, context_object)
                 assert "General Error" in exc_info.exception.error_message

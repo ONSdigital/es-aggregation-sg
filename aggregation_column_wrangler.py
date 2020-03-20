@@ -16,7 +16,6 @@ class InputSchema(Schema):
     bucket_name = fields.Str(required=True)
     checkpoint = fields.Str(required=True)
     method_name = fields.Str(required=True)
-    sns_topic_arn = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -66,7 +65,6 @@ def lambda_handler(event, context):
         bucket_name = config['bucket_name']
         checkpoint = config['checkpoint']
         method_name = config['method_name']
-        sns_topic_arn = config['sns_topic_arn']
 
         # Runtime Variables
         additional_aggregated_column = \
@@ -78,6 +76,7 @@ def lambda_handler(event, context):
         location = event['RuntimeVariables']['location']
         out_file_name = event['RuntimeVariables']['out_file_name']
         outgoing_message_group_id = event['RuntimeVariables']["outgoing_message_group_id"]
+        sns_topic_arn = event['RuntimeVariables']['sns_topic_arn']
         sqs_queue_url = event['RuntimeVariables']["queue_url"]
         total_columns = event['RuntimeVariables']['total_columns']
 
