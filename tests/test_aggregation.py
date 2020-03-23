@@ -21,7 +21,7 @@ combiner_runtime_variables = {
             "additional_aggregated_column": "",
             "aggregated_column": "",
             "in_file_name": "test_wrangler_input",
-            "location": "Here",
+            "location": "",
             "out_file_name": "test_wrangler_output.json",
             "outgoing_message_group_id": "test_id",
             "queue_url": "Earl",
@@ -54,7 +54,8 @@ method_top2_runtime_variables = {
 generic_environment_variables = {
     "bucket_name": "test_bucket",
     "checkpoint": "999",
-    "method_name": "strata_period_method"
+    "method_name": "strata_period_method",
+    "run_environment": "something"
 }
 
 pre_wrangler_runtime_variables = {
@@ -62,17 +63,20 @@ pre_wrangler_runtime_variables = {
         {
             "run_id": "bob",
             "in_file_name": "test_wrangler_input",
-            "location": "Here",
+            "location": "",
             "out_file_name_bricks": "test_wrangler_bricks_output.json",
             "out_file_name_region": "test_wrangler_region_output.json",
             "outgoing_message_group_id": "test_id",
             "queue_url": "Earl",
             "sns_topic_arn": "fake_sns_arn",
-            "total_columns": ["", ""],
-            "factors_parameters": {},
+            "total_columns": ["Temp"],
+            "factors_parameters": {
+                "RuntimeVariables": {
+                    "region_column": "region",
+                    "regionless_code": "14"
+                }
+            },
             "incoming_message_group_id": "",
-            "region_column": "region",
-            "regionless_code": "14",
             "unique_identifier": ["", ""]
         }
 }
@@ -86,7 +90,7 @@ wrangler_col_runtime_variables = {
             "aggregation_type": "",
             "cell_total_column": "",
             "in_file_name": "test_wrangler_input",
-            "location": "Here",
+            "location": "",
             "out_file_name": "test_wrangler_output.json",
             "outgoing_message_group_id": "test_id",
             "queue_url": "Earl",
@@ -102,7 +106,7 @@ wrangler_top2_runtime_variables = {
             "additional_aggregated_column": "",
             "aggregated_column": "",
             "in_file_name": "test_wrangler_input",
-            "location": "Here",
+            "location": "",
             "out_file_name": "test_wrangler_output.json",
             "outgoing_message_group_id": "test_id",
             "queue_url": "Earl",
@@ -176,8 +180,14 @@ def test_general_error(which_lambda, which_runtime_variables,
 
 
 @mock_s3
-@mock.patch('strata_period_wrangler.aws_functions.get_dataframe',
+@mock.patch('aggregation_column_wrangler.aws_functions.read_dataframe_from_s3',
+            side_effect=test_generic_library.replacement_read_dataframe_from_s3)
+@mock.patch('aggregation_top2_wrangler.aws_functions.read_dataframe_from_s3',
             side_effect=test_generic_library.replacement_get_dataframe)
+@mock.patch('aggregation_bricks_splitter_wrangler.aws_functions.get_dataframe',
+            side_effect=test_generic_library.replacement_get_dataframe)
+@mock.patch('combiner.aws_functions.read_dataframe_from_s3',
+            side_effect=test_generic_library.replacement_read_dataframe_from_s3)
 @pytest.mark.parametrize(
     "which_lambda,which_runtime_variables,which_environment_variables,file_list," +
     "lambda_name,expected_message",
@@ -195,7 +205,7 @@ def test_general_error(which_lambda, which_runtime_variables,
          generic_environment_variables, ["test_wrangler_input.json"],
          "combiner", "IncompleteReadError")
     ])
-def test_incomplete_read_error(mock_s3_get, which_lambda, which_runtime_variables,
+def test_incomplete_read_error(a, b, c, d, which_lambda, which_runtime_variables,
                                which_environment_variables, file_list, lambda_name,
                                expected_message):
 
@@ -251,15 +261,29 @@ def test_method_error(mock_s3_get, which_lambda, which_runtime_variables,
                                                file_list,
                                                lambda_name)
 
-########################
+
 @pytest.mark.parametrize(
     "which_lambda,expected_message,assertion",
-    [(lambda_method_col_function,
-      "Error validating environment param",
-      test_generic_library.method_assert),
-     (lambda_wrangler_col_function,
-      "Error validating environment param",
-      test_generic_library.wrangler_assert)])
+    [
+        (lambda_wrangler_col_function,
+         "Error validating environment param",
+         test_generic_library.method_assert),
+        (lambda_wrangler_top2_function,
+         "Error validating environment param",
+         test_generic_library.method_assert),
+        (lambda_pre_wrangler_function,
+         "Error validating environment param",
+         test_generic_library.method_assert),
+        (lambda_combiner_function,
+         "Error validating environment param",
+         test_generic_library.method_assert),
+        (lambda_method_col_function,
+         "Error validating environment param",
+         test_generic_library.method_assert),
+        (lambda_method_top2_function,
+         "Error validating environment param",
+         test_generic_library.method_assert)
+    ])
 def test_value_error(which_lambda, expected_message, assertion):
     test_generic_library.value_error(
         which_lambda, expected_message, assertion)

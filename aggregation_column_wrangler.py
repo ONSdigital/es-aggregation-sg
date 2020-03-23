@@ -8,7 +8,7 @@ from es_aws_functions import aws_functions, exception_classes
 from marshmallow import Schema, fields
 
 
-class InputSchema(Schema):
+class EnvironSchema(Schema):
     """
     Schema to ensure that environment variables are present and in the correct format.
     :return: None
@@ -54,7 +54,7 @@ def lambda_handler(event, context):
         lambda_client = boto3.client('lambda', region_name="eu-west-2")
 
         # ENV vars
-        config, errors = InputSchema().load(os.environ)
+        config, errors = EnvironSchema().load(os.environ)
 
         if errors:
             raise ValueError(f"Error validating environment params: {errors}")
