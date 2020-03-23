@@ -33,10 +33,10 @@ method_col_runtime_variables = {
     "RuntimeVariables": {
         "input_json": None,
         "total_columns": ["Q608_total"],
-        "additional_aggregated_column": "",
-        "aggregated_column": "",
-        "cell_total_column": "",
-        "aggregation_type": ""
+        "additional_aggregated_column": "strata",
+        "aggregated_column": "region",
+        "cell_total_column": "Q608_total",
+        "aggregation_type": "sum"
     }
 }
 
@@ -44,10 +44,10 @@ method_top2_runtime_variables = {
     "RuntimeVariables": {
         "input_json": None,
         "total_columns": ["Q608_total"],
-        "additional_aggregated_column": "",
-        "aggregated_column": "",
-        "top1_column": "",
-        "top2_column": ""
+        "additional_aggregated_column": "strata",
+        "aggregated_column": "region",
+        "top1_column": "largest_contributor",
+        "top2_column": "second_largest_contributor"
     }
 }
 
@@ -122,6 +122,7 @@ wrangler_top2_runtime_variables = {
 ##########################################################################################
 
 
+# No Clue What's Going On Here.
 @pytest.mark.parametrize(
     "which_lambda,which_runtime_variables,which_environment_variables,"
     "which_data,expected_message,assertion",
@@ -179,6 +180,7 @@ def test_general_error(which_lambda, which_runtime_variables,
                                        expected_message, assertion)
 
 
+# Replacement read_dataframe_from_s3 Needed.
 @mock_s3
 @mock.patch('aggregation_column_wrangler.aws_functions.read_dataframe_from_s3',
             side_effect=test_generic_library.replacement_read_dataframe_from_s3)
@@ -218,20 +220,22 @@ def test_incomplete_read_error(a, b, c, d, which_lambda, which_runtime_variables
 
 
 @pytest.mark.parametrize(
+    # Method Ones Require Mike Error Stuff So It Can
+    # Fall Over On The Picking Up Of The Run ID.
     "which_lambda,which_environment_variables,expected_message,assertion",
     [
         (lambda_wrangler_col_function, generic_environment_variables,
-         "KeyError", test_generic_library.wrangler_assert),
+         "Key Error", test_generic_library.wrangler_assert),
         (lambda_wrangler_top2_function, generic_environment_variables,
-         "KeyError", test_generic_library.wrangler_assert),
+         "Key Error", test_generic_library.wrangler_assert),
         (lambda_pre_wrangler_function, generic_environment_variables,
-         "KeyError", test_generic_library.wrangler_assert),
+         "Key Error", test_generic_library.wrangler_assert),
         (lambda_combiner_function, generic_environment_variables,
-         "KeyError", test_generic_library.wrangler_assert),
+         "Key Error", test_generic_library.wrangler_assert),
         (lambda_method_col_function, False,
-         "KeyError", test_generic_library.method_assert),
+         "Key Error", test_generic_library.method_assert),
         (lambda_method_top2_function, False,
-         "KeyError", test_generic_library.method_assert)
+         "Key Error", test_generic_library.method_assert)
     ])
 def test_key_error(which_lambda, which_environment_variables,
                    expected_message, assertion):
@@ -239,6 +243,7 @@ def test_key_error(which_lambda, which_environment_variables,
                                    expected_message, assertion)
 
 
+# Do Incomplete Read Before Trying.
 @mock_s3
 @mock.patch('aggregation_column_wrangler.aws_functions.get_dataframe',
             side_effect=test_generic_library.replacement_get_dataframe)
@@ -267,16 +272,16 @@ def test_method_error(mock_s3_get, which_lambda, which_runtime_variables,
     [
         (lambda_wrangler_col_function,
          "Error validating environment param",
-         test_generic_library.method_assert),
+         test_generic_library.wrangler_assert),
         (lambda_wrangler_top2_function,
          "Error validating environment param",
-         test_generic_library.method_assert),
+         test_generic_library.wrangler_assert),
         (lambda_pre_wrangler_function,
          "Error validating environment param",
-         test_generic_library.method_assert),
+         test_generic_library.wrangler_assert),
         (lambda_combiner_function,
          "Error validating environment param",
-         test_generic_library.method_assert),
+         test_generic_library.wrangler_assert),
         (lambda_method_col_function,
          "Error validating environment param",
          test_generic_library.method_assert),
