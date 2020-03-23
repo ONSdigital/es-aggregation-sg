@@ -92,12 +92,14 @@ def lambda_handler(event, context):
         logger.info("Formated disaggregated_data")
 
         json_payload = {
-            "input_json": formatted_data,
-            "total_columns": total_columns,
-            "additional_aggregated_column": additional_aggregated_column,
-            "aggregated_column": aggregated_column,
-            "cell_total_column": cell_total_column,
-            "aggregation_type": aggregation_type
+            "RuntimeVariables": {
+                "input_json": formatted_data,
+                "total_columns": total_columns,
+                "additional_aggregated_column": additional_aggregated_column,
+                "aggregated_column": aggregated_column,
+                "cell_total_column": cell_total_column,
+                "aggregation_type": aggregation_type
+            }
         }
 
         by_column = lambda_client.invoke(FunctionName=method_name,

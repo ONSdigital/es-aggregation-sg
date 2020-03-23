@@ -102,12 +102,14 @@ def lambda_handler(event, context):
         logger.info("Invoking the statistical method.")
 
         json_payload = {
-            "input_json": prepared_data,
-            "total_columns": total_columns,
-            "additional_aggregated_column": additional_aggregated_column,
-            "aggregated_column": aggregated_column,
-            "top1_column": top1_column,
-            "top2_column": top2_column
+            "RuntimeVariables": {
+                "input_json": prepared_data,
+                "total_columns": total_columns,
+                "additional_aggregated_column": additional_aggregated_column,
+                "aggregated_column": aggregated_column,
+                "top1_column": top1_column,
+                "top2_column": top2_column
+            }
         }
 
         top2 = lambda_client.invoke(FunctionName=method_name,

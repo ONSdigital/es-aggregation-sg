@@ -46,7 +46,7 @@ def lambda_handler(event, context):
 
         # Set up Environment variables Schema.
         schema = EnvironSchema(strict=False)
-        config, errors = schema.load(event)
+        config, errors = schema.load(event["RuntimeVariables"])
         if errors:
             raise ValueError(f"Error validating environment parameters: {errors}")
 
@@ -74,7 +74,7 @@ def lambda_handler(event, context):
             .reset_index()
 
         for total_column in total_columns:
-            if("total" not in cell_total_column):
+            if "total" not in cell_total_column:
                 column_cell_total_column = cell_total_column
             else:
                 column_cell_total_column = cell_total_column + "_" + total_column
