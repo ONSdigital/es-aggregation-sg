@@ -134,6 +134,7 @@ wrangler_top2_runtime_variables = {
 #                                     Generic                                            #
 ##########################################################################################
 
+
 @mock_s3
 @pytest.mark.parametrize(
     "which_lambda,which_runtime_variables,which_environment_variables,"
@@ -141,16 +142,16 @@ wrangler_top2_runtime_variables = {
     [
         (lambda_wrangler_col_function, wrangler_col_runtime_variables,
          generic_environment_variables, None,
-         "AWS Error", test_generic_library.wrangler_assert),
+         "ClientError", test_generic_library.wrangler_assert),
         (lambda_wrangler_top2_function, wrangler_top2_runtime_variables,
          generic_environment_variables, None,
-         "AWS Error", test_generic_library.wrangler_assert),
+         "ClientError", test_generic_library.wrangler_assert),
         (lambda_pre_wrangler_function, pre_wrangler_runtime_variables,
          generic_environment_variables, None,
-         "AWS Error", test_generic_library.wrangler_assert),
+         "ClientError", test_generic_library.wrangler_assert),
         (lambda_combiner_function, combiner_runtime_variables,
          generic_environment_variables, None,
-         "AWS Error", test_generic_library.wrangler_assert)
+         "ClientError", test_generic_library.wrangler_assert)
     ])
 def test_client_error(which_lambda, which_runtime_variables,
                       which_environment_variables, which_data,
