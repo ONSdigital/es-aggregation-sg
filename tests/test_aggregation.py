@@ -56,7 +56,7 @@ method_top2_runtime_variables = {
 generic_environment_variables = {
     "bucket_name": "test_bucket",
     "checkpoint": "999",
-    "method_name": "strata_period_method",
+    "method_name": "aggregation",
     "run_environment": "something"
 }
 
@@ -116,16 +116,16 @@ wrangler_top2_runtime_variables = {
     "RuntimeVariables":
         {
             "run_id": "bob",
-            "additional_aggregated_column": "",
-            "aggregated_column": "",
+            "additional_aggregated_column": "a",
+            "aggregated_column": "a",
             "in_file_name": "test_wrangler_input",
             "location": "",
             "out_file_name": "test_wrangler_output.json",
             "outgoing_message_group_id": "test_id",
             "queue_url": "Earl",
             "sns_topic_arn": "fake_sns_arn",
-            "top1_column": "",
-            "top2_column": "",
+            "top1_column": "largest_contributor",
+            "top2_column": "second_largest_contributor",
             "total_columns": ["Q608_total"]
         }
 }
@@ -141,23 +141,23 @@ wrangler_top2_runtime_variables = {
     [
         (lambda_wrangler_col_function, wrangler_col_runtime_variables,
          generic_environment_variables, None,
-         "ClientError", test_generic_library.wrangler_assert),
+         "AWS Error", test_generic_library.wrangler_assert),
         (lambda_wrangler_top2_function, wrangler_top2_runtime_variables,
          generic_environment_variables, None,
-         "ClientError", test_generic_library.wrangler_assert),
+         "AWS Error", test_generic_library.wrangler_assert),
         (lambda_pre_wrangler_function, pre_wrangler_runtime_variables,
          generic_environment_variables, None,
-         "ClientError", test_generic_library.wrangler_assert),
+         "AWS Error", test_generic_library.wrangler_assert),
         (lambda_combiner_function, combiner_runtime_variables,
          generic_environment_variables, None,
-         "ClientError", test_generic_library.wrangler_assert)
+         "AWS Error", test_generic_library.wrangler_assert)
     ])
 def test_client_error(which_lambda, which_runtime_variables,
                       which_environment_variables, which_data,
                       expected_message, assertion):
-    bucket_name = 'test_bucket'
-    client = test_generic_library.create_bucket(bucket_name)
 
+    bucket_name = which_environment_variables["bucket_name"]
+    client = test_generic_library.create_bucket(bucket_name)
     file_list = ["test_wrangler_input.json"]
 
     test_generic_library.upload_files(client, bucket_name, file_list)
