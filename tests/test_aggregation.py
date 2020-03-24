@@ -186,16 +186,9 @@ def test_general_error(which_lambda, which_runtime_variables,
                                        expected_message, assertion)
 
 
-# Replacement read_dataframe_from_s3 Needed.
 @mock_s3
-@mock.patch('aggregation_column_wrangler.aws_functions.read_dataframe_from_s3',
-            side_effect=test_generic_library.replacement_read_dataframe_from_s3)
-@mock.patch('aggregation_top2_wrangler.aws_functions.read_dataframe_from_s3',
-            side_effect=test_generic_library.replacement_get_dataframe)
 @mock.patch('aggregation_bricks_splitter_wrangler.aws_functions.get_dataframe',
             side_effect=test_generic_library.replacement_get_dataframe)
-@mock.patch('combiner.aws_functions.read_dataframe_from_s3',
-            side_effect=test_generic_library.replacement_read_dataframe_from_s3)
 @pytest.mark.parametrize(
     "which_lambda,which_runtime_variables,which_environment_variables,file_list," +
     "lambda_name,expected_message",
@@ -213,7 +206,7 @@ def test_general_error(which_lambda, which_runtime_variables,
          generic_environment_variables, ["test_wrangler_input.json"],
          "combiner", "IncompleteReadError")
     ])
-def test_incomplete_read_error(a, b, c, d, which_lambda, which_runtime_variables,
+def test_incomplete_read_error(mock_get_s3, which_lambda, which_runtime_variables,
                                which_environment_variables, file_list, lambda_name,
                                expected_message):
 
