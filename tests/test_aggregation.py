@@ -31,6 +31,7 @@ combiner_runtime_variables = {
 
 method_col_runtime_variables = {
     "RuntimeVariables": {
+        "run_id": "bob",
         "input_json": None,
         "total_columns": ["Q608_total"],
         "additional_aggregated_column": "strata",
@@ -43,6 +44,7 @@ method_col_runtime_variables = {
 method_top2_runtime_variables = {
     "RuntimeVariables": {
         "input_json": None,
+        "run_id": "bob",
         "total_columns": ["Q608_total"],
         "additional_aggregated_column": "strata",
         "aggregated_column": "region",
@@ -62,14 +64,25 @@ pre_wrangler_runtime_variables = {
     "RuntimeVariables":
         {
             "run_id": "bob",
-            "in_file_name": "test_wrangler_input",
+            "in_file_name": "test_splitter_input",
             "location": "",
             "out_file_name_bricks": "test_wrangler_bricks_output.json",
             "out_file_name_region": "test_wrangler_region_output.json",
             "outgoing_message_group_id": "test_id",
             "queue_url": "Earl",
             "sns_topic_arn": "fake_sns_arn",
-            "total_columns": ["Temp"],
+            "total_columns":  ["opening_stock_commons",
+                               "opening_stock_facings",
+                               "opening_stock_engineering",
+                               "produced_commons",
+                               "produced_facings",
+                               "produced_engineering",
+                               "deliveries_commons",
+                               "deliveries_facings",
+                               "deliveries_engineering",
+                               "closing_stock_commons",
+                               "closing_stock_facings",
+                               "closing_stock_engineering"],
             "factors_parameters": {
                 "RuntimeVariables": {
                     "region_column": "region",
@@ -121,8 +134,6 @@ wrangler_top2_runtime_variables = {
 #                                     Generic                                            #
 ##########################################################################################
 
-
-# No Clue What's Going On Here.
 @mock_s3
 @pytest.mark.parametrize(
     "which_lambda,which_runtime_variables,which_environment_variables,"
@@ -148,6 +159,7 @@ def test_client_error(which_lambda, which_runtime_variables,
     bucket_name = which_environment_variables["bucket_name"]
     client = test_generic_library.create_bucket(bucket_name)
     file_list = ["test_wrangler_input.json"]
+
     test_generic_library.upload_files(client, bucket_name, file_list)
 
     test_generic_library.client_error(which_lambda, which_runtime_variables,
@@ -201,11 +213,8 @@ def test_general_error(which_lambda, which_runtime_variables,
          generic_environment_variables, ["test_wrangler_input.json"],
          "aggregation_top2_wrangler", "IncompleteReadError"),
         (lambda_pre_wrangler_function, pre_wrangler_runtime_variables,
-         generic_environment_variables, ["test_wrangler_input.json"],
+         generic_environment_variables, ["test_splitter_input.json"],
          "aggregation_bricks_splitter_wrangler", "IncompleteReadError"),
-        (lambda_combiner_function, combiner_runtime_variables,
-         generic_environment_variables, ["test_wrangler_input.json"],
-         "combiner", "IncompleteReadError")
     ])
 def test_incomplete_read_error(mock_get_s3, which_lambda, which_runtime_variables,
                                which_environment_variables, file_list, lambda_name,
@@ -220,22 +229,21 @@ def test_incomplete_read_error(mock_get_s3, which_lambda, which_runtime_variable
 
 
 @pytest.mark.parametrize(
-    # Method Ones Require Mike Error Stuff So It Can
-    # Fall Over On The Picking Up Of The Run ID.
+    # This test can work, but it means changing the 'bad_runtime_variables' in the funk
     "which_lambda,which_environment_variables,expected_message,assertion",
     [
         (lambda_wrangler_col_function, generic_environment_variables,
-         "Key Error", test_generic_library.wrangler_assert),
+         "KeyError", test_generic_library.wrangler_assert),
         (lambda_wrangler_top2_function, generic_environment_variables,
-         "Key Error", test_generic_library.wrangler_assert),
+         "KeyError", test_generic_library.wrangler_assert),
         (lambda_pre_wrangler_function, generic_environment_variables,
-         "Key Error", test_generic_library.wrangler_assert),
+         "KeyError", test_generic_library.wrangler_assert),
         (lambda_combiner_function, generic_environment_variables,
-         "Key Error", test_generic_library.wrangler_assert),
+         "KeyError", test_generic_library.wrangler_assert),
         (lambda_method_col_function, False,
-         "Key Error", test_generic_library.method_assert),
+         "KeyError", test_generic_library.method_assert),
         (lambda_method_top2_function, False,
-         "Key Error", test_generic_library.method_assert)
+         "KeyError", test_generic_library.method_assert)
     ])
 def test_key_error(which_lambda, which_environment_variables,
                    expected_message, assertion):
