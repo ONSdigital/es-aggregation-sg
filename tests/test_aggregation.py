@@ -240,9 +240,9 @@ def test_incomplete_read_error(mock_get_s3, which_lambda, which_runtime_variable
          "KeyError", test_generic_library.wrangler_assert),
         (lambda_combiner_function, generic_environment_variables,
          "KeyError", test_generic_library.wrangler_assert),
-        (lambda_method_col_function, {'runeID':"bob"},
+        (lambda_method_col_function, False,
          "KeyError", test_generic_library.method_assert),
-        (lambda_method_top2_function, {'runeID':"bob"},
+        (lambda_method_top2_function, False,
          "KeyError", test_generic_library.method_assert)
     ])
 def test_key_error(which_lambda, which_environment_variables,
