@@ -143,6 +143,12 @@ wrangler_top2_runtime_variables = {
 def test_client_error(which_lambda, which_runtime_variables,
                       which_environment_variables, which_data,
                       expected_message, assertion):
+    #     client = test_generic_library.create_bucket(bucket_name)
+    #
+    #     file_list = ["test_wrangler_input.json"]
+    #
+    #     test_generic_library.upload_files(client, bucket_name, file_list)
+
     test_generic_library.client_error(which_lambda, which_runtime_variables,
                                       which_environment_variables, which_data,
                                       expected_message, assertion)
