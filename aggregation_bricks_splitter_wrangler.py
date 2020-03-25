@@ -114,7 +114,7 @@ def lambda_handler(event, context):
             "json_data": json.loads(data_region),
             "regionless_code": regionless_code,
             "region_column": region_column,
-            "RuntimeVariables: {"run_id": run_id}
+            "RuntimeVariables": {"run_id": run_id}
         }
 
         # Pass the data for processing (adding of the regionless region.
