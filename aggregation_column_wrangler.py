@@ -80,8 +80,6 @@ def lambda_handler(event, context):
 
         logger.info("Retrieved configuration variables.")
 
-        out_file_name = cell_total_column + "_" + out_file_name
-
         # Read from S3 bucket
         data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name, location)
         logger.info("Completed reading data from s3")
