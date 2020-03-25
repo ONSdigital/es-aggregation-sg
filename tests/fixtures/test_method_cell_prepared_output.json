@@ -1,0 +1,47 @@
+[
+    {
+        "Q608_total_Q608_total": 225617,
+        "region": 3,
+        "strata": "A"
+    },
+    {
+        "Q608_total_Q608_total": 319286,
+        "region": 5,
+        "strata": "A"
+    },
+    {
+        "Q608_total_Q608_total": 53595,
+        "region": 6,
+        "strata": "D"
+    },
+    {
+        "Q608_total_Q608_total": 1366943,
+        "region": 7,
+        "strata": "A"
+    },
+    {
+        "Q608_total_Q608_total": 64196,
+        "region": 7,
+        "strata": "D"
+    },
+    {
+        "Q608_total_Q608_total": 236604,
+        "region": 9,
+        "strata": "A"
+    },
+    {
+        "Q608_total_Q608_total": 95158,
+        "region": 9,
+        "strata": "C"
+    },
+    {
+        "Q608_total_Q608_total": 75190,
+        "region": 9,
+        "strata": "D"
+    },
+    {
+        "Q608_total_Q608_total": 157752,
+        "region": 12,
+        "strata": "B2"
+    }
+]

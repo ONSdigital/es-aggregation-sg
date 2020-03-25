@@ -87,11 +87,6 @@ def lambda_handler(event, context):
         data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name, location)
         logger.info("Completed reading data from s3")
 
-        # Add output columns
-        logger.info("Appending two further required columns.")
-        data[top1_column] = 0
-        data[top2_column] = 0
-
         # Serialise data
         logger.info("Converting dataframe to json.")
         prepared_data = data.to_json(orient='records')

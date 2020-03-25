@@ -29,7 +29,7 @@ combiner_runtime_variables = {
         }
 }
 
-method_col_runtime_variables = {
+method_cell_runtime_variables = {
     "RuntimeVariables": {
         "run_id": "bob",
         "input_json": None,
@@ -38,6 +38,19 @@ method_col_runtime_variables = {
         "aggregated_column": "region",
         "cell_total_column": "Q608_total",
         "aggregation_type": "sum"
+    }
+}
+
+
+method_ent_runtime_variables = {
+    "RuntimeVariables": {
+        "run_id": "bob",
+        "input_json": None,
+        "total_columns": ["enterprise_reference"],
+        "additional_aggregated_column": "strata",
+        "aggregated_column": "region",
+        "cell_total_column": "enterprise_reference",
+        "aggregation_type": "nunique"
     }
 }
 
@@ -94,7 +107,7 @@ pre_wrangler_runtime_variables = {
         }
 }
 
-wrangler_col_runtime_variables = {
+wrangler_cell_runtime_variables = {
     "RuntimeVariables":
         {
             "run_id": "bob",
@@ -140,7 +153,7 @@ wrangler_top2_runtime_variables = {
     "which_lambda,which_runtime_variables,which_environment_variables,"
     "which_data,expected_message,assertion",
     [
-        (lambda_wrangler_col_function, wrangler_col_runtime_variables,
+        (lambda_wrangler_col_function, wrangler_cell_runtime_variables,
          generic_environment_variables, None,
          "ClientError", test_generic_library.wrangler_assert),
         (lambda_wrangler_top2_function, wrangler_top2_runtime_variables,
@@ -172,7 +185,7 @@ def test_client_error(which_lambda, which_runtime_variables,
     "which_lambda,which_runtime_variables,which_environment_variables,mockable_function,"
     "expected_message,assertion",
     [
-        (lambda_wrangler_col_function, wrangler_col_runtime_variables,
+        (lambda_wrangler_col_function, wrangler_cell_runtime_variables,
          generic_environment_variables, "aggregation_column_wrangler.EnvironSchema",
          "Exception", test_generic_library.wrangler_assert),
         (lambda_wrangler_top2_function, wrangler_top2_runtime_variables,
@@ -185,7 +198,7 @@ def test_client_error(which_lambda, which_runtime_variables,
         (lambda_combiner_function, combiner_runtime_variables,
          generic_environment_variables, "combiner.EnvironSchema",
          "Exception", test_generic_library.wrangler_assert),
-        (lambda_method_col_function, method_col_runtime_variables,
+        (lambda_method_col_function, method_cell_runtime_variables,
          False, "aggregation_column_method.EnvironSchema",
          "Exception", test_generic_library.method_assert),
         (lambda_method_top2_function, method_top2_runtime_variables,
@@ -207,7 +220,7 @@ def test_general_error(which_lambda, which_runtime_variables,
     "which_lambda,which_runtime_variables,which_environment_variables,file_list," +
     "lambda_name,expected_message",
     [
-        (lambda_wrangler_col_function, wrangler_col_runtime_variables,
+        (lambda_wrangler_col_function, wrangler_cell_runtime_variables,
          generic_environment_variables, ["test_wrangler_agg_input.json"],
          "aggregation_column_wrangler", "IncompleteReadError"),
         (lambda_wrangler_top2_function, wrangler_top2_runtime_variables,
@@ -260,15 +273,15 @@ def test_key_error(which_lambda, which_environment_variables,
     "which_lambda,which_runtime_variables,which_environment_variables," +
     "file_list,lambda_name",
     [
-        (lambda_wrangler_col_function, wrangler_col_runtime_variables,
-         generic_environment_variables, [], "aggregation_column_wrangler"),
+        (lambda_wrangler_col_function, wrangler_cell_runtime_variables,
+         generic_environment_variables, ["test_wrangler_agg_input.json"],
+         "aggregation_column_wrangler"),
         (lambda_wrangler_top2_function, wrangler_top2_runtime_variables,
-         generic_environment_variables, [], "aggregation_top2_wrangler")
+         generic_environment_variables, ["test_wrangler_agg_input.json"],
+         "aggregation_top2_wrangler")
     ])
 def test_method_error(mock_s3_get, which_lambda, which_runtime_variables,
                       which_environment_variables, file_list, lambda_name):
-    file_list = ["test_wrangler_agg_input.json"]
-
     test_generic_library.wrangler_method_error(which_lambda,
                                                which_runtime_variables,
                                                which_environment_variables,
@@ -307,90 +320,47 @@ def test_value_error(which_lambda, expected_message, assertion):
 ##########################################################################################
 
 
-# def test_calculate_strata():
-#     """
-#     Runs the calculate_strata function that is called by the method.
-#     :param None
-#     :return Test Pass/Fail
-#     """
-#     with open("tests/fixtures/test_method_cell_input.json", "r") as file_1:
-#         file_data = file_1.read()
-#     input_data = pd.DataFrame(json.loads(file_data))
-#
-#     produced_data = input_data.apply(
-#         lambda_method_function.calculate_strata,
-#         strata_column="strata",
-#         value_column="Q608_total",
-#         survey_column="survey",
-#         region_column="region",
-#         axis=1,
-#     )
-#     produced_data = produced_data.sort_index(axis=1)
-#
-#     with open("tests/fixtures/test_method_prepared_output.json", "r") as file_2:
-#         file_data = file_2.read()
-#     prepared_data = pd.DataFrame(json.loads(file_data))
-#
-#     assert_frame_equal(produced_data, prepared_data)
-#
-#
+@mock_s3
+@pytest.mark.parametrize(
+    "which_lambda,which_runtime_variables,input_data,prepared_data",
+    [
+        (lambda_method_col_function, method_cell_runtime_variables,
+         "tests/fixtures/test_method_cell_input.json",
+         "tests/fixtures/test_method_cell_prepared_output.json"),
+        (lambda_method_col_function, method_ent_runtime_variables,
+         "tests/fixtures/test_method_ent_input.json",
+         "tests/fixtures/test_method_ent_prepared_output.json"),
+        (lambda_method_top2_function, method_top2_runtime_variables,
+         "tests/fixtures/test_method_top2_input.json",
+         "tests/fixtures/test_method_top2_prepared_output.json")
+    ])
+def test_method_success(which_lambda, which_runtime_variables, input_data, prepared_data):
+    """
+    Runs the method function.
+    :param None.
+    :return Test Pass/Fail
+    """
+    with open(prepared_data, "r") as file_1:
+        file_data = file_1.read()
+    prepared_data = pd.DataFrame(json.loads(file_data))
+
+    with open(input_data, "r") as file_2:
+        test_data = file_2.read()
+    which_runtime_variables["RuntimeVariables"]["input_json"] = test_data
+
+    output = which_lambda.lambda_handler(
+        which_runtime_variables, test_generic_library.context_object)
+
+    produced_data = pd.DataFrame(json.loads(output["data"]))
+
+    assert output["success"]
+    assert_frame_equal(produced_data, prepared_data)
+
+
 # @mock_s3
-# def test_method_success():
-#     """
-#     Runs the method function.
-#     :param None
-#     :return Test Pass/Fail
-#     """
-#     with mock.patch.dict(lambda_method_function.os.environ,
-#                          method_environment_variables):
-#         with open("tests/fixtures/test_method_prepared_output.json", "r") as file_1:
-#             file_data = file_1.read()
-#         prepared_data = pd.DataFrame(json.loads(file_data))
-#
-#         with open("tests/fixtures/test_method_cell_input.json", "r") as file_2:
-#             test_data = file_2.read()
-#         method_runtime_variables["RuntimeVariables"]["data"] = test_data
-#
-#         output = lambda_method_function.lambda_handler(
-#             method_runtime_variables, test_generic_library.context_object)
-#
-#         produced_data = pd.DataFrame(json.loads(output["data"]))
-#
-#     assert output["success"]
-#     assert_frame_equal(produced_data, prepared_data)
-#
-#
-# def test_strata_mismatch_detector():
-#     """
-#     Runs the strata_mismatch_detector function that is called by the wrangler.
-#     :param None
-#     :return Test Pass/Fail
-#     """
-#     with open("tests/fixtures/test_method_output.json", "r") as file_1:
-#         test_data_in = file_1.read()
-#     method_data = pd.DataFrame(json.loads(test_data_in))
-#
-#     produced_data, anomalies = lambda_wrangler_function.strata_mismatch_detector(
-#         method_data,
-#         "201809", "period",
-#         "responder_id", "strata",
-#         "good_strata",
-#         "current_period",
-#         "previous_period",
-#         "current_strata",
-#         "previous_strata")
-#
-#     with open("tests/fixtures/test_wrangler_prepared_output.json", "r") as file_2:
-#         test_data_out = file_2.read()
-#     prepared_data = pd.DataFrame(json.loads(test_data_out))
-#
-#     assert_frame_equal(produced_data, prepared_data)
-#
-#
-# @mock_s3
-# @mock.patch('strata_period_wrangler.aws_functions.get_dataframe',
+# @mock.patch('aggregation_column_wrangler.aws_functions.get_dataframe',
 #             side_effect=test_generic_library.replacement_get_dataframe)
-# @mock.patch('strata_period_wrangler.aws_functions.save_data',
+# @mock.patch('aggregation_column_wrangler.aws_functions.save_data',
 #             side_effect=test_generic_library.replacement_save_data)
 # def test_wrangler_success(mock_s3_get, mock_s3_put):
 #     """
