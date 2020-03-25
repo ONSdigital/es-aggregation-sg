@@ -20,9 +20,9 @@ combiner_runtime_variables = {
             "run_id": "bob",
             "additional_aggregated_column": "",
             "aggregated_column": "",
-            "in_file_name": "test_wrangler_input",
+            "in_file_name": "test_wrangler_agg_input",
             "location": "",
-            "out_file_name": "test_wrangler_output.json",
+            "out_file_name": "test_wrangler_agg_output.json",
             "outgoing_message_group_id": "test_id",
             "queue_url": "Earl",
             "sns_topic_arn": "fake_sns_arn"
@@ -64,7 +64,7 @@ pre_wrangler_runtime_variables = {
     "RuntimeVariables":
         {
             "run_id": "bob",
-            "in_file_name": "test_splitter_input",
+            "in_file_name": "test_wrangler_splitter_input",
             "location": "",
             "out_file_name_bricks": "test_wrangler_bricks_output.json",
             "out_file_name_region": "test_wrangler_region_output.json",
@@ -102,9 +102,9 @@ wrangler_col_runtime_variables = {
             "aggregated_column": "",
             "aggregation_type": "",
             "cell_total_column": "",
-            "in_file_name": "test_wrangler_input",
+            "in_file_name": "test_wrangler_agg_input",
             "location": "",
-            "out_file_name": "test_wrangler_output.json",
+            "out_file_name": "test_wrangler_agg_output.json",
             "outgoing_message_group_id": "test_id",
             "queue_url": "Earl",
             "sns_topic_arn": "fake_sns_arn",
@@ -118,9 +118,9 @@ wrangler_top2_runtime_variables = {
             "run_id": "bob",
             "additional_aggregated_column": "a",
             "aggregated_column": "a",
-            "in_file_name": "test_wrangler_input",
+            "in_file_name": "test_wrangler_agg_input",
             "location": "",
-            "out_file_name": "test_wrangler_output.json",
+            "out_file_name": "test_wrangler_agg_output.json",
             "outgoing_message_group_id": "test_id",
             "queue_url": "Earl",
             "sns_topic_arn": "fake_sns_arn",
@@ -159,7 +159,7 @@ def test_client_error(which_lambda, which_runtime_variables,
 
     bucket_name = which_environment_variables["bucket_name"]
     client = test_generic_library.create_bucket(bucket_name)
-    file_list = ["test_wrangler_input.json"]
+    file_list = ["test_wrangler_agg_input.json"]
 
     test_generic_library.upload_files(client, bucket_name, file_list)
 
@@ -208,13 +208,13 @@ def test_general_error(which_lambda, which_runtime_variables,
     "lambda_name,expected_message",
     [
         (lambda_wrangler_col_function, wrangler_col_runtime_variables,
-         generic_environment_variables, ["test_wrangler_input.json"],
+         generic_environment_variables, ["test_wrangler_agg_input.json"],
          "aggregation_column_wrangler", "IncompleteReadError"),
         (lambda_wrangler_top2_function, wrangler_top2_runtime_variables,
-         generic_environment_variables, ["test_wrangler_input.json"],
+         generic_environment_variables, ["test_wrangler_agg_input.json"],
          "aggregation_top2_wrangler", "IncompleteReadError"),
         (lambda_pre_wrangler_function, pre_wrangler_runtime_variables,
-         generic_environment_variables, ["test_splitter_input.json"],
+         generic_environment_variables, ["test_wrangler_splitter_input.json"],
          "aggregation_bricks_splitter_wrangler", "IncompleteReadError"),
     ])
 def test_incomplete_read_error(mock_get_s3, which_lambda, which_runtime_variables,
@@ -267,7 +267,7 @@ def test_key_error(which_lambda, which_environment_variables,
     ])
 def test_method_error(mock_s3_get, which_lambda, which_runtime_variables,
                       which_environment_variables, file_list, lambda_name):
-    file_list = ["test_wrangler_input.json"]
+    file_list = ["test_wrangler_agg_input.json"]
 
     test_generic_library.wrangler_method_error(which_lambda,
                                                which_runtime_variables,
@@ -313,7 +313,7 @@ def test_value_error(which_lambda, expected_message, assertion):
 #     :param None
 #     :return Test Pass/Fail
 #     """
-#     with open("tests/fixtures/test_method_input.json", "r") as file_1:
+#     with open("tests/fixtures/test_method_cell_input.json", "r") as file_1:
 #         file_data = file_1.read()
 #     input_data = pd.DataFrame(json.loads(file_data))
 #
@@ -347,7 +347,7 @@ def test_value_error(which_lambda, expected_message, assertion):
 #             file_data = file_1.read()
 #         prepared_data = pd.DataFrame(json.loads(file_data))
 #
-#         with open("tests/fixtures/test_method_input.json", "r") as file_2:
+#         with open("tests/fixtures/test_method_cell_input.json", "r") as file_2:
 #             test_data = file_2.read()
 #         method_runtime_variables["RuntimeVariables"]["data"] = test_data
 #
@@ -402,7 +402,7 @@ def test_value_error(which_lambda, expected_message, assertion):
 #     bucket_name = wrangler_environment_variables["bucket_name"]
 #     client = test_generic_library.create_bucket(bucket_name)
 #
-#     file_list = ["test_wrangler_input.json"]
+#     file_list = ["test_wrangler_agg_input.json"]
 #
 #     test_generic_library.upload_files(client, bucket_name, file_list)
 #
