@@ -29,6 +29,13 @@ combiner_runtime_variables = {
         }
 }
 
+generic_environment_variables = {
+    "bucket_name": "test_bucket",
+    "checkpoint": "999",
+    "method_name": "aggregation",
+    "run_environment": "something"
+}
+
 method_cell_runtime_variables = {
     "RuntimeVariables": {
         "run_id": "bob",
@@ -64,13 +71,6 @@ method_top2_runtime_variables = {
         "top1_column": "largest_contributor",
         "top2_column": "second_largest_contributor"
     }
-}
-
-generic_environment_variables = {
-    "bucket_name": "test_bucket",
-    "checkpoint": "999",
-    "method_name": "aggregation",
-    "run_environment": "something"
 }
 
 pre_wrangler_runtime_variables = {
@@ -260,29 +260,34 @@ def test_incomplete_read_error(mock_get_s3, which_lambda, which_runtime_variable
 
 
 @pytest.mark.parametrize(
-    # This test can work, but it means changing the 'bad_runtime_variables' in the funk
-    "which_lambda,which_environment_variables,expected_message,assertion",
+    "which_lambda,which_environment_variables,expected_message,assertion," +
+    "which_runtime_variables",
     [
         (lambda_wrangler_col_function, generic_environment_variables,
-         "KeyError", test_generic_library.wrangler_assert),
+         "KeyError", test_generic_library.wrangler_assert, False),
         (lambda_wrangler_top2_function, generic_environment_variables,
-         "KeyError", test_generic_library.wrangler_assert),
+         "KeyError", test_generic_library.wrangler_assert, False),
         (lambda_pre_wrangler_function, generic_environment_variables,
-         "KeyError", test_generic_library.wrangler_assert),
+         "KeyError", test_generic_library.wrangler_assert, False),
         (lambda_combiner_function, generic_environment_variables,
-         "KeyError", test_generic_library.wrangler_assert),
+         "KeyError", test_generic_library.wrangler_assert, False),
         (lambda_method_col_function, False,
-         "KeyError", test_generic_library.method_assert),
+         "KeyError", test_generic_library.method_assert, method_cell_runtime_variables),
         (lambda_method_top2_function, False,
-         "KeyError", test_generic_library.method_assert)
+         "KeyError", test_generic_library.method_assert, method_top2_runtime_variables)
     ])
 def test_key_error(which_lambda, which_environment_variables,
-                   expected_message, assertion):
-    test_generic_library.key_error(which_lambda, which_environment_variables,
-                                   expected_message, assertion)
+                   expected_message, assertion, which_runtime_variables):
+    if not which_runtime_variables:
+        test_generic_library.key_error(which_lambda, which_environment_variables,
+                                       expected_message, assertion)
+    else:
+        which_runtime_variables["RuntimeVariables"]["input_json"] = '[{"Test": 0}]'
+        test_generic_library.key_error(which_lambda, which_environment_variables,
+                                       expected_message, assertion,
+                                       which_runtime_variables)
 
 
-# Do Incomplete Read Before Trying.
 @mock_s3
 @mock.patch('aggregation_column_wrangler.aws_functions.get_dataframe',
             side_effect=test_generic_library.replacement_get_dataframe)
@@ -442,8 +447,6 @@ def test_wrangler_success(mock_s3_get, which_lambda, which_environment_variables
               "r") as file_3:
         test_data_produced = file_3.read()
     produced_data = pd.DataFrame(json.loads(test_data_produced))
-
-    data = produced_data.to_json(orient="records")
 
     assert output
     assert_frame_equal(produced_data, prepared_data)
