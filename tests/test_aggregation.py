@@ -7,10 +7,10 @@ from es_aws_functions import test_generic_library
 from moto import mock_s3
 from pandas.util.testing import assert_frame_equal
 
-import aggregation_column_method as lambda_method_col_function
-import aggregation_top2_method as lambda_method_top2_function
 import aggregation_bricks_splitter_wrangler as lambda_pre_wrangler_function
+import aggregation_column_method as lambda_method_col_function
 import aggregation_column_wrangler as lambda_wrangler_col_function
+import aggregation_top2_method as lambda_method_top2_function
 import aggregation_top2_wrangler as lambda_wrangler_top2_function
 import combiner as lambda_combiner_function
 
