@@ -79,8 +79,8 @@ pre_wrangler_runtime_variables = {
             "run_id": "bob",
             "in_file_name": "test_wrangler_splitter_input",
             "location": "",
-            "out_file_name_bricks": "test_wrangler_bricks_output.json",
-            "out_file_name_region": "test_wrangler_region_output.json",
+            "out_file_name_bricks": "test_wrangler_splitter_bricks_output.json",
+            "out_file_name_region": "test_wrangler_splitter_region_output.json",
             "outgoing_message_group_id": "test_id",
             "queue_url": "Earl",
             "sns_topic_arn": "fake_sns_arn",
@@ -444,6 +444,74 @@ def test_method_success(which_lambda, which_runtime_variables, input_data, prepa
 
 
 @mock_s3
+@mock.patch('aggregation_bricks_splitter_wrangler.aws_functions.get_dataframe',
+            side_effect=test_generic_library.replacement_get_dataframe)
+@mock.patch('aggregation_bricks_splitter_wrangler.aws_functions.save_to_s3',
+            side_effect=test_generic_library.replacement_save_to_s3)
+def test_splitter_wrangler_success(mock_s3_get, mock_s3_put):
+    """
+    Runs the wrangler function.
+    :param mock_s3_get - Replacement Function For The Data Retrieval AWS Functionality.
+    :param mock_s3_put - Replacement Function For The Data Saveing AWS Functionality.
+    :return Test Pass/Fail
+    """
+    bucket_name = generic_environment_variables["bucket_name"]
+    client = test_generic_library.create_bucket(bucket_name)
+
+    file_list = ["test_wrangler_splitter_input.json"]
+    test_generic_library.upload_files(client, bucket_name, file_list)
+
+    with open("tests/fixtures/test_wrangler_splitter_prepared_region_output.json", "r")\
+            as file_1:
+        test_data_prepared_region = file_1.read()
+    prepared_data_region = pd.DataFrame(json.loads(test_data_prepared_region))
+
+    with open("tests/fixtures/test_wrangler_splitter_prepared_bricks_output.json", "r")\
+            as file_2:
+        test_data_prepared_bricks = file_2.read()
+    prepared_data_bricks = pd.DataFrame(json.loads(test_data_prepared_bricks))
+
+    with open("tests/fixtures/test_method_splitter_prepared_output.json", "r") as file_3:
+        test_data_out = file_3.read()
+
+    with mock.patch.dict(lambda_pre_wrangler_function.os.environ,
+                         generic_environment_variables):
+        with mock.patch('aggregation_bricks_splitter_wrangler.aws_functions.save_to_s3',
+                        side_effect=test_generic_library.replacement_save_to_s3):
+            with mock.patch("aggregation_bricks_splitter_wrangler.boto3.client")\
+                    as mock_client:
+                mock_client_object = mock.Mock()
+                mock_client.return_value = mock_client_object
+
+                mock_client_object.invoke.return_value.get.return_value.read \
+                    .return_value.decode.return_value = json.dumps({
+                     "data": test_data_out,
+                     "success": True,
+                     "anomalies": []
+                    })
+
+                output = lambda_pre_wrangler_function.lambda_handler(
+                    pre_wrangler_runtime_variables, test_generic_library.context_object
+                )
+
+    with open("tests/fixtures/" +
+              pre_wrangler_runtime_variables["RuntimeVariables"]["out_file_name_region"],
+              "r") as file_4:
+        test_data_produced = file_4.read()
+    produced_data_region = pd.DataFrame(json.loads(test_data_produced))
+
+    with open("tests/fixtures/" +
+              pre_wrangler_runtime_variables["RuntimeVariables"]["out_file_name_bricks"],
+              "r") as file_4:
+        test_data_produced = file_4.read()
+    produced_data_bricks = pd.DataFrame(json.loads(test_data_produced))
+
+    assert output
+    assert_frame_equal(produced_data_region, prepared_data_region)
+    assert_frame_equal(produced_data_bricks, prepared_data_bricks)
+
+
+@mock_s3
 def test_sum_columns():
     """
     Runs the method function.
@@ -572,68 +640,3 @@ def test_update_columns():
     produced_data = input_data
 
     assert_frame_equal(produced_data, prepared_data)
-
-
-# @mock_s3
-# @mock.patch('aggregation_bricks_splitter_wrangler.aws_functions.get_dataframe',
-#             side_effect=test_generic_library.replacement_get_dataframe)
-# @pytest.mark.parametrize(
-#     "which_lambda,which_environment_variables,which_runtime_variables," +
-#     "lambda_name,file_list,method_data,prepared_data",
-#     [
-#         (lambda_pre_wrangler_function, generic_environment_variables,
-#          pre_wrangler_runtime_variables, "aggregation_bricks_splitter_wrangler",
-#          ["test_wrangler_splitter_input.json"],
-#          "tests/fixtures/test_wrangler_agg_input.json",
-#          ["tests/fixtures/test_wrangler_agg_input.json",
-#           "tests/fixtures/test_wrangler_splitter_prepared_bricks_output.json",
-#           "tests/fixtures/test_wrangler_splitter_prepared_region_output.json"])
-#     ])
-# def test_splitter_wrangler_success(mock_s3_get, which_lambda, which_environment_variables,
-#                                    which_runtime_variables, lambda_name,
-#                                    file_list, method_data, prepared_data):
-#     """
-#     Runs the wrangler function.
-#     :param mock_s3_get - Replacement Function For The Data Retrieval AWS Functionality.
-#     :param mock_s3_put - Replacement Function For The Data Saveing AWS Functionality.
-#     :return Test Pass/Fail
-#     """
-#     bucket_name = which_environment_variables["bucket_name"]
-#     client = test_generic_library.create_bucket(bucket_name)
-#
-#     test_generic_library.upload_files(client, bucket_name, file_list)
-#
-#     with open(prepared_data[0], "r") as file_1:
-#         test_data_prepared = file_1.read()
-#     prepared_data = pd.DataFrame(json.loads(test_data_prepared))
-#
-#     with open(method_data, "r") as file_2:
-#         test_data_out = file_2.read()
-#
-#     with mock.patch.dict(which_lambda.os.environ,
-#                          which_environment_variables):
-#         with mock.patch(lambda_name + '.aws_functions.save_data',
-#                         side_effect=test_generic_library.replacement_save_data):
-#             with mock.patch(lambda_name + ".boto3.client") as mock_client:
-#                 mock_client_object = mock.Mock()
-#                 mock_client.return_value = mock_client_object
-#
-#                 mock_client_object.invoke.return_value.get.return_value.read \
-#                     .return_value.decode.return_value = json.dumps({
-#                      "data": test_data_out,
-#                      "success": True,
-#                      "anomalies": []
-#                     })
-#
-#                 output = which_lambda.lambda_handler(
-#                     which_runtime_variables, test_generic_library.context_object
-#                 )
-#
-#     with open("tests/fixtures/" +
-#               which_runtime_variables["RuntimeVariables"]["out_file_name"],
-#               "r") as file_3:
-#         test_data_produced = file_3.read()
-#     produced_data = pd.DataFrame(json.loads(test_data_produced))
-#
-#     assert output
-#     assert_frame_equal(produced_data, prepared_data)
