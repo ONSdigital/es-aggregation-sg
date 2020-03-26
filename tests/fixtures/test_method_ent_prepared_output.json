@@ -1,0 +1,47 @@
+[
+    {
+        "ent_ref_count": 1,
+        "region": 3,
+        "strata": "A"
+    },
+    {
+        "ent_ref_count": 1,
+        "region": 5,
+        "strata": "A"
+    },
+    {
+        "ent_ref_count": 1,
+        "region": 6,
+        "strata": "D"
+    },
+    {
+        "ent_ref_count": 2,
+        "region": 7,
+        "strata": "A"
+    },
+    {
+        "ent_ref_count": 1,
+        "region": 7,
+        "strata": "D"
+    },
+    {
+        "ent_ref_count": 1,
+        "region": 9,
+        "strata": "A"
+    },
+    {
+        "ent_ref_count": 1,
+        "region": 9,
+        "strata": "C"
+    },
+    {
+        "ent_ref_count": 1,
+        "region": 9,
+        "strata": "D"
+    },
+    {
+        "ent_ref_count": 1,
+        "region": 12,
+        "strata": "B2"
+    }
+]

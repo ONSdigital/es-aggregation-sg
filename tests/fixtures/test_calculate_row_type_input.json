@@ -48,8 +48,7 @@
         "total_closing_stock": 5377,
         "total_deliveries": 5079,
         "total_opening_stock": 5042,
-        "total_produced": 5414,
-        "brick_type": 3
+        "total_produced": 5414
     },
     {
         "clay_closing_stock_commons": 779,
@@ -100,8 +99,7 @@
         "total_closing_stock": 10916,
         "total_deliveries": 2551,
         "total_opening_stock": 4043,
-        "total_produced": 9424,
-        "brick_type": 3
+        "total_produced": 9424
     },
     {
         "clay_closing_stock_commons": 5681,
@@ -152,8 +150,7 @@
         "total_closing_stock": 11859,
         "total_deliveries": 14764,
         "total_opening_stock": 18882,
-        "total_produced": 7741,
-        "brick_type": 3
+        "total_produced": 7741
     },
     {
         "clay_closing_stock_commons": 0,
@@ -204,8 +201,7 @@
         "total_closing_stock": 10325,
         "total_deliveries": 9628,
         "total_opening_stock": 16944,
-        "total_produced": 3009,
-        "brick_type": 3
+        "total_produced": 3009
     },
     {
         "clay_closing_stock_commons": 2604,
@@ -256,8 +252,7 @@
         "total_closing_stock": 23625,
         "total_deliveries": 8470,
         "total_opening_stock": 23577,
-        "total_produced": 8518,
-        "brick_type": 3
+        "total_produced": 8518
     },
     {
         "clay_closing_stock_commons": 214,
@@ -308,8 +303,7 @@
         "total_closing_stock": 33726,
         "total_deliveries": 262,
         "total_opening_stock": 27608,
-        "total_produced": 6380,
-        "brick_type": 3
+        "total_produced": 6380
     },
     {
         "clay_closing_stock_commons": 0,
@@ -360,8 +354,7 @@
         "total_closing_stock": 1746,
         "total_deliveries": 505,
         "total_opening_stock": 1243,
-        "total_produced": 1008,
-        "brick_type": 2
+        "total_produced": 1008
     },
     {
         "clay_closing_stock_commons": 0,
@@ -412,8 +405,7 @@
         "total_closing_stock": 4621,
         "total_deliveries": 1869,
         "total_opening_stock": 5530,
-        "total_produced": 960,
-        "brick_type": 2
+        "total_produced": 960
     },
     {
         "clay_closing_stock_commons": 0,
@@ -464,8 +456,7 @@
         "total_closing_stock": 3279,
         "total_deliveries": 0,
         "total_opening_stock": 1023,
-        "total_produced": 2256,
-        "brick_type": 2
+        "total_produced": 2256
     },
     {
         "clay_closing_stock_commons": 0,
@@ -516,8 +507,7 @@
         "total_closing_stock": 540,
         "total_deliveries": 560,
         "total_opening_stock": 0,
-        "total_produced": 1100,
-        "brick_type": 2
+        "total_produced": 1100
     },
     {
         "clay_closing_stock_commons": 0,
@@ -568,8 +558,7 @@
         "total_closing_stock": 4753,
         "total_deliveries": 2075,
         "total_opening_stock": 4750,
-        "total_produced": 2078,
-        "brick_type": 2
+        "total_produced": 2078
     },
     {
         "clay_closing_stock_commons": 0,
@@ -620,8 +609,7 @@
         "total_closing_stock": 5059,
         "total_deliveries": 220,
         "total_opening_stock": 4943,
-        "total_produced": 336,
-        "brick_type": 2
+        "total_produced": 336
     },
     {
         "clay_closing_stock_commons": 0,
@@ -672,7 +660,6 @@
         "total_closing_stock": 2686,
         "total_deliveries": 2350,
         "total_opening_stock": 1322,
-        "total_produced": 3714,
-        "brick_type": 2
+        "total_produced": 3714
     }
 ]

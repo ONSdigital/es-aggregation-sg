@@ -3,8 +3,7 @@ import logging
 import os
 
 import boto3
-from botocore.exceptions import ClientError, IncompleteReadError
-from es_aws_functions import aws_functions, exception_classes
+from es_aws_functions import aws_functions, exception_classes, general_functions
 from marshmallow import Schema, fields
 
 
@@ -41,9 +40,8 @@ def lambda_handler(event, context):
     """
     current_module = "Aggregation Calc Top Two - Wrangler."
     logger = logging.getLogger()
-    logger.setLevel(0)
+    logger.setLevel(10)
     error_message = ''
-    log_message = ''
     checkpoint = 4
     # Define run_id outside of try block
     run_id = 0
@@ -89,11 +87,6 @@ def lambda_handler(event, context):
         data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name, location)
         logger.info("Completed reading data from s3")
 
-        # Add output columns
-        logger.info("Appending two further required columns.")
-        data[top1_column] = 0
-        data[top2_column] = 0
-
         # Serialise data
         logger.info("Converting dataframe to json.")
         prepared_data = data.to_json(orient='records')
@@ -102,12 +95,15 @@ def lambda_handler(event, context):
         logger.info("Invoking the statistical method.")
 
         json_payload = {
-            "input_json": prepared_data,
-            "total_columns": total_columns,
-            "additional_aggregated_column": additional_aggregated_column,
-            "aggregated_column": aggregated_column,
-            "top1_column": top1_column,
-            "top2_column": top2_column
+            "RuntimeVariables": {
+                "input_json": prepared_data,
+                "total_columns": total_columns,
+                "additional_aggregated_column": additional_aggregated_column,
+                "aggregated_column": aggregated_column,
+                "top1_column": top1_column,
+                "top2_column": top2_column,
+                "run_id": run_id
+            }
         }
 
         top2 = lambda_client.invoke(FunctionName=method_name,
@@ -127,87 +123,14 @@ def lambda_handler(event, context):
         aws_functions.send_sns_message(checkpoint, sns_topic_arn, "Aggregation - Top 2.")
         logger.info("Successfully sent the SNS message")
 
-    except IndexError as e:
-        error_message = ("Required columns missing from input data in "
-                         + current_module + " |- "
-                         + str(e.args) + " | Request ID: "
-                         + str(context.aws_request_id)
-                         + " | Run_id: " + str(run_id))
-
-        log_message = error_message
-        log_message += " | Line: " + str(e.__traceback__.tb_lineno)
-
-    except TypeError as e:
-        error_message = ("Bad data encountered in "
-                         + current_module + " |- "
-                         + str(e.args) + " | Request ID: "
-                         + str(context.aws_request_id)
-                         + " | Run_id: " + str(run_id))
-
-        log_message = error_message
-        log_message += " | Line: " + str(e.__traceback__.tb_lineno)
-
-    except ValueError as e:
-        error_message = ("Parameter validation error in "
-                         + current_module + " |- "
-                         + str(e.args) + " | Request ID: "
-                         + str(context.aws_request_id)
-                         + " | Run_id: " + str(run_id))
-
-        log_message = error_message
-        log_message += " | Line: " + str(e.__traceback__.tb_lineno)
-
-    except ClientError as e:
-        error_message = ("AWS Error ("
-                         + str(e.response['Error']['Code']) + ") "
-                         + current_module + " |- "
-                         + str(e.args) + " | Request ID: "
-                         + str(context.aws_request_id)
-                         + " | Run_id: " + str(run_id))
-
-        log_message = error_message
-        log_message += " | Line: " + str(e.__traceback__.tb_lineno)
-
-    except KeyError as e:
-        error_message = ("Key Error in "
-                         + current_module + " |- "
-                         + str(e.args) + " | Request ID: "
-                         + str(context.aws_request_id)
-                         + " | Run_id: " + str(run_id))
-
-        log_message = error_message
-        log_message += " | Line: " + str(e.__traceback__.tb_lineno)
-
-    except IncompleteReadError as e:
-        error_message = ("Incomplete Lambda response encountered in "
-                         + current_module + " |- "
-                         + str(e.args) + " | Request ID: "
-                         + str(context.aws_request_id)
-                         + " | Run_id: " + str(run_id))
-
-        log_message = error_message
-        log_message += " | Line: " + str(e.__traceback__.tb_lineno)
-
-    except exception_classes.MethodFailure as e:
-        error_message = e.error_message
-        log_message = "Error in " + method_name + "." \
-                      + " | Run_id: " + str(run_id)
-
     except Exception as e:
-        error_message = ("General Error in "
-                         + current_module + " ("
-                         + str(type(e)) + ") |- "
-                         + str(e.args) + " | Request ID: "
-                         + str(context.aws_request_id)
-                         + " | Run_id: " + str(run_id))
-
-        log_message = error_message
-        log_message += " | Line: " + str(e.__traceback__.tb_lineno)
-
+        error_message = general_functions.handle_exception(e, current_module,
+                                                           run_id, context)
     finally:
-        if(len(error_message)) > 0:
-            logger.error(log_message)
+        if (len(error_message)) > 0:
+            logger.error(error_message)
             raise exception_classes.LambdaFailure(error_message)
 
     logger.info("Successfully completed module: " + current_module)
+
     return {"success": True, "checkpoint": checkpoint}

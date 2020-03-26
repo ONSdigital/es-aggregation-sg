@@ -4,8 +4,7 @@ import os
 
 import boto3
 import pandas as pd
-from botocore.exceptions import ClientError, IncompleteReadError
-from es_aws_functions import aws_functions, exception_classes
+from es_aws_functions import aws_functions, exception_classes, general_functions
 from marshmallow import Schema, fields
 
 
@@ -33,7 +32,6 @@ def lambda_handler(event, context):
     """
     current_module = "Pre Aggregation Data Wrangler."
     error_message = ""
-    log_message = ""
     logger = logging.getLogger("Pre Aggregation Data Wrangler")
     logger.setLevel(10)
     # Define run_id outside of try block
@@ -118,13 +116,13 @@ def lambda_handler(event, context):
         }
 
         # Pass the data for processing (adding of the regionless region.
-        imputed_data = lambda_client.invoke(
+        gb_region_data = lambda_client.invoke(
             FunctionName=method_name,
             Payload=json.dumps(payload)
         )
         logger.info("Succesfully invoked method.")
 
-        json_response = json.loads(imputed_data.get("Payload").read().decode("UTF-8"))
+        json_response = json.loads(gb_region_data.get("Payload").read().decode("UTF-8"))
         logger.info("JSON extracted from method response.")
 
         if not json_response['success']:
@@ -172,86 +170,16 @@ def lambda_handler(event, context):
 
         logger.info("Succesfully sent message to sns")
 
-    except AttributeError as e:
-        error_message = (
-                "Bad data encountered in "
-                + current_module
-                + " |- "
-                + str(e.args)
-                + " | Request ID: "
-                + str(context.aws_request_id)
-                + " | Run_id: " + str(run_id)
-        )
-        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
-    except ValueError as e:
-        error_message = (
-                "Parameter validation error in "
-                + current_module
-                + " |- "
-                + str(e.args)
-                + " | Request ID: "
-                + str(context.aws_request_id)
-                + " | Run_id: " + str(run_id)
-        )
-        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
-    except ClientError as e:
-        error_message = (
-                "AWS Error ("
-                + str(e.response["Error"]["Code"])
-                + ") "
-                + current_module
-                + " |- "
-                + str(e.args)
-                + " | Request ID: "
-                + str(context.aws_request_id)
-                + " | Run_id: " + str(run_id)
-        )
-        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
-    except KeyError as e:
-        error_message = (
-                "Key Error in "
-                + current_module
-                + " |- "
-                + str(e.args)
-                + " | Request ID: "
-                + str(context.aws_request_id)
-                + " | Run_id: " + str(run_id)
-        )
-        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
-    except IncompleteReadError as e:
-        error_message = (
-                "Incomplete Lambda response encountered in "
-                + current_module
-                + " |- "
-                + str(e.args)
-                + " | Request ID: "
-                + str(context.aws_request_id)
-                + " | Run_id: " + str(run_id)
-        )
-        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
-    except exception_classes.MethodFailure as e:
-        error_message = e.error_message
-        log_message = "Error in " + method_name + "." \
-                      + " | Run_id: " + str(run_id)
     except Exception as e:
-        error_message = (
-                "General Error in "
-                + current_module
-                + " ("
-                + str(type(e))
-                + ") |- "
-                + str(e.args)
-                + " | Request ID: "
-                + str(context.aws_request_id)
-                + " | Run_id: " + str(run_id)
-        )
-        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
+        error_message = general_functions.handle_exception(e, current_module,
+                                                           run_id, context)
     finally:
         if (len(error_message)) > 0:
-            logger.error(log_message)
+            logger.error(error_message)
             raise exception_classes.LambdaFailure(error_message)
 
     logger.info("Successfully completed module: " + current_module)
+
     return {"success": True, "checkpoint": checkpoint}
 
 
@@ -285,6 +213,7 @@ def sum_columns(row, brick_type, column_list, unique_identifier):
     :param row: Contains all data. - Row.
     :param brick_type: Dictionary of the possible brick types. - Dict.
     :param column_list: List of the columns that need to be added to. - List.
+    :param unique_identifier: List of columns to make each row unique. - List.
 
     :return:  Updated row. - Row.
     """
