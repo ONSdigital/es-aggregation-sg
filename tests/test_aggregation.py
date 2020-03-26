@@ -73,6 +73,18 @@ method_top2_runtime_variables = {
     }
 }
 
+method_top2_multi_runtime_variables = {
+    "RuntimeVariables": {
+        "input_json": None,
+        "run_id": "bob",
+        "total_columns": ["Q608_total", "Q607_constructional_fill"],
+        "additional_aggregated_column": "strata",
+        "aggregated_column": "region",
+        "top1_column": "largest_contributor",
+        "top2_column": "second_largest_contributor"
+    }
+}
+
 pre_wrangler_runtime_variables = {
     "RuntimeVariables":
         {
@@ -489,7 +501,10 @@ def test_combiner_success(mock_s3_put):
          "tests/fixtures/test_method_ent_prepared_output.json"),
         (lambda_method_top2_function, method_top2_runtime_variables,
          "tests/fixtures/test_method_top2_input.json",
-         "tests/fixtures/test_method_top2_prepared_output.json")
+         "tests/fixtures/test_method_top2_prepared_output.json"),
+        (lambda_method_top2_function, method_top2_multi_runtime_variables,
+         "tests/fixtures/test_method_top2_input.json",
+         "tests/fixtures/test_method_top2_multi_prepared_output.json")
     ])
 def test_method_success(which_lambda, which_runtime_variables, input_data, prepared_data):
     """
@@ -683,7 +698,12 @@ def test_wrangler_success(which_lambda, which_environment_variables,
 
 
 @mock_s3
-def test_update_columns():
+@pytest.mark.parametrize(
+    "additional_column",
+    [
+        "strata", ""
+    ])
+def test_update_columns(additional_column):
     """
     Runs the method function.
     :param None.
@@ -704,7 +724,7 @@ def test_update_columns():
     input_data[[top1_column, top2_column]] = input_data.apply(
         lambda x: lambda_method_top2_function.update_columns(
             x, {'region': 3, 'strata': 'A'}, runtime["aggregated_column"],
-            runtime["additional_aggregated_column"], top1_column, top2_column, 225617, 0),
+            additional_column, top1_column, top2_column, 225617, 0),
         axis=1)
     produced_data = input_data
 
