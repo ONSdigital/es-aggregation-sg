@@ -304,7 +304,10 @@ def test_key_error(which_lambda, which_environment_variables,
          "aggregation_column_wrangler"),
         (lambda_wrangler_top2_function, wrangler_top2_runtime_variables,
          generic_environment_variables, ["test_wrangler_agg_input.json"],
-         "aggregation_top2_wrangler")
+         "aggregation_top2_wrangler"),
+        (lambda_pre_wrangler_function, pre_wrangler_runtime_variables,
+         generic_environment_variables, ["test_wrangler_splitter_input.json"],
+         "aggregation_bricks_splitter_wrangler")
     ])
 def test_method_error(mock_s3_get, which_lambda, which_runtime_variables,
                       which_environment_variables, file_list, lambda_name):
