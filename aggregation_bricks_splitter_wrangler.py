@@ -115,13 +115,13 @@ def lambda_handler(event, context):
         }
 
         # Pass the data for processing (adding of the regionless region.
-        imputed_data = lambda_client.invoke(
+        gb_region_data = lambda_client.invoke(
             FunctionName=method_name,
             Payload=json.dumps(payload),
         )
         logger.info("Succesfully invoked method.")
 
-        json_response = json.loads(imputed_data.get("Payload").read().decode("UTF-8"))
+        json_response = json.loads(gb_region_data.get("Payload").read().decode("UTF-8"))
         logger.info("JSON extracted from method response.")
 
         if not json_response['success']:
@@ -212,6 +212,7 @@ def sum_columns(row, brick_type, column_list, unique_identifier):
     :param row: Contains all data. - Row.
     :param brick_type: Dictionary of the possible brick types. - Dict.
     :param column_list: List of the columns that need to be added to. - List.
+    :param unique_identifier: List of columns to make each row unique. - List.
 
     :return:  Updated row. - Row.
     """
