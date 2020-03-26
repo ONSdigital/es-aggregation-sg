@@ -18,11 +18,11 @@ combiner_runtime_variables = {
     "RuntimeVariables":
         {
             "run_id": "bob",
-            "additional_aggregated_column": "",
-            "aggregated_column": "",
+            "additional_aggregated_column": "strata",
+            "aggregated_column": "region",
             "in_file_name": "test_wrangler_agg_input",
             "location": "",
-            "out_file_name": "test_wrangler_agg_output.json",
+            "out_file_name": "test_wrangler_combiner_output.json",
             "outgoing_message_group_id": "test_id",
             "queue_url": "Earl",
             "sns_topic_arn": "fake_sns_arn"
@@ -43,7 +43,7 @@ method_cell_runtime_variables = {
         "total_columns": ["Q608_total"],
         "additional_aggregated_column": "strata",
         "aggregated_column": "region",
-        "cell_total_column": "Q608_total",
+        "cell_total_column": "cell_total",
         "aggregation_type": "sum"
     }
 }
@@ -56,7 +56,7 @@ method_ent_runtime_variables = {
         "total_columns": ["enterprise_reference"],
         "additional_aggregated_column": "strata",
         "aggregated_column": "region",
-        "cell_total_column": "enterprise_reference",
+        "cell_total_column": "ent_ref_count",
         "aggregation_type": "nunique"
     }
 }
@@ -118,7 +118,7 @@ wrangler_cell_runtime_variables = {
             "additional_aggregated_column": "strata",
             "aggregated_column": "region",
             "aggregation_type": "sum",
-            "cell_total_column": "Q608_total",
+            "cell_total_column": "cell_total",
             "in_file_name": "test_wrangler_agg_input",
             "location": "",
             "out_file_name": "test_wrangler_cell_output.json",
@@ -410,6 +410,71 @@ def test_calculate_row_type():
 
 
 @mock_s3
+@mock.patch('combiner.aws_functions.save_data',
+            side_effect=test_generic_library.replacement_save_data)
+def test_combiner_success(mock_s3_put):
+    """
+    Runs the wrangler function.
+    :param mock_s3_put - Replacement Function For The Data Saveing AWS Functionality.
+    :return Test Pass/Fail
+    """
+    bucket_name = generic_environment_variables["bucket_name"]
+    client = test_generic_library.create_bucket(bucket_name)
+
+    file_list = [
+        "test_wrangler_agg_input.json",
+        "test_wrangler_cell_prepared_output.json",
+        "test_wrangler_ent_prepared_output.json",
+        "test_wrangler_top2_prepared_output.json"
+    ]
+    test_generic_library.upload_files(client, bucket_name, file_list)
+
+    fake_return = {
+    "Messages": [
+        {
+            "ReceiptHandle": "",
+            "Body": '{"bucket": "test_bucket", "key": "test_wrangler_cell_prepared_output"}'
+        },
+        {
+            "ReceiptHandle": "",
+            "Body": '{"bucket": "test_bucket", "key": "test_wrangler_ent_prepared_output"}'
+        },
+        {
+            "ReceiptHandle": "",
+            "Body": '{"bucket": "test_bucket", "key": "test_wrangler_top2_prepared_output"}'
+        }
+    ]
+}
+
+    with open("tests/fixtures/test_wrangler_combiner_prepared_output.json", "r")\
+            as file_1:
+        test_data_prepared = file_1.read()
+    prepared_data = pd.DataFrame(json.loads(test_data_prepared))
+
+    with mock.patch.dict(lambda_combiner_function.os.environ,
+                         generic_environment_variables):
+        with mock.patch('combiner.aws_functions.get_sqs_messages') as mock_message:
+            mock_message.return_value = fake_return
+
+            with mock.patch("combiner.boto3.client") as mock_client:
+                mock_client_object = mock.Mock()
+                mock_client.return_value = mock_client_object
+
+                output = lambda_combiner_function.lambda_handler(
+                    combiner_runtime_variables, test_generic_library.context_object
+                )
+
+    with open("tests/fixtures/" +
+              pre_wrangler_runtime_variables["RuntimeVariables"]["out_file_name"],
+              "r") as file_4:
+        test_data_produced = file_4.read()
+    produced_data = pd.DataFrame(json.loads(test_data_produced))
+
+    assert output
+    assert_frame_equal(produced_data, prepared_data)
+
+
+@mock_s3
 @pytest.mark.parametrize(
     "which_lambda,which_runtime_variables,input_data,prepared_data",
     [
@@ -479,35 +544,33 @@ def test_splitter_wrangler_success(mock_s3_get, mock_s3_put):
 
     with mock.patch.dict(lambda_pre_wrangler_function.os.environ,
                          generic_environment_variables):
-        with mock.patch('aggregation_bricks_splitter_wrangler.aws_functions.save_to_s3',
-                        side_effect=test_generic_library.replacement_save_to_s3):
-            with mock.patch("aggregation_bricks_splitter_wrangler.boto3.client")\
-                    as mock_client:
-                mock_client_object = mock.Mock()
-                mock_client.return_value = mock_client_object
+        with mock.patch("aggregation_bricks_splitter_wrangler.boto3.client")\
+                as mock_client:
+            mock_client_object = mock.Mock()
+            mock_client.return_value = mock_client_object
 
-                mock_client_object.invoke.return_value.get.return_value.read \
-                    .return_value.decode.return_value = json.dumps({
-                     "data": test_data_out,
-                     "success": True,
-                     "anomalies": []
-                    })
+            mock_client_object.invoke.return_value.get.return_value.read \
+                .return_value.decode.return_value = json.dumps({
+                 "data": test_data_out,
+                 "success": True,
+                 "anomalies": []
+                })
 
-                output = lambda_pre_wrangler_function.lambda_handler(
-                    pre_wrangler_runtime_variables, test_generic_library.context_object
-                )
+            output = lambda_pre_wrangler_function.lambda_handler(
+                pre_wrangler_runtime_variables, test_generic_library.context_object
+            )
 
     with open("tests/fixtures/" +
               pre_wrangler_runtime_variables["RuntimeVariables"]["out_file_name_region"],
               "r") as file_4:
-        test_data_produced = file_4.read()
-    produced_data_region = pd.DataFrame(json.loads(test_data_produced))
+        test_data_produced_region = file_4.read()
+    produced_data_region = pd.DataFrame(json.loads(test_data_produced_region))
 
     with open("tests/fixtures/" +
               pre_wrangler_runtime_variables["RuntimeVariables"]["out_file_name_bricks"],
               "r") as file_4:
-        test_data_produced = file_4.read()
-    produced_data_bricks = pd.DataFrame(json.loads(test_data_produced))
+        test_data_produced_bricks = file_4.read()
+    produced_data_bricks = pd.DataFrame(json.loads(test_data_produced_bricks))
 
     assert output
     assert_frame_equal(produced_data_region, prepared_data_region)
