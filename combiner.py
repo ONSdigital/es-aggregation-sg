@@ -33,7 +33,6 @@ def lambda_handler(event, context):
     logger.setLevel(logging.INFO)
     current_module = "Aggregation_Combiner"
     error_message = ""
-    log_message = ""
     checkpoint = 4
     # Define run_id outside of try block
     run_id = 0
