@@ -164,6 +164,26 @@ wrangler_top2_runtime_variables = {
         }
 }
 
+fake_return = {
+    "Messages": [
+        {
+            "ReceiptHandle": "",
+            "Body":
+                '{"bucket": "test_bucket", "key": "test_wrangler_cell_prepared_output"}'
+        },
+        {
+            "ReceiptHandle": "",
+            "Body":
+                '{"bucket": "test_bucket", "key": "test_wrangler_ent_prepared_output"}'
+        },
+        {
+            "ReceiptHandle": "",
+            "Body":
+                '{"bucket": "test_bucket", "key": "test_wrangler_top2_prepared_output"}'
+        }
+    ]
+}
+
 ##########################################################################################
 #                                     Generic                                            #
 ##########################################################################################
@@ -428,23 +448,6 @@ def test_combiner_success(mock_s3_put):
         "test_wrangler_top2_prepared_output.json"
     ]
     test_generic_library.upload_files(client, bucket_name, file_list)
-
-    fake_return = {
-    "Messages": [
-        {
-            "ReceiptHandle": "",
-            "Body": '{"bucket": "test_bucket", "key": "test_wrangler_cell_prepared_output"}'
-        },
-        {
-            "ReceiptHandle": "",
-            "Body": '{"bucket": "test_bucket", "key": "test_wrangler_ent_prepared_output"}'
-        },
-        {
-            "ReceiptHandle": "",
-            "Body": '{"bucket": "test_bucket", "key": "test_wrangler_top2_prepared_output"}'
-        }
-    ]
-}
 
     with open("tests/fixtures/test_wrangler_combiner_prepared_output.json", "r")\
             as file_1:
