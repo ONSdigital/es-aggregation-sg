@@ -94,7 +94,8 @@ def lambda_handler(event, context):
                 "additional_aggregated_column": additional_aggregated_column,
                 "aggregated_column": aggregated_column,
                 "cell_total_column": cell_total_column,
-                "aggregation_type": aggregation_type
+                "aggregation_type": aggregation_type,
+                "run_id": run_id
             }
         }
 
