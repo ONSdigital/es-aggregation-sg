@@ -103,7 +103,11 @@ pre_wrangler_runtime_variables = {
                 }
             },
             "incoming_message_group_id": "",
-            "unique_identifier": ["", ""]
+            "unique_identifier": [
+                "brick_type",
+                "enterprise_reference",
+                "region"
+            ]
         }
 }
 
