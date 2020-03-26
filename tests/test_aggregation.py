@@ -384,7 +384,7 @@ def test_value_error(which_lambda, expected_message, assertion):
 @mock_s3
 def test_calc_top_two():
     """
-    Runs the method function.
+    Runs the calc_top_two function.
     :param None.
     :return Test Pass/Fail
     """
@@ -411,7 +411,7 @@ def test_calc_top_two():
 @mock_s3
 def test_calculate_row_type():
     """
-    Runs the method function.
+    Runs the calculate_row_type function.
     :param None.
     :return Test Pass/Fail
     """
@@ -447,7 +447,8 @@ def test_calculate_row_type():
 def test_combiner_success(mock_s3_put):
     """
     Runs the wrangler function.
-    :param mock_s3_put - Replacement Function For The Data Saveing AWS Functionality.
+    :param mock_s3_put: Replacement Function
+                        For The Data Saving AWS Functionality. - Mock.
     :return Test Pass/Fail
     """
     bucket_name = generic_environment_variables["bucket_name"]
@@ -509,7 +510,11 @@ def test_combiner_success(mock_s3_put):
 def test_method_success(which_lambda, which_runtime_variables, input_data, prepared_data):
     """
     Runs the method function.
-    :param None.
+    :param which_lambda: Main function.
+    :param which_runtime_variables: RuntimeVariables. - Dict.
+    :param input_data: File name/location of the data to be passed in. - String.
+    :param prepared_data: File name/location of the data
+                          to be used for comparison. - String.
     :return Test Pass/Fail
     """
     with open(prepared_data, "r") as file_1:
@@ -538,7 +543,7 @@ def test_splitter_wrangler_success(mock_s3_get, mock_s3_put):
     """
     Runs the wrangler function.
     :param mock_s3_get - Replacement Function For The Data Retrieval AWS Functionality.
-    :param mock_s3_put - Replacement Function For The Data Saveing AWS Functionality.
+    :param mock_s3_put - Replacement Function For The Data Saving AWS Functionality.
     :return Test Pass/Fail
     """
     bucket_name = generic_environment_variables["bucket_name"]
@@ -652,8 +657,15 @@ def test_wrangler_success(which_lambda, which_environment_variables,
                           file_list, method_data, prepared_data):
     """
     Runs the wrangler function.
-    :param mock_s3_get - Replacement Function For The Data Retrieval AWS Functionality.
-    :param mock_s3_put - Replacement Function For The Data Saveing AWS Functionality.
+    :param which_lambda: Main function.
+    :param which_environment_variables: Environment Variables. - Dict.
+    :param which_runtime_variables: RuntimeVariables. - Dict.
+    :param lambda_name: Name of the py file. - String.
+    :param file_list: Files to be added to the fake S3. - List(String).
+    :param method_data: File name/location of the data
+                        to be passed out by the method. - String.
+    :param prepared_data: File name/location of the data
+                          to be used for comparison. - String.
     :return Test Pass/Fail
     """
     bucket_name = which_environment_variables["bucket_name"]
@@ -706,7 +718,7 @@ def test_wrangler_success(which_lambda, which_environment_variables,
 def test_update_columns(additional_column):
     """
     Runs the method function.
-    :param None.
+    :param additional_column. The name of the second column to aggregate by. - String.
     :return Test Pass/Fail
     """
     runtime = method_top2_runtime_variables["RuntimeVariables"]
