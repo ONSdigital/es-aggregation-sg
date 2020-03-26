@@ -468,7 +468,7 @@ def test_combiner_success(mock_s3_put):
                 )
 
     with open("tests/fixtures/" +
-              pre_wrangler_runtime_variables["RuntimeVariables"]["out_file_name"],
+              combiner_runtime_variables["RuntimeVariables"]["out_file_name"],
               "r") as file_4:
         test_data_produced = file_4.read()
     produced_data = pd.DataFrame(json.loads(test_data_produced))
