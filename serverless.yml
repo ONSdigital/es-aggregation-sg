@@ -3,8 +3,8 @@ service: es-aggregation-sg
 provider:
   name: aws
   deploymentBucket:
-    name: spp-results-sandbox-serverless
-  role: arn:aws:iam::${self:custom.accountId}:role/lambda_invoke_lambda
+    name: spp-results-${self:custom.environment}-serverless
+  role: arn:aws:iam::#{AWS::AccountId}:role/lambda_invoke_lambda
   vpc:
     securityGroupIds:
       - ${file(../json_outputs/security_groups_output.json):SecurityGroups.0.GroupId}
@@ -21,7 +21,7 @@ provider:
     individually: true
 
 custom:
-  accountId: ${env:aws_account_id}
+  environment: ${env:ENVIRONMENT}
   environmentType: ${env:environment_type}
 
 functions:
@@ -35,13 +35,13 @@ functions:
         - ./**
       individually: true
     layers:
-      - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:es_python_layer:latest
-      - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:dev-es-common-functions:latest
+      - arn:aws:lambda:eu-west-2:#{AWS::AccountId}:layer:es_python_layer:latest
+      - arn:aws:lambda:eu-west-2:#{AWS::AccountId}:layer:dev-es-common-functions:latest
     tags:
       app: results
     environment:
       checkpoint: 4
-      bucket_name: spp-results-sandbox
+      bucket_name: spp-results-${self:custom.environment}
       method_name: es-add-regionless-method
 
   deploy-column-wrangler:
@@ -54,13 +54,13 @@ functions:
         - ./**
       individually: true
     layers:
-      - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:es_python_layer:latest
-      - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:dev-es-common-functions:latest
+      - arn:aws:lambda:eu-west-2:#{AWS::AccountId}:layer:es_python_layer:latest
+      - arn:aws:lambda:eu-west-2:#{AWS::AccountId}:layer:dev-es-common-functions:latest
     tags:
       app: results
     environment:
       checkpoint: 4
-      bucket_name: spp-results-sandbox
+      bucket_name: spp-results-${self:custom.environment}
       method_name: es-aggregation-column-method
 
   deploy-column-method:
@@ -73,8 +73,8 @@ functions:
         - ./**
       individually: true
     layers:
-      - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:es_python_layer:latest
-      - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:dev-es-common-functions:latest
+      - arn:aws:lambda:eu-west-2:#{AWS::AccountId}:layer:es_python_layer:latest
+      - arn:aws:lambda:eu-west-2:#{AWS::AccountId}:layer:dev-es-common-functions:latest
     tags:
       app: results
 
@@ -88,13 +88,13 @@ functions:
         - ./**
       individually: true
     layers:
-      - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:es_python_layer:latest
-      - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:dev-es-common-functions:latest
+      - arn:aws:lambda:eu-west-2:#{AWS::AccountId}:layer:es_python_layer:latest
+      - arn:aws:lambda:eu-west-2:#{AWS::AccountId}:layer:dev-es-common-functions:latest
     tags:
       app: results
     environment:
       checkpoint: 4
-      bucket_name: spp-results-sandbox
+      bucket_name: spp-results-${self:custom.environment}
       method_name: es-aggregation-top2-method
 
   deploy-top2-method:
@@ -107,8 +107,8 @@ functions:
         - ./**
       individually: true
     layers:
-      - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:es_python_layer:latest
-      - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:dev-es-common-functions:latest
+      - arn:aws:lambda:eu-west-2:#{AWS::AccountId}:layer:es_python_layer:latest
+      - arn:aws:lambda:eu-west-2:#{AWS::AccountId}:layer:dev-es-common-functions:latest
     tags:
       app: results
 
@@ -122,14 +122,15 @@ functions:
         - ./**
       individually: true
     layers:
-      - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:es_python_layer:latest
-      - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:dev-es-common-functions:latest
+      - arn:aws:lambda:eu-west-2:#{AWS::AccountId}:layer:es_python_layer:latest
+      - arn:aws:lambda:eu-west-2:#{AWS::AccountId}:layer:dev-es-common-functions:latest
     tags:
       app: results
     environment:
       checkpoint: 4
-      bucket_name: spp-results-sandbox
+      bucket_name: spp-results-${self:custom.environment}
       run_environment: ${self:custom.environmentType}
 
 plugins:
   - serverless-latest-layer-version
+  - serverless-pseudo-parameters
