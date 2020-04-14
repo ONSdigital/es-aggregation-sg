@@ -631,6 +631,84 @@ def test_sum_columns():
     assert_frame_equal(produced_data, prepared_data)
 
 
+# @mock_s3
+# @pytest.mark.parametrize(
+#     "which_lambda,which_environment_variables,which_runtime_variables," +
+#     "lambda_name,file_list,method_data,prepared_data",
+#     [
+#         (lambda_wrangler_col_function, generic_environment_variables,
+#          wrangler_cell_runtime_variables, "aggregation_column_wrangler",
+#          ["test_wrangler_agg_input.json"],
+#          "tests/fixtures/test_method_cell_prepared_output.json",
+#          "tests/fixtures/test_wrangler_cell_prepared_output.json"),
+#         (lambda_wrangler_col_function, generic_environment_variables,
+#          wrangler_ent_runtime_variables, "aggregation_column_wrangler",
+#          ["test_wrangler_agg_input.json"],
+#          "tests/fixtures/test_method_ent_prepared_output.json",
+#          "tests/fixtures/test_wrangler_ent_prepared_output.json"),
+#         (lambda_wrangler_top2_function, generic_environment_variables,
+#          wrangler_top2_runtime_variables, "aggregation_top2_wrangler",
+#          ["test_wrangler_agg_input.json"],
+#          "tests/fixtures/test_method_top2_prepared_output.json",
+#          "tests/fixtures/test_wrangler_top2_prepared_output.json")
+#     ])
+# def test_wrangler_success_passed(which_lambda, which_environment_variables,
+#                                  which_runtime_variables, lambda_name,
+#                                  file_list, method_data, prepared_data):
+#     """
+#     Runs the wrangler function.
+#     :param which_lambda: Main function.
+#     :param which_environment_variables: Environment Variables. - Dict.
+#     :param which_runtime_variables: RuntimeVariables. - Dict.
+#     :param lambda_name: Name of the py file. - String.
+#     :param file_list: Files to be added to the fake S3. - List(String).
+#     :param method_data: File name/location of the data
+#                         to be passed out by the method. - String.
+#     :param prepared_data: File name/location of the data
+#                           to be used for comparison. - String.
+#     :return Test Pass/Fail
+#     """
+#     bucket_name = which_environment_variables["bucket_name"]
+#     client = test_generic_library.create_bucket(bucket_name)
+#
+#     test_generic_library.upload_files(client, bucket_name, file_list)
+#
+#     with open(prepared_data, "r") as file_1:
+#         test_data_prepared = file_1.read()
+#     prepared_data = pd.DataFrame(json.loads(test_data_prepared))
+#
+#     with open(method_data, "r") as file_2:
+#         test_data_out = file_2.read()
+#
+#     with mock.patch.dict(which_lambda.os.environ,
+#                          which_environment_variables):
+#         with mock.patch(lambda_name + '.aws_functions.save_data',
+#                         side_effect=test_generic_library.replacement_save_data):
+#             with mock.patch(lambda_name + ".boto3.client") as mock_client:
+#                 mock_client_object = mock.Mock()
+#                 mock_client.return_value = mock_client_object
+#
+#                 mock_client_object.invoke.return_value.get.return_value.read \
+#                     .return_value.decode.return_value = json.dumps({
+#                      "data": test_data_out,
+#                      "success": True,
+#                      "anomalies": []
+#                     })
+#
+#                 output = which_lambda.lambda_handler(
+#                     which_runtime_variables, test_generic_library.context_object
+#                 )
+#
+#     with open("tests/fixtures/" +
+#               which_runtime_variables["RuntimeVariables"]["out_file_name"],
+#               "r") as file_3:
+#         test_data_produced = file_3.read()
+#     produced_data = pd.DataFrame(json.loads(test_data_produced))
+#
+#     assert output
+#     assert_frame_equal(produced_data, prepared_data)
+
+
 @mock_s3
 @pytest.mark.parametrize(
     "which_lambda,which_environment_variables,which_runtime_variables," +
@@ -652,9 +730,9 @@ def test_sum_columns():
          "tests/fixtures/test_method_top2_prepared_output.json",
          "tests/fixtures/test_wrangler_top2_prepared_output.json")
     ])
-def test_wrangler_success(which_lambda, which_environment_variables,
-                          which_runtime_variables, lambda_name,
-                          file_list, method_data, prepared_data):
+def test_wrangler_success_returned(which_lambda, which_environment_variables,
+                                   which_runtime_variables, lambda_name,
+                                   file_list, method_data, prepared_data):
     """
     Runs the wrangler function.
     :param which_lambda: Main function.
