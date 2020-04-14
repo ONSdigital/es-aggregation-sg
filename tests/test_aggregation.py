@@ -3,7 +3,7 @@ from unittest import mock
 
 import pandas as pd
 import pytest
-from es_aws_functions import test_generic_library, exception_classes
+from es_aws_functions import exception_classes, test_generic_library
 from moto import mock_s3
 from pandas.util.testing import assert_frame_equal
 
@@ -148,7 +148,7 @@ wrangler_ent_runtime_variables = {
         "total_columns": ["enterprise_reference"],
         "additional_aggregated_column": "strata",
         "aggregated_column": "region",
-        "cell_total_column": "enterprise_reference",
+        "cell_total_column": "ent_ref_count",
         "aggregation_type": "nunique",
         "location": "",
         "out_file_name": "test_wrangler_ent_output.json",
@@ -162,8 +162,8 @@ wrangler_top2_runtime_variables = {
     "RuntimeVariables":
         {
             "run_id": "bob",
-            "additional_aggregated_column": "a",
-            "aggregated_column": "a",
+            "additional_aggregated_column": "strata",
+            "aggregated_column": "region",
             "in_file_name": "test_wrangler_agg_input",
             "location": "",
             "out_file_name": "test_wrangler_top2_output.json",
