@@ -39,7 +39,7 @@ generic_environment_variables = {
 method_cell_runtime_variables = {
     "RuntimeVariables": {
         "run_id": "bob",
-        "input_json": None,
+        "data": None,
         "total_columns": ["Q608_total"],
         "additional_aggregated_column": "strata",
         "aggregated_column": "region",
@@ -52,7 +52,7 @@ method_cell_runtime_variables = {
 method_ent_runtime_variables = {
     "RuntimeVariables": {
         "run_id": "bob",
-        "input_json": None,
+        "data": None,
         "total_columns": ["enterprise_reference"],
         "additional_aggregated_column": "strata",
         "aggregated_column": "region",
@@ -63,7 +63,7 @@ method_ent_runtime_variables = {
 
 method_top2_runtime_variables = {
     "RuntimeVariables": {
-        "input_json": None,
+        "data": None,
         "run_id": "bob",
         "total_columns": ["Q608_total"],
         "additional_aggregated_column": "strata",
@@ -75,7 +75,7 @@ method_top2_runtime_variables = {
 
 method_top2_multi_runtime_variables = {
     "RuntimeVariables": {
-        "input_json": None,
+        "data": None,
         "run_id": "bob",
         "total_columns": ["Q608_total", "Q607_constructional_fill"],
         "additional_aggregated_column": "strata",
@@ -318,7 +318,7 @@ def test_key_error(which_lambda, which_environment_variables,
         test_generic_library.key_error(which_lambda, which_environment_variables,
                                        expected_message, assertion)
     else:
-        which_runtime_variables["RuntimeVariables"]["input_json"] = '[{"Test": 0}]'
+        which_runtime_variables["RuntimeVariables"]["data"] = '[{"Test": 0}]'
         test_generic_library.key_error(which_lambda, which_environment_variables,
                                        expected_message, assertion,
                                        which_runtime_variables)
@@ -523,7 +523,7 @@ def test_method_success(which_lambda, which_runtime_variables, input_data, prepa
 
     with open(input_data, "r") as file_2:
         test_data = file_2.read()
-    which_runtime_variables["RuntimeVariables"]["input_json"] = test_data
+    which_runtime_variables["RuntimeVariables"]["data"] = test_data
 
     output = which_lambda.lambda_handler(
         which_runtime_variables, test_generic_library.context_object)

@@ -10,7 +10,7 @@ class EnvironSchema(marshmallow.Schema):
     """
     Class to set up the environment variables schema.
     """
-    input_json = marshmallow.fields.Str(required=True)
+    data = marshmallow.fields.Str(required=True)
     total_columns = marshmallow.fields.List(marshmallow.fields.Str(), required=True)
     additional_aggregated_column = marshmallow.fields.Str(required=True)
     aggregated_column = marshmallow.fields.Str(required=True)
@@ -25,7 +25,7 @@ def lambda_handler(event, context):
      (e.g.Sum) as a new column called cell_total_column(e.g.county_total).
 
     :param event: {
-        input_json - JSON String of the data.
+        data - JSON String of the data.
         aggregated_column - A column to aggregate by. e.g. Enterprise_Reference.
         additional_aggregated_column - A column to aggregate by. e.g. Region.
         aggregation_type - How we wish to do the aggregation. e.g. sum, count, nunique.
@@ -52,7 +52,7 @@ def lambda_handler(event, context):
         if errors:
             raise ValueError(f"Error validating environment parameters: {errors}")
 
-        input_json = json.loads(config["input_json"])
+        data = json.loads(config["data"])
 
         additional_aggregated_column = config["additional_aggregated_column"]
         aggregated_column = config["aggregated_column"]
@@ -61,7 +61,7 @@ def lambda_handler(event, context):
         # Total columns can go through as a list
         total_columns = config['total_columns']
 
-        input_dataframe = pd.DataFrame(input_json)
+        input_dataframe = pd.DataFrame(data)
         totals_dict = {total_column: aggregation_type for total_column in total_columns}
 
         logger.info("JSON data converted to DataFrame.")
