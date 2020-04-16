@@ -96,7 +96,7 @@ def lambda_handler(event, context):
 
         json_payload = {
             "RuntimeVariables": {
-                "input_json": prepared_data,
+                "data": prepared_data,
                 "total_columns": total_columns,
                 "additional_aggregated_column": additional_aggregated_column,
                 "aggregated_column": aggregated_column,

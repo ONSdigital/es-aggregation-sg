@@ -3,7 +3,7 @@ from unittest import mock
 
 import pandas as pd
 import pytest
-from es_aws_functions import test_generic_library
+from es_aws_functions import exception_classes, test_generic_library
 from moto import mock_s3
 from pandas.util.testing import assert_frame_equal
 
@@ -39,7 +39,7 @@ generic_environment_variables = {
 method_cell_runtime_variables = {
     "RuntimeVariables": {
         "run_id": "bob",
-        "input_json": None,
+        "data": None,
         "total_columns": ["Q608_total"],
         "additional_aggregated_column": "strata",
         "aggregated_column": "region",
@@ -52,7 +52,7 @@ method_cell_runtime_variables = {
 method_ent_runtime_variables = {
     "RuntimeVariables": {
         "run_id": "bob",
-        "input_json": None,
+        "data": None,
         "total_columns": ["enterprise_reference"],
         "additional_aggregated_column": "strata",
         "aggregated_column": "region",
@@ -63,7 +63,7 @@ method_ent_runtime_variables = {
 
 method_top2_runtime_variables = {
     "RuntimeVariables": {
-        "input_json": None,
+        "data": None,
         "run_id": "bob",
         "total_columns": ["Q608_total"],
         "additional_aggregated_column": "strata",
@@ -75,7 +75,7 @@ method_top2_runtime_variables = {
 
 method_top2_multi_runtime_variables = {
     "RuntimeVariables": {
-        "input_json": None,
+        "data": None,
         "run_id": "bob",
         "total_columns": ["Q608_total", "Q607_constructional_fill"],
         "additional_aggregated_column": "strata",
@@ -148,7 +148,7 @@ wrangler_ent_runtime_variables = {
         "total_columns": ["enterprise_reference"],
         "additional_aggregated_column": "strata",
         "aggregated_column": "region",
-        "cell_total_column": "enterprise_reference",
+        "cell_total_column": "ent_ref_count",
         "aggregation_type": "nunique",
         "location": "",
         "out_file_name": "test_wrangler_ent_output.json",
@@ -162,8 +162,8 @@ wrangler_top2_runtime_variables = {
     "RuntimeVariables":
         {
             "run_id": "bob",
-            "additional_aggregated_column": "a",
-            "aggregated_column": "a",
+            "additional_aggregated_column": "strata",
+            "aggregated_column": "region",
             "in_file_name": "test_wrangler_agg_input",
             "location": "",
             "out_file_name": "test_wrangler_top2_output.json",
@@ -318,7 +318,7 @@ def test_key_error(which_lambda, which_environment_variables,
         test_generic_library.key_error(which_lambda, which_environment_variables,
                                        expected_message, assertion)
     else:
-        which_runtime_variables["RuntimeVariables"]["input_json"] = '[{"Test": 0}]'
+        which_runtime_variables["RuntimeVariables"]["data"] = '[{"Test": 0}]'
         test_generic_library.key_error(which_lambda, which_environment_variables,
                                        expected_message, assertion,
                                        which_runtime_variables)
@@ -523,7 +523,7 @@ def test_method_success(which_lambda, which_runtime_variables, input_data, prepa
 
     with open(input_data, "r") as file_2:
         test_data = file_2.read()
-    which_runtime_variables["RuntimeVariables"]["input_json"] = test_data
+    which_runtime_variables["RuntimeVariables"]["data"] = test_data
 
     output = which_lambda.lambda_handler(
         which_runtime_variables, test_generic_library.context_object)
@@ -634,6 +634,88 @@ def test_sum_columns():
 @mock_s3
 @pytest.mark.parametrize(
     "which_lambda,which_environment_variables,which_runtime_variables," +
+    "lambda_name,file_list,method_data,which_method_variables",
+    [
+        (lambda_wrangler_col_function, generic_environment_variables,
+         wrangler_cell_runtime_variables, "aggregation_column_wrangler",
+         ["test_wrangler_agg_input.json"],
+         "tests/fixtures/test_method_cell_input.json",
+         method_cell_runtime_variables),
+        (lambda_wrangler_col_function, generic_environment_variables,
+         wrangler_ent_runtime_variables, "aggregation_column_wrangler",
+         ["test_wrangler_agg_input.json"],
+         "tests/fixtures/test_method_ent_input.json",
+         method_ent_runtime_variables),
+        (lambda_wrangler_top2_function, generic_environment_variables,
+         wrangler_top2_runtime_variables, "aggregation_top2_wrangler",
+         ["test_wrangler_agg_input.json"],
+         "tests/fixtures/test_method_top2_input.json",
+         method_top2_runtime_variables)
+    ])
+def test_wrangler_success_passed(which_lambda, which_environment_variables,
+                                 which_runtime_variables, lambda_name,
+                                 file_list, method_data, which_method_variables):
+    """
+    Runs the wrangler function.
+    :param which_lambda: Main function.
+    :param which_environment_variables: Environment Variables. - Dict.
+    :param which_runtime_variables: RuntimeVariables. - Dict.
+    :param lambda_name: Name of the py file. - String.
+    :param file_list: Files to be added to the fake S3. - List(String).
+    :param method_data: File name/location of the data
+                        to be passed out by the method. - String.
+    :param which_method_variables: Variables to compare against. - Dict.
+    :return Test Pass/Fail
+    """
+    bucket_name = which_environment_variables["bucket_name"]
+    client = test_generic_library.create_bucket(bucket_name)
+
+    test_generic_library.upload_files(client, bucket_name, file_list)
+
+    with mock.patch.dict(which_lambda.os.environ,
+                         which_environment_variables):
+        with mock.patch(lambda_name + '.aws_functions.save_data',
+                        side_effect=test_generic_library.replacement_save_data):
+            with mock.patch(lambda_name + ".boto3.client") as mock_client:
+                mock_client_object = mock.Mock()
+                mock_client.return_value = mock_client_object
+
+                # Rather than mock the get/decode we tell the code that when the invoke is
+                # called pass the variables to this replacement function instead.
+                mock_client_object.invoke.side_effect = \
+                    test_generic_library.replacement_invoke
+
+                # This stops the Error caused by the replacement function from stopping
+                # the test.
+                with pytest.raises(exception_classes.LambdaFailure):
+                    which_lambda.lambda_handler(
+                        which_runtime_variables, test_generic_library.context_object
+                    )
+
+            with open(method_data, "r") as file_1:
+                test_data_prepared = file_1.read()
+            prepared_data = pd.DataFrame(json.loads(test_data_prepared), dtype=float)
+
+            with open("tests/fixtures/test_wrangler_to_method_input.json", "r") as file_2:
+                test_data_produced = file_2.read()
+            produced_data = pd.DataFrame(json.loads(test_data_produced), dtype=float)
+
+            # Compares the data.
+            assert_frame_equal(produced_data, prepared_data)
+
+            with open("tests/fixtures/test_wrangler_to_method_runtime.json",
+                      "r") as file_3:
+                test_dict_prepared = file_3.read()
+            produced_dict = json.loads(test_dict_prepared)
+
+            # Ensures data is not in the RuntimeVariables and then compares.
+            which_method_variables["RuntimeVariables"]["data"] = None
+            assert produced_dict == which_method_variables["RuntimeVariables"]
+
+
+@mock_s3
+@pytest.mark.parametrize(
+    "which_lambda,which_environment_variables,which_runtime_variables," +
     "lambda_name,file_list,method_data,prepared_data",
     [
         (lambda_wrangler_col_function, generic_environment_variables,
@@ -652,9 +734,9 @@ def test_sum_columns():
          "tests/fixtures/test_method_top2_prepared_output.json",
          "tests/fixtures/test_wrangler_top2_prepared_output.json")
     ])
-def test_wrangler_success(which_lambda, which_environment_variables,
-                          which_runtime_variables, lambda_name,
-                          file_list, method_data, prepared_data):
+def test_wrangler_success_returned(which_lambda, which_environment_variables,
+                                   which_runtime_variables, lambda_name,
+                                   file_list, method_data, prepared_data):
     """
     Runs the wrangler function.
     :param which_lambda: Main function.

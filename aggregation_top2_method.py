@@ -10,7 +10,7 @@ class EnvironSchema(marshmallow.Schema):
     """
     Class to set up the environment variables schema.
     """
-    input_json = marshmallow.fields.Str(required=True)
+    data = marshmallow.fields.Str(required=True)
     total_columns = marshmallow.fields.List(marshmallow.fields.Str(), required=True)
     additional_aggregated_column = marshmallow.fields.Str(required=True)
     aggregated_column = marshmallow.fields.Str(required=True)
@@ -25,7 +25,7 @@ def lambda_handler(event, context):
 
 
     :param event: {
-        input_json - JSON String of the data.
+        data - JSON String of the data.
         aggregated_column - A column to aggregate by. e.g. Enterprise_Reference.
         additional_aggregated_column - A column to aggregate by. e.g. Region.
         total_columns - The names of the columns to produce aggregations for.
@@ -53,14 +53,14 @@ def lambda_handler(event, context):
             raise ValueError(f"Error validating environment parameters: {errors}")
 
         logger.info("Converting input json to dataframe")
-        input_json = json.loads(config["input_json"])
+        data = json.loads(config["data"])
         total_columns = config["total_columns"]
         additional_aggregated_column = config["additional_aggregated_column"]
         aggregated_column = config["aggregated_column"]
         top1_column = config['top1_column']
         top2_column = config['top2_column']
 
-        input_dataframe = pd.DataFrame(input_json)
+        input_dataframe = pd.DataFrame(data)
         top_two_output = pd.DataFrame()
         logger.info("Invoking calc_top_two function on input dataframe")
         counter = 0
