@@ -18,6 +18,20 @@ class EnvironmentSchema(Schema):
     method_name = fields.Str(required=True)
 
 
+class RuntimeSchema(Schema):
+    additional_aggregated_column = fields.Str(required=True)
+    aggregated_column = fields.Str(required=True)
+    in_file_name = fields.Str(required=True)
+    location = fields.Str(required=True)
+    out_file_name = fields.Str(required=True)
+    outgoing_message_group_id = fields.Str(required=True)
+    sns_topic_arn = fields.Str(required=True)
+    queue_url = fields.Str(required=True)
+    top1_column = fields.Str(required=True)
+    top2_column = fields.Str(required=True)
+    total_columns = fields.List(fields.String, required=True)
+
+
 def lambda_handler(event, context):
     """
     This wrangler is used to prepare data for the calculate top two
@@ -55,31 +69,35 @@ def lambda_handler(event, context):
         lambda_client = boto3.client("lambda", region_name="eu-west-2")
         logger.info("Setting-up environment configs")
 
-        # Import environment variables using marshmallow validation
-        schema = EnvironmentSchema()
-        config, errors = schema.load(os.environ)
+        environment_variables, errors = EnvironmentSchema().load(os.environ)
         if errors:
+            logger.error(f"Error validating environment params: {errors}")
             raise ValueError(f"Error validating environment params: {errors}")
-        logger.info("Validated params")
+
+        runtime_variables, errors = RuntimeSchema().load(event["RuntimeVariables"])
+        if errors:
+            logger.error(f"Error validating runtime params: {errors}")
+            raise ValueError(f"Error validating runtime params: {errors}")
+
+        logger.info("Validated parameters.")
 
         # Environment Variables
-        bucket_name = config["bucket_name"]
-        checkpoint = config["checkpoint"]
-        method_name = config["method_name"]
+        bucket_name = environment_variables["bucket_name"]
+        checkpoint = environment_variables["checkpoint"]
+        method_name = environment_variables["method_name"]
 
         # Runtime Variables
-        aggregated_column = event["RuntimeVariables"]["aggregated_column"]
-        additional_aggregated_column = \
-            event["RuntimeVariables"]["additional_aggregated_column"]
-        in_file_name = event["RuntimeVariables"]["in_file_name"]
-        location = event["RuntimeVariables"]["location"]
-        out_file_name = event["RuntimeVariables"]["out_file_name"]
-        outgoing_message_group_id = event["RuntimeVariables"]["outgoing_message_group_id"]
-        sns_topic_arn = event["RuntimeVariables"]["sns_topic_arn"]
-        sqs_queue_url = event["RuntimeVariables"]["queue_url"]
-        top1_column = event["RuntimeVariables"]["top1_column"]
-        top2_column = event["RuntimeVariables"]["top2_column"]
-        total_columns = event["RuntimeVariables"]["total_columns"]
+        aggregated_column = runtime_variables["aggregated_column"]
+        additional_aggregated_column = runtime_variables["additional_aggregated_column"]
+        in_file_name = runtime_variables["in_file_name"]
+        location = runtime_variables["location"]
+        out_file_name = runtime_variables["out_file_name"]
+        outgoing_message_group_id = runtime_variables["outgoing_message_group_id"]
+        sns_topic_arn = runtime_variables["sns_topic_arn"]
+        sqs_queue_url = runtime_variables["queue_url"]
+        top1_column = runtime_variables["top1_column"]
+        top2_column = runtime_variables["top2_column"]
+        total_columns = runtime_variables["total_columns"]
 
         logger.info("Retrieved configuration variables.")
 
