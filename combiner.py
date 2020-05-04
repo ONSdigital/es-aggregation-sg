@@ -8,7 +8,7 @@ from es_aws_functions import aws_functions, exception_classes, general_functions
 from marshmallow import Schema, fields
 
 
-class EnvironSchema(Schema):
+class EnvironmentSchema(Schema):
     """
     Class to set up the environment variables schema.
     """
@@ -40,9 +40,9 @@ def lambda_handler(event, context):
         logger.info("Starting Aggregation Combiner.")
         # Retrieve run_id before input validation
         # Because it is used in exception handling
-        run_id = event['RuntimeVariables']['run_id']
+        run_id = event["RuntimeVariables"]["run_id"]
         # Set up Environment variables Schema.
-        schema = EnvironSchema()
+        schema = EnvironmentSchema()
         config, errors = schema.load(os.environ)
         if errors:
             raise ValueError(f"Error validating environment parameters: {errors}")
@@ -52,18 +52,18 @@ def lambda_handler(event, context):
         # Environment Variables
         checkpoint = config["checkpoint"]
         bucket_name = config["bucket_name"]
-        run_environment = config['run_environment']
+        run_environment = config["run_environment"]
 
         # Runtime Variables
         additional_aggregated_column =\
-            event['RuntimeVariables']['additional_aggregated_column']
-        aggregated_column = event['RuntimeVariables']['aggregated_column']
-        in_file_name = event['RuntimeVariables']['in_file_name']
-        location = event['RuntimeVariables']['location']
-        out_file_name = event['RuntimeVariables']['out_file_name']
-        outgoing_message_group_id = event['RuntimeVariables']["outgoing_message_group_id"]
-        sns_topic_arn = event['RuntimeVariables']["sns_topic_arn"]
-        sqs_queue_url = event['RuntimeVariables']["queue_url"]
+            event["RuntimeVariables"]["additional_aggregated_column"]
+        aggregated_column = event["RuntimeVariables"]["aggregated_column"]
+        in_file_name = event["RuntimeVariables"]["in_file_name"]
+        location = event["RuntimeVariables"]["location"]
+        out_file_name = event["RuntimeVariables"]["out_file_name"]
+        outgoing_message_group_id = event["RuntimeVariables"]["outgoing_message_group_id"]
+        sns_topic_arn = event["RuntimeVariables"]["sns_topic_arn"]
+        sqs_queue_url = event["RuntimeVariables"]["queue_url"]
 
         logger.info("Retrieved configuration variables.")
 
@@ -77,12 +77,12 @@ def lambda_handler(event, context):
         data = []
 
         # Receive the 3 aggregation outputs
-        response = aws_functions.get_sqs_messages(sqs_queue_url, 3, 'aggregation')
+        response = aws_functions.get_sqs_messages(sqs_queue_url, 3, "aggregation")
 
         receipt_handles = []
         logger.info("Successfully retrieved message from sqs")
         for message in response["Messages"]:
-            receipt_handles.append(message['ReceiptHandle'])
+            receipt_handles.append(message["ReceiptHandle"])
             data.append(message["Body"])
 
         for handle in receipt_handles:
@@ -94,14 +94,14 @@ def lambda_handler(event, context):
         second_agg = json.loads(data[1])
         third_agg = json.loads(data[2])
 
-        first_agg_df = aws_functions.read_dataframe_from_s3(first_agg['bucket'],
-                                                            first_agg['key'],
+        first_agg_df = aws_functions.read_dataframe_from_s3(first_agg["bucket"],
+                                                            first_agg["key"],
                                                             location)
-        second_agg_df = aws_functions.read_dataframe_from_s3(second_agg['bucket'],
-                                                             second_agg['key'],
+        second_agg_df = aws_functions.read_dataframe_from_s3(second_agg["bucket"],
+                                                             second_agg["key"],
                                                              location)
-        third_agg_df = aws_functions.read_dataframe_from_s3(third_agg['bucket'],
-                                                            third_agg['key'],
+        third_agg_df = aws_functions.read_dataframe_from_s3(third_agg["bucket"],
+                                                            third_agg["key"],
                                                             location)
 
         to_aggregate = [aggregated_column]
@@ -130,11 +130,11 @@ def lambda_handler(event, context):
         logger.info("Successfully sent data to s3.")
 
         if run_environment != "development":
-            logger.info(aws_functions.delete_data(first_agg['bucket'], first_agg['key'],
+            logger.info(aws_functions.delete_data(first_agg["bucket"], first_agg["key"],
                                                   location))
-            logger.info(aws_functions.delete_data(second_agg['bucket'], second_agg['key'],
+            logger.info(aws_functions.delete_data(second_agg["bucket"], second_agg["key"],
                                                   location))
-            logger.info(aws_functions.delete_data(third_agg['bucket'], third_agg['key'],
+            logger.info(aws_functions.delete_data(third_agg["bucket"], third_agg["key"],
                                                   location))
             logger.info("Successfully deleted input data.")
 

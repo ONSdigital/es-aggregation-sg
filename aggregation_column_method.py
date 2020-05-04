@@ -6,7 +6,7 @@ import pandas as pd
 from es_aws_functions import general_functions
 
 
-class EnvironSchema(marshmallow.Schema):
+class EnvironmentSchema(marshmallow.Schema):
     """
     Class to set up the environment variables schema.
     """
@@ -45,9 +45,9 @@ def lambda_handler(event, context):
         logger.info("Aggregation by column - Method begun.")
         # Retrieve run_id before input validation
         # Because it is used in exception handling
-        run_id = event['RuntimeVariables']['run_id']
+        run_id = event["RuntimeVariables"]["run_id"]
         # Set up Environment variables Schema.
-        schema = EnvironSchema(strict=False)
+        schema = EnvironmentSchema(strict=False)
         config, errors = schema.load(event["RuntimeVariables"])
         if errors:
             raise ValueError(f"Error validating environment parameters: {errors}")
@@ -59,7 +59,7 @@ def lambda_handler(event, context):
         cell_total_column = config["cell_total_column"]
         aggregation_type = config["aggregation_type"]
         # Total columns can go through as a list
-        total_columns = config['total_columns']
+        total_columns = config["total_columns"]
 
         input_dataframe = pd.DataFrame(data)
         totals_dict = {total_column: aggregation_type for total_column in total_columns}
@@ -87,7 +87,7 @@ def lambda_handler(event, context):
 
         logger.info("Column totals successfully calculated.")
 
-        output_json = agg_by_county_output.to_json(orient='records')
+        output_json = agg_by_county_output.to_json(orient="records")
         final_output = {"data": output_json}
         logger.info("DataFrame converted to JSON for output.")
 
@@ -100,5 +100,5 @@ def lambda_handler(event, context):
             return {"success": False, "error": error_message}
 
     logger.info("Successfully completed module: " + current_module)
-    final_output['success'] = True
+    final_output["success"] = True
     return final_output

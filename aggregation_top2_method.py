@@ -6,7 +6,7 @@ import pandas as pd
 from es_aws_functions import general_functions
 
 
-class EnvironSchema(marshmallow.Schema):
+class EnvironmentSchema(marshmallow.Schema):
     """
     Class to set up the environment variables schema.
     """
@@ -38,16 +38,16 @@ def lambda_handler(event, context):
     current_module = "Aggregation Calc Top Two - Method"
     logger = logging.getLogger()
     logger.setLevel(0)
-    error_message = ''
+    error_message = ""
     response_json = None
     run_id = 0
     logger.info("Starting " + current_module)
     try:
         # Retrieve run_id before input validation
         # Because it is used in exception handling
-        run_id = event['RuntimeVariables']['run_id']
+        run_id = event["RuntimeVariables"]["run_id"]
         # Set up Environment variables Schema.
-        schema = EnvironSchema(strict=False)
+        schema = EnvironmentSchema(strict=False)
         config, errors = schema.load(event["RuntimeVariables"])
         if errors:
             raise ValueError(f"Error validating environment parameters: {errors}")
@@ -57,8 +57,8 @@ def lambda_handler(event, context):
         total_columns = config["total_columns"]
         additional_aggregated_column = config["additional_aggregated_column"]
         aggregated_column = config["aggregated_column"]
-        top1_column = config['top1_column']
-        top2_column = config['top2_column']
+        top1_column = config["top1_column"]
+        top2_column = config["top2_column"]
 
         input_dataframe = pd.DataFrame(data)
         top_two_output = pd.DataFrame()
@@ -83,7 +83,7 @@ def lambda_handler(event, context):
 
         response = top_two_output
         logger.info("Converting output dataframe to json")
-        response_json = response.to_json(orient='records')
+        response_json = response.to_json(orient="records")
         final_output = {"data": response_json}
 
     except Exception as e:
@@ -95,7 +95,7 @@ def lambda_handler(event, context):
             return {"success": False, "error": error_message}
 
     logger.info("Successfully completed module: " + current_module)
-    final_output['success'] = True
+    final_output["success"] = True
     return final_output
 
 
@@ -125,7 +125,7 @@ def calc_top_two(data, total_column, aggregated_column, additional_aggregated_co
 
     # Organise the unique groups to be used for top2 lookup
     aggregations = data[to_aggregate].drop_duplicates()
-    aggregations_list = json.loads(aggregations.to_json(orient='records'))
+    aggregations_list = json.loads(aggregations.to_json(orient="records"))
 
     # Find top 2 in each unique group
     for aggregation in aggregations_list:

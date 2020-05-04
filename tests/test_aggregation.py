@@ -239,23 +239,23 @@ def test_client_error(which_lambda, which_runtime_variables,
     "expected_message,assertion",
     [
         (lambda_wrangler_col_function, wrangler_cell_runtime_variables,
-         generic_environment_variables, "aggregation_column_wrangler.EnvironSchema",
+         generic_environment_variables, "aggregation_column_wrangler.EnvironmentSchema",
          "Exception", test_generic_library.wrangler_assert),
         (lambda_wrangler_top2_function, wrangler_top2_runtime_variables,
-         generic_environment_variables, "aggregation_top2_wrangler.EnvironSchema",
+         generic_environment_variables, "aggregation_top2_wrangler.EnvironmentSchema",
          "Exception", test_generic_library.wrangler_assert),
         (lambda_pre_wrangler_function, pre_wrangler_runtime_variables,
          generic_environment_variables,
-         "aggregation_bricks_splitter_wrangler.EnvironSchema",
+         "aggregation_bricks_splitter_wrangler.EnvironmentSchema",
          "Exception", test_generic_library.wrangler_assert),
         (lambda_combiner_function, combiner_runtime_variables,
-         generic_environment_variables, "combiner.EnvironSchema",
+         generic_environment_variables, "combiner.EnvironmentSchema",
          "Exception", test_generic_library.wrangler_assert),
         (lambda_method_col_function, method_cell_runtime_variables,
-         False, "aggregation_column_method.EnvironSchema",
+         False, "aggregation_column_method.EnvironmentSchema",
          "Exception", test_generic_library.method_assert),
         (lambda_method_top2_function, method_top2_runtime_variables,
-         False, "aggregation_top2_method.EnvironSchema",
+         False, "aggregation_top2_method.EnvironmentSchema",
          "Exception", test_generic_library.method_assert)
     ])
 def test_general_error(which_lambda, which_runtime_variables,
@@ -351,30 +351,32 @@ def test_method_error(mock_s3_get, which_lambda, which_runtime_variables,
 
 
 @pytest.mark.parametrize(
-    "which_lambda,expected_message,assertion",
+    "which_lambda,expected_message,assertion,which_environment_variables",
     [
         (lambda_wrangler_col_function,
          "Error validating environment param",
-         test_generic_library.wrangler_assert),
+         test_generic_library.wrangler_assert, {}),
         (lambda_wrangler_top2_function,
          "Error validating environment param",
-         test_generic_library.wrangler_assert),
+         test_generic_library.wrangler_assert, {}),
         (lambda_pre_wrangler_function,
          "Error validating environment param",
-         test_generic_library.wrangler_assert),
+         test_generic_library.wrangler_assert, {}),
         (lambda_combiner_function,
          "Error validating environment param",
-         test_generic_library.wrangler_assert),
+         test_generic_library.wrangler_assert, {}),
         (lambda_method_col_function,
          "Error validating environment param",
-         test_generic_library.method_assert),
+         test_generic_library.method_assert, {}),
         (lambda_method_top2_function,
          "Error validating environment param",
-         test_generic_library.method_assert)
+         test_generic_library.method_assert, {})
     ])
-def test_value_error(which_lambda, expected_message, assertion):
+def test_value_error(which_lambda, expected_message,
+                     assertion, which_environment_variables):
     test_generic_library.value_error(
-        which_lambda, expected_message, assertion)
+        which_lambda, expected_message,
+        assertion, environment_variables=which_environment_variables)
 
 ##########################################################################################
 #                                     Specific                                           #

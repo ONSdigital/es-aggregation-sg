@@ -7,7 +7,7 @@ from es_aws_functions import aws_functions, exception_classes, general_functions
 from marshmallow import Schema, fields
 
 
-class EnvironSchema(Schema):
+class EnvironmentSchema(Schema):
     """
     Schema to ensure that environment variables are present and in the correct format.
     :return: None
@@ -46,13 +46,13 @@ def lambda_handler(event, context):
         logger.info("Started Aggregation - Wrangler.")
         # Retrieve run_id before input validation
         # Because it is used in exception handling
-        run_id = event['RuntimeVariables']['run_id']
+        run_id = event["RuntimeVariables"]["run_id"]
 
         # Needs to be declared inside the lambda_handler
-        lambda_client = boto3.client('lambda', region_name="eu-west-2")
+        lambda_client = boto3.client("lambda", region_name="eu-west-2")
 
         # ENV vars
-        config, errors = EnvironSchema().load(os.environ)
+        config, errors = EnvironmentSchema().load(os.environ)
 
         if errors:
             raise ValueError(f"Error validating environment params: {errors}")
@@ -60,23 +60,23 @@ def lambda_handler(event, context):
         logger.info("Validated params")
 
         # Environment Variables
-        bucket_name = config['bucket_name']
-        checkpoint = config['checkpoint']
-        method_name = config['method_name']
+        bucket_name = config["bucket_name"]
+        checkpoint = config["checkpoint"]
+        method_name = config["method_name"]
 
         # Runtime Variables
         additional_aggregated_column = \
-            event['RuntimeVariables']['additional_aggregated_column']
-        aggregated_column = event['RuntimeVariables']['aggregated_column']
-        aggregation_type = event['RuntimeVariables']['aggregation_type']
-        cell_total_column = event['RuntimeVariables']['cell_total_column']
-        in_file_name = event['RuntimeVariables']['in_file_name']
-        location = event['RuntimeVariables']['location']
-        out_file_name = event['RuntimeVariables']['out_file_name']
-        outgoing_message_group_id = event['RuntimeVariables']["outgoing_message_group_id"]
-        sns_topic_arn = event['RuntimeVariables']['sns_topic_arn']
-        sqs_queue_url = event['RuntimeVariables']["queue_url"]
-        total_columns = event['RuntimeVariables']['total_columns']
+            event["RuntimeVariables"]["additional_aggregated_column"]
+        aggregated_column = event["RuntimeVariables"]["aggregated_column"]
+        aggregation_type = event["RuntimeVariables"]["aggregation_type"]
+        cell_total_column = event["RuntimeVariables"]["cell_total_column"]
+        in_file_name = event["RuntimeVariables"]["in_file_name"]
+        location = event["RuntimeVariables"]["location"]
+        out_file_name = event["RuntimeVariables"]["out_file_name"]
+        outgoing_message_group_id = event["RuntimeVariables"]["outgoing_message_group_id"]
+        sns_topic_arn = event["RuntimeVariables"]["sns_topic_arn"]
+        sqs_queue_url = event["RuntimeVariables"]["queue_url"]
+        total_columns = event["RuntimeVariables"]["total_columns"]
 
         logger.info("Retrieved configuration variables.")
 
@@ -84,7 +84,7 @@ def lambda_handler(event, context):
         data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name, location)
         logger.info("Completed reading data from s3")
 
-        formatted_data = data.to_json(orient='records')
+        formatted_data = data.to_json(orient="records")
         logger.info("Formated disaggregated_data")
 
         json_payload = {
@@ -102,12 +102,12 @@ def lambda_handler(event, context):
         by_column = lambda_client.invoke(FunctionName=method_name,
                                          Payload=json.dumps(json_payload))
 
-        json_response = json.loads(by_column.get('Payload').read().decode("utf-8"))
+        json_response = json.loads(by_column.get("Payload").read().decode("utf-8"))
 
         logger.info("Successfully invoked the method lambda")
 
-        if not json_response['success']:
-            raise exception_classes.MethodFailure(json_response['error'])
+        if not json_response["success"]:
+            raise exception_classes.MethodFailure(json_response["error"])
 
         aws_functions.save_data(bucket_name, out_file_name, json_response["data"],
                                 sqs_queue_url, outgoing_message_group_id, location)

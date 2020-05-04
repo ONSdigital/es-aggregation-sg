@@ -7,7 +7,7 @@ from es_aws_functions import aws_functions, exception_classes, general_functions
 from marshmallow import Schema, fields
 
 
-class EnvironSchema(Schema):
+class EnvironmentSchema(Schema):
     """
     Schema to ensure that environment variables are present and in the
     correct format.
@@ -41,7 +41,7 @@ def lambda_handler(event, context):
     current_module = "Aggregation Calc Top Two - Wrangler."
     logger = logging.getLogger()
     logger.setLevel(10)
-    error_message = ''
+    error_message = ""
     checkpoint = 4
     # Define run_id outside of try block
     run_id = 0
@@ -49,37 +49,37 @@ def lambda_handler(event, context):
         logger.info("Starting " + current_module)
         # Retrieve run_id before input validation
         # Because it is used in exception handling
-        run_id = event['RuntimeVariables']['run_id']
+        run_id = event["RuntimeVariables"]["run_id"]
 
         # Needs to be declared inside of the lambda handler
-        lambda_client = boto3.client('lambda', region_name="eu-west-2")
+        lambda_client = boto3.client("lambda", region_name="eu-west-2")
         logger.info("Setting-up environment configs")
 
         # Import environment variables using marshmallow validation
-        schema = EnvironSchema()
+        schema = EnvironmentSchema()
         config, errors = schema.load(os.environ)
         if errors:
             raise ValueError(f"Error validating environment params: {errors}")
         logger.info("Validated params")
 
         # Environment Variables
-        bucket_name = config['bucket_name']
-        checkpoint = config['checkpoint']
-        method_name = config['method_name']
+        bucket_name = config["bucket_name"]
+        checkpoint = config["checkpoint"]
+        method_name = config["method_name"]
 
         # Runtime Variables
-        aggregated_column = event['RuntimeVariables']['aggregated_column']
+        aggregated_column = event["RuntimeVariables"]["aggregated_column"]
         additional_aggregated_column = \
-            event['RuntimeVariables']['additional_aggregated_column']
-        in_file_name = event['RuntimeVariables']['in_file_name']
-        location = event['RuntimeVariables']['location']
-        out_file_name = event['RuntimeVariables']['out_file_name']
-        outgoing_message_group_id = event['RuntimeVariables']["outgoing_message_group_id"]
-        sns_topic_arn = event['RuntimeVariables']['sns_topic_arn']
-        sqs_queue_url = event['RuntimeVariables']["queue_url"]
-        top1_column = event['RuntimeVariables']['top1_column']
-        top2_column = event['RuntimeVariables']['top2_column']
-        total_columns = event['RuntimeVariables']['total_columns']
+            event["RuntimeVariables"]["additional_aggregated_column"]
+        in_file_name = event["RuntimeVariables"]["in_file_name"]
+        location = event["RuntimeVariables"]["location"]
+        out_file_name = event["RuntimeVariables"]["out_file_name"]
+        outgoing_message_group_id = event["RuntimeVariables"]["outgoing_message_group_id"]
+        sns_topic_arn = event["RuntimeVariables"]["sns_topic_arn"]
+        sqs_queue_url = event["RuntimeVariables"]["queue_url"]
+        top1_column = event["RuntimeVariables"]["top1_column"]
+        top2_column = event["RuntimeVariables"]["top2_column"]
+        total_columns = event["RuntimeVariables"]["total_columns"]
 
         logger.info("Retrieved configuration variables.")
 
@@ -89,7 +89,7 @@ def lambda_handler(event, context):
 
         # Serialise data
         logger.info("Converting dataframe to json.")
-        prepared_data = data.to_json(orient='records')
+        prepared_data = data.to_json(orient="records")
 
         # Invoke aggregation top2 method
         logger.info("Invoking the statistical method.")
@@ -109,10 +109,10 @@ def lambda_handler(event, context):
         top2 = lambda_client.invoke(FunctionName=method_name,
                                     Payload=json.dumps(json_payload))
 
-        json_response = json.loads(top2.get('Payload').read().decode("utf-8"))
+        json_response = json.loads(top2.get("Payload").read().decode("utf-8"))
 
-        if not json_response['success']:
-            raise exception_classes.MethodFailure(json_response['error'])
+        if not json_response["success"]:
+            raise exception_classes.MethodFailure(json_response["error"])
 
         # Sending output to SQS, notice to SNS
         logger.info("Sending function response downstream.")
