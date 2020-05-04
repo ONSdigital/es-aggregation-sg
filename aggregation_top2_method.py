@@ -1,21 +1,18 @@
 import json
 import logging
 
-import marshmallow
 import pandas as pd
 from es_aws_functions import general_functions
+from marshmallow import Schema, fields
 
 
-class EnvironSchema(marshmallow.Schema):
-    """
-    Class to set up the environment variables schema.
-    """
-    data = marshmallow.fields.Str(required=True)
-    total_columns = marshmallow.fields.List(marshmallow.fields.Str(), required=True)
-    additional_aggregated_column = marshmallow.fields.Str(required=True)
-    aggregated_column = marshmallow.fields.Str(required=True)
-    top1_column = marshmallow.fields.Str(required=True)
-    top2_column = marshmallow.fields.Str(required=True)
+class RuntimeSchema(Schema):
+    data = fields.Str(required=True)
+    total_columns = fields.List(fields.String, required=True)
+    additional_aggregated_column = fields.Str(required=True)
+    aggregated_column = fields.Str(required=True)
+    top1_column = fields.Str(required=True)
+    top2_column = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -38,27 +35,29 @@ def lambda_handler(event, context):
     current_module = "Aggregation Calc Top Two - Method"
     logger = logging.getLogger()
     logger.setLevel(0)
-    error_message = ''
+    error_message = ""
     response_json = None
     run_id = 0
     logger.info("Starting " + current_module)
     try:
         # Retrieve run_id before input validation
         # Because it is used in exception handling
-        run_id = event['RuntimeVariables']['run_id']
-        # Set up Environment variables Schema.
-        schema = EnvironSchema(strict=False)
-        config, errors = schema.load(event["RuntimeVariables"])
-        if errors:
-            raise ValueError(f"Error validating environment parameters: {errors}")
+        run_id = event["RuntimeVariables"]["run_id"]
 
-        logger.info("Converting input json to dataframe")
-        data = json.loads(config["data"])
-        total_columns = config["total_columns"]
-        additional_aggregated_column = config["additional_aggregated_column"]
-        aggregated_column = config["aggregated_column"]
-        top1_column = config['top1_column']
-        top2_column = config['top2_column']
+        runtime_variables, errors = RuntimeSchema().load(event["RuntimeVariables"])
+        if errors:
+            logger.error(f"Error validating runtime params: {errors}")
+            raise ValueError(f"Error validating runtime params: {errors}")
+
+        logger.info("Validated parameters.")
+
+        # Runtime Variables
+        data = json.loads(runtime_variables["data"])
+        total_columns = runtime_variables["total_columns"]
+        additional_aggregated_column = runtime_variables["additional_aggregated_column"]
+        aggregated_column = runtime_variables["aggregated_column"]
+        top1_column = runtime_variables["top1_column"]
+        top2_column = runtime_variables["top2_column"]
 
         input_dataframe = pd.DataFrame(data)
         top_two_output = pd.DataFrame()
@@ -83,7 +82,7 @@ def lambda_handler(event, context):
 
         response = top_two_output
         logger.info("Converting output dataframe to json")
-        response_json = response.to_json(orient='records')
+        response_json = response.to_json(orient="records")
         final_output = {"data": response_json}
 
     except Exception as e:
@@ -95,7 +94,7 @@ def lambda_handler(event, context):
             return {"success": False, "error": error_message}
 
     logger.info("Successfully completed module: " + current_module)
-    final_output['success'] = True
+    final_output["success"] = True
     return final_output
 
 
@@ -125,7 +124,7 @@ def calc_top_two(data, total_column, aggregated_column, additional_aggregated_co
 
     # Organise the unique groups to be used for top2 lookup
     aggregations = data[to_aggregate].drop_duplicates()
-    aggregations_list = json.loads(aggregations.to_json(orient='records'))
+    aggregations_list = json.loads(aggregations.to_json(orient="records"))
 
     # Find top 2 in each unique group
     for aggregation in aggregations_list:

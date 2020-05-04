@@ -1,21 +1,18 @@
 import json
 import logging
 
-import marshmallow
 import pandas as pd
 from es_aws_functions import general_functions
+from marshmallow import Schema, fields
 
 
-class EnvironSchema(marshmallow.Schema):
-    """
-    Class to set up the environment variables schema.
-    """
-    data = marshmallow.fields.Str(required=True)
-    total_columns = marshmallow.fields.List(marshmallow.fields.Str(), required=True)
-    additional_aggregated_column = marshmallow.fields.Str(required=True)
-    aggregated_column = marshmallow.fields.Str(required=True)
-    cell_total_column = marshmallow.fields.Str(required=True)
-    aggregation_type = marshmallow.fields.Str(required=True)
+class RuntimeSchema(Schema):
+    data = fields.Str(required=True)
+    total_columns = fields.List(fields.String, required=True)
+    additional_aggregated_column = fields.Str(required=True)
+    aggregated_column = fields.Str(required=True)
+    cell_total_column = fields.Str(required=True)
+    aggregation_type = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -45,21 +42,22 @@ def lambda_handler(event, context):
         logger.info("Aggregation by column - Method begun.")
         # Retrieve run_id before input validation
         # Because it is used in exception handling
-        run_id = event['RuntimeVariables']['run_id']
-        # Set up Environment variables Schema.
-        schema = EnvironSchema(strict=False)
-        config, errors = schema.load(event["RuntimeVariables"])
+        run_id = event["RuntimeVariables"]["run_id"]
+
+        runtime_variables, errors = RuntimeSchema().load(event["RuntimeVariables"])
         if errors:
-            raise ValueError(f"Error validating environment parameters: {errors}")
+            logger.error(f"Error validating runtime params: {errors}")
+            raise ValueError(f"Error validating runtime params: {errors}")
 
-        data = json.loads(config["data"])
+        logger.info("Validated parameters.")
 
-        additional_aggregated_column = config["additional_aggregated_column"]
-        aggregated_column = config["aggregated_column"]
-        cell_total_column = config["cell_total_column"]
-        aggregation_type = config["aggregation_type"]
-        # Total columns can go through as a list
-        total_columns = config['total_columns']
+        # Runtime Variables
+        additional_aggregated_column = runtime_variables["additional_aggregated_column"]
+        aggregated_column = runtime_variables["aggregated_column"]
+        aggregation_type = runtime_variables["aggregation_type"]
+        cell_total_column = runtime_variables["cell_total_column"]
+        data = json.loads(runtime_variables["data"])
+        total_columns = runtime_variables["total_columns"]
 
         input_dataframe = pd.DataFrame(data)
         totals_dict = {total_column: aggregation_type for total_column in total_columns}
@@ -87,7 +85,7 @@ def lambda_handler(event, context):
 
         logger.info("Column totals successfully calculated.")
 
-        output_json = agg_by_county_output.to_json(orient='records')
+        output_json = agg_by_county_output.to_json(orient="records")
         final_output = {"data": output_json}
         logger.info("DataFrame converted to JSON for output.")
 
@@ -100,5 +98,5 @@ def lambda_handler(event, context):
             return {"success": False, "error": error_message}
 
     logger.info("Successfully completed module: " + current_module)
-    final_output['success'] = True
+    final_output["success"] = True
     return final_output
