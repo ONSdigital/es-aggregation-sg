@@ -1,21 +1,18 @@
 import json
 import logging
 
-import marshmallow
 import pandas as pd
 from es_aws_functions import general_functions
+from marshmallow import Schema, fields
 
 
-class EnvironmentSchema(marshmallow.Schema):
-    """
-    Class to set up the environment variables schema.
-    """
-    data = marshmallow.fields.Str(required=True)
-    total_columns = marshmallow.fields.List(marshmallow.fields.Str(), required=True)
-    additional_aggregated_column = marshmallow.fields.Str(required=True)
-    aggregated_column = marshmallow.fields.Str(required=True)
-    top1_column = marshmallow.fields.Str(required=True)
-    top2_column = marshmallow.fields.Str(required=True)
+class RuntimeSchema(Schema):
+    data = fields.Str(required=True)
+    total_columns = fields.List(fields.String, required=True)
+    additional_aggregated_column = fields.Str(required=True)
+    aggregated_column = fields.Str(required=True)
+    top1_column = fields.Str(required=True)
+    top2_column = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -46,19 +43,21 @@ def lambda_handler(event, context):
         # Retrieve run_id before input validation
         # Because it is used in exception handling
         run_id = event["RuntimeVariables"]["run_id"]
-        # Set up Environment variables Schema.
-        schema = EnvironmentSchema(strict=False)
-        config, errors = schema.load(event["RuntimeVariables"])
-        if errors:
-            raise ValueError(f"Error validating environment parameters: {errors}")
 
-        logger.info("Converting input json to dataframe")
-        data = json.loads(config["data"])
-        total_columns = config["total_columns"]
-        additional_aggregated_column = config["additional_aggregated_column"]
-        aggregated_column = config["aggregated_column"]
-        top1_column = config["top1_column"]
-        top2_column = config["top2_column"]
+        runtime_variables, errors = RuntimeSchema().load(event["RuntimeVariables"])
+        if errors:
+            logger.error(f"Error validating runtime params: {errors}")
+            raise ValueError(f"Error validating runtime params: {errors}")
+
+        logger.info("Validated parameters.")
+
+        # Runtime Variables
+        data = json.loads(runtime_variables["data"])
+        total_columns = runtime_variables["total_columns"]
+        additional_aggregated_column = runtime_variables["additional_aggregated_column"]
+        aggregated_column = runtime_variables["aggregated_column"]
+        top1_column = runtime_variables["top1_column"]
+        top2_column = runtime_variables["top2_column"]
 
         input_dataframe = pd.DataFrame(data)
         top_two_output = pd.DataFrame()

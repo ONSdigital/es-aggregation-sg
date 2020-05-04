@@ -8,10 +8,6 @@ from marshmallow import Schema, fields
 
 
 class EnvironmentSchema(Schema):
-    """
-    Schema to ensure that environment variables are present and in the correct format.
-    :return: None
-    """
     bucket_name = fields.Str(required=True)
     checkpoint = fields.Str(required=True)
     method_name = fields.Str(required=True)

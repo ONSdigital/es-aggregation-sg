@@ -252,10 +252,10 @@ def test_client_error(which_lambda, which_runtime_variables,
          generic_environment_variables, "combiner.EnvironmentSchema",
          "Exception", test_generic_library.wrangler_assert),
         (lambda_method_col_function, method_cell_runtime_variables,
-         False, "aggregation_column_method.EnvironmentSchema",
+         False, "aggregation_column_method.RuntimeSchema",
          "Exception", test_generic_library.method_assert),
         (lambda_method_top2_function, method_top2_runtime_variables,
-         False, "aggregation_top2_method.EnvironmentSchema",
+         False, "aggregation_top2_method.RuntimeSchema",
          "Exception", test_generic_library.method_assert)
     ])
 def test_general_error(which_lambda, which_runtime_variables,
@@ -378,17 +378,11 @@ def test_method_error(mock_s3_get, which_lambda, which_runtime_variables,
          "Error validating runtime param",
          test_generic_library.wrangler_assert, generic_environment_variables),
         (lambda_method_col_function,
-         "Error validating environment param",
+         "Error validating runtime param",
          test_generic_library.method_assert, {}),
-#        (lambda_method_col_function,
-#         "Error validating runtime param",
-#         test_generic_library.method_assert, generic_environment_variables),
         (lambda_method_top2_function,
-         "Error validating environment param",
+         "Error validating runtime param",
          test_generic_library.method_assert, {})
-#        (lambda_method_top2_function,
-#         "Error validating runtime param",
-#         test_generic_library.method_assert, generic_environment_variables)
     ])
 def test_value_error(which_lambda, expected_message,
                      assertion, which_environment_variables):

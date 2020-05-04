@@ -58,7 +58,6 @@ def lambda_handler(event, context):
         # Because it is used in exception handling
         run_id = event["RuntimeVariables"]["run_id"]
 
-        # Environment Variables.
         sqs = boto3.client("sqs", region_name="eu-west-2")
         lambda_client = boto3.client("lambda", region_name="eu-west-2")
 

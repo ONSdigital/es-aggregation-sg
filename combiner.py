@@ -9,10 +9,6 @@ from marshmallow import Schema, fields
 
 
 class EnvironmentSchema(Schema):
-    """
-    Class to set up the environment variables schema.
-    """
-
     checkpoint = fields.Str(required=True)
     bucket_name = fields.Str(required=True)
     run_environment = fields.Str(required=True)
