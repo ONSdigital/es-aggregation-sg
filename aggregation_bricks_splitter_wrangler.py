@@ -29,7 +29,7 @@ class RuntimeSchema(Schema):
 
 class FactorsSchema(Schema):
     region_column = fields.Str(required=True)
-    regionless_code = fields.Integer(required=True)
+    regionless_code = fields.Int(required=True)
 
 
 def lambda_handler(event, context):
