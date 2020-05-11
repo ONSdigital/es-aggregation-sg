@@ -107,12 +107,13 @@ def lambda_handler(event, context):
                                                             location)
 
         logger.info("Succesfully retrieved data.")
-
+        new_type = 1  # This number represents Clay & Sandlime Combined
         brick_type = {
             "clay": 3,
             "concrete": 2,
             "sandlime": 4
         }
+
         # Prune rows that contain no data
         questions_list = [brick + "_" + column
                           for column in column_list
@@ -121,8 +122,6 @@ def lambda_handler(event, context):
             lambda x: do_check(x, questions_list), axis=1)
         data = data[~data["zero_data"]]
         data.drop(["zero_data"], axis=1, inplace=True)
-
-        new_type = 1  # This number represents Clay & Sandlime Combined
 
         # Identify The Brick Type Of The Row.
         data[unique_identifier[0]] = data.apply(

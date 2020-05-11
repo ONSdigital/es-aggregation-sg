@@ -503,6 +503,24 @@ def test_combiner_success(mock_s3_put):
     assert output
     assert_frame_equal(produced_data, prepared_data)
 
+    @pytest.mark.parametrize(
+        "input_data,prepared_data",
+        [
+            ([{"A": 0, "B": 0, "C": 0}], True),
+            ([{"A": 1, "B": 2, "C": 3}], False)
+        ])
+    def test_do_check(input_data, prepared_data):
+
+        quest = ["A", "B", "C"]
+        working_dataframe = pd.DataFrame(input_data)
+
+        working_dataframe["zero_data"] = working_dataframe.apply(
+            lambda x: lambda_method_top2_function.do_check(x, quest), axis=1)
+
+        produced_data = working_dataframe["zero_data"][0]
+
+        assert produced_data == prepared_data
+
 
 @mock_s3
 @pytest.mark.parametrize(
