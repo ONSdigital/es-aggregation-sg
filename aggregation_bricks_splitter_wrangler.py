@@ -263,7 +263,7 @@ def sum_columns(row, brick_type, column_list, unique_identifier):
 def do_check(row, questions_list):
     """
     Prunes rows that contain 0 for all question values.
-    Returns true if all of the rows are == 0
+    Returns true if all of the cols are == 0
 
     :param row: Contains all data. - Row.
     :param questions_list: List of question columns
