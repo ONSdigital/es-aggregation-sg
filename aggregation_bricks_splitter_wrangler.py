@@ -120,6 +120,7 @@ def lambda_handler(event, context):
         data["zero_data"] = data.apply(
             lambda x: do_check(x, questions_list), axis=1)
         data = data[~data["zero_data"]]
+        data.drop(["zero_data"], axis=1, inplace=True)
 
         new_type = 1  # This number represents Clay & Sandlime Combined
 
