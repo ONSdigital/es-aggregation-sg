@@ -113,6 +113,13 @@ def lambda_handler(event, context):
             "concrete": 2,
             "sandlime": 4
         }
+        # Prune rows that contain no data
+        questions_list = [brick + "_" + column
+                          for column in column_list
+                          for brick in brick_type.keys()]
+        data["zero_data"] = data.apply(
+            lambda x: do_check(x, questions_list), axis=1)
+        data = data[~data["zero_data"]]
 
         new_type = 1  # This number represents Clay & Sandlime Combined
 
@@ -126,9 +133,8 @@ def lambda_handler(event, context):
                                                 unique_identifier), axis=1)
 
         # Old Columns With Brick Type In The Name Are Dropped.
-        for check_type in brick_type.keys():
-            for current_column in column_list:
-                data.drop([check_type + "_" + current_column], axis=1, inplace=True)
+        for question in questions_list:
+            data.drop([question], axis=1, inplace=True)
 
         # Add GB Region For Aggregation By Region.
         logger.info("Creating File For Aggregation By Region.")
@@ -252,3 +258,22 @@ def sum_columns(row, brick_type, column_list, unique_identifier):
                 row[current_column] = row[check_type + "_" + current_column]
 
     return row
+
+
+def do_check(row, questions_list):
+    """
+    Prunes rows that contain 0 for all question values.
+    Returns true if all of the rows are == 0
+
+    :param row: Contains all data. - Row.
+    :param questions_list: List of question columns
+
+    :return:  Bool. False if any question col had a value
+    """
+    total_data = 0
+    for question in questions_list:
+        total_data += row[question]
+    if total_data == 0:
+        return True
+    else:
+        return False
