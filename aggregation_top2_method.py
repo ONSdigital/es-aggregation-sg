@@ -34,11 +34,11 @@ def lambda_handler(event, context):
     """
     current_module = "Aggregation Calc Top Two - Method"
     logger = logging.getLogger()
-    logger.setLevel(0)
+    logger.setLevel(10)
     error_message = ""
-    response_json = None
     run_id = 0
     logger.info("Starting " + current_module)
+
     try:
         # Retrieve run_id before input validation
         # Because it is used in exception handling
@@ -84,7 +84,6 @@ def lambda_handler(event, context):
         logger.info("Converting output dataframe to json")
         response_json = response.to_json(orient="records")
         final_output = {"data": response_json}
-
     except Exception as e:
         error_message = general_functions.handle_exception(e, current_module,
                                                            run_id, context)
@@ -92,7 +91,6 @@ def lambda_handler(event, context):
         if (len(error_message)) > 0:
             logger.error(error_message)
             return {"success": False, "error": error_message}
-
     logger.info("Successfully completed module: " + current_module)
     final_output["success"] = True
     return final_output
@@ -114,46 +112,48 @@ def calc_top_two(data, total_column, aggregated_column, additional_aggregated_co
     logger.info("Executing function: calc_top_two")
     top1_column = total_column + "_" + top1_column
     top2_column = total_column + "_" + top2_column
-    # Ensure additional columns are zeroed (Belt n Braces)
-    data[top1_column] = 0
-    data[top2_column] = 0
 
     to_aggregate = [aggregated_column]
     if additional_aggregated_column != "":
         to_aggregate.append(additional_aggregated_column)
 
-    # Organise the unique groups to be used for top2 lookup
-    aggregations = data[to_aggregate].drop_duplicates()
-    aggregations_list = json.loads(aggregations.to_json(orient="records"))
+    # Group data on groupby columns and collect list of total column.
+    def col_to_list(series):
+        """
+        Aggregates values in a series into a single list
+        :param series:
+        :return: List: values in series
+        """
+        return series.tolist()
+    grouped_data = data.groupby(to_aggregate, as_index=False)\
+        .agg({total_column: col_to_list})
 
-    # Find top 2 in each unique group
-    for aggregation in aggregations_list:
-        logger.info("Looking for top 2 in: " + str(aggregation))
-
-        # Extract and sort the data
-        current_data = data[data[aggregated_column] == aggregation[aggregated_column]]
-        if additional_aggregated_column != "":
-            data[data[additional_aggregated_column] == aggregation[additional_aggregated_column]]  # noqa
-        sorted_data = current_data.sort_values(by=[total_column], ascending=False)
-        sorted_data = sorted_data[total_column].reset_index(drop=True)
-
-        # Get the top 2 records
-        top_one = sorted_data.iloc[0]
-        if len(sorted_data.index) > 1:
-            top_two = sorted_data.iloc[1]
+    def do_top_two(row, column, top1, top2):
+        """
+        Calculates and appends top two data on row.
+        Assumes that the column has been aggregated to a list.
+        :param row: Row of grouped dataframe
+        :param column: String - Name of the column which holds list of values
+        :param top1: String - Name of top1 column
+        :param top2: String - Name of top2 column
+        :return row:
+        """
+        value_list = row[column]
+        value_list.sort(reverse=True)
+        row[top1] = value_list[0]
+        if(len(value_list) > 1):
+            row[top2] = value_list[1]
         else:
-            top_two = 0
+            row[top2] = 0
 
-        # Save to the output data
-        data[[top1_column, top2_column]] = data.apply(
-            lambda x: update_columns(x, aggregation, aggregated_column,
-                                     additional_aggregated_column,
-                                     top1_column, top2_column,
-                                     top_one, top_two),
-            axis=1)
+        return row
+
+    grouped_data = grouped_data.apply(
+        lambda x: do_top_two(x, total_column, top1_column, top2_column), axis=1)
+
+    grouped_data = grouped_data.drop(total_column, axis=1)
 
     logger.info("Returning the output data")
-    logger.info("Successfully completed function: calc_top_two")
     filter_output = [
         aggregated_column,
         top1_column,
@@ -163,34 +163,7 @@ def calc_top_two(data, total_column, aggregated_column, additional_aggregated_co
     if additional_aggregated_column != "":
         filter_output.append(additional_aggregated_column)
 
-    data = data[filter_output]
-    return data
+    grouped_data = grouped_data[filter_output]
+    logger.info("Successfully completed function: calc_top_two")
 
-
-def update_columns(data, aggregation, aggregated_column, additional_aggregated_column,
-                   top1_column, top2_column, top_one, top_two):
-    """
-    Used to check if for the current cell the responder needs to update what it contains
-    for top2 data or if it should overwrite data with its currently held value.
-    :param data: Input Dataframe.
-    :param aggregation: Dict containing the values to identify the current unique cell.
-    :param aggregated_column: A column to aggregate by. e.g. Enterprise_Reference.
-    :param additional_aggregated_column: A column to aggregate by. e.g. Region.
-    :param top1_column: top1_column - Prefix for the largest_contributor column.
-    :param top2_column: top2_column - Prefix for the second_largest_contributor column.
-    :param top_one: Top value for the current cell.
-    :param top_two: Second top value for the current cell.
-
-    :return: data: Series containing two elements. The chosen top and second top data.
-    """
-
-    if data[aggregated_column] != aggregation[aggregated_column]:
-        return pd.Series([data[top1_column], data[top2_column]])
-    elif additional_aggregated_column != "":
-        if data[additional_aggregated_column] != aggregation[
-           additional_aggregated_column]:
-            return pd.Series([data[top1_column], data[top2_column]])
-        else:
-            return pd.Series([top_one, top_two])
-    else:
-        return pd.Series([top_one, top_two])
+    return grouped_data

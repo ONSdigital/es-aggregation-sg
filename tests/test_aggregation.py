@@ -418,7 +418,6 @@ def test_calc_top_two():
         runtime["top2_column"])
 
     produced_data = output.sort_index(axis=1)
-
     assert_frame_equal(produced_data, prepared_data)
 
 
@@ -503,23 +502,24 @@ def test_combiner_success(mock_s3_put):
     assert output
     assert_frame_equal(produced_data, prepared_data)
 
-    @pytest.mark.parametrize(
-        "input_data,prepared_data",
-        [
-            ([{"A": 0, "B": 0, "C": 0}], True),
-            ([{"A": 1, "B": 2, "C": 3}], False)
-        ])
-    def test_do_check(input_data, prepared_data):
 
-        quest = ["A", "B", "C"]
-        working_dataframe = pd.DataFrame(input_data)
+@pytest.mark.parametrize(
+    "input_data,prepared_data",
+    [
+        ([{"A": 0, "B": 0, "C": 0}], True),
+        ([{"A": 1, "B": 2, "C": 3}], False)
+    ])
+def test_do_check(input_data, prepared_data):
 
-        working_dataframe["zero_data"] = working_dataframe.apply(
-            lambda x: lambda_method_top2_function.do_check(x, quest), axis=1)
+    quest = ["A", "B", "C"]
+    working_dataframe = pd.DataFrame(input_data)
 
-        produced_data = working_dataframe["zero_data"][0]
+    working_dataframe["zero_data"] = working_dataframe.apply(
+        lambda x: lambda_pre_wrangler_function.do_check(x, quest), axis=1)
 
-        assert produced_data == prepared_data
+    produced_data = working_dataframe["zero_data"][0]
+
+    assert produced_data == prepared_data
 
 
 @mock_s3
@@ -561,7 +561,6 @@ def test_method_success(which_lambda, which_runtime_variables, input_data, prepa
         which_runtime_variables, test_generic_library.context_object)
 
     produced_data = pd.DataFrame(json.loads(output["data"]))
-
     assert output["success"]
     assert_frame_equal(produced_data, prepared_data)
 
@@ -820,38 +819,4 @@ def test_wrangler_success_returned(which_lambda, which_environment_variables,
     produced_data = pd.DataFrame(json.loads(test_data_produced))
 
     assert output
-    assert_frame_equal(produced_data, prepared_data)
-
-
-@mock_s3
-@pytest.mark.parametrize(
-    "additional_column",
-    [
-        "strata", ""
-    ])
-def test_update_columns(additional_column):
-    """
-    Runs the method function.
-    :param additional_column. The name of the second column to aggregate by. - String.
-    :return Test Pass/Fail
-    """
-    runtime = method_top2_runtime_variables["RuntimeVariables"]
-    top1_column = runtime["total_columns"][0] + "_" + runtime["top1_column"]
-    top2_column = runtime["total_columns"][0] + "_" + runtime["top2_column"]
-
-    with open("tests/fixtures/test_update_columns_prepared_output.json", "r") as file_1:
-        file_data = file_1.read()
-    prepared_data = pd.DataFrame(json.loads(file_data))
-
-    with open("tests/fixtures/test_update_columns_input.json", "r") as file_2:
-        test_data = file_2.read()
-    input_data = pd.DataFrame(json.loads(test_data))
-
-    input_data[[top1_column, top2_column]] = input_data.apply(
-        lambda x: lambda_method_top2_function.update_columns(
-            x, {'region': 3, 'strata': 'A'}, runtime["aggregated_column"],
-            additional_column, top1_column, top2_column, 225617, 0),
-        axis=1)
-    produced_data = input_data
-
     assert_frame_equal(produced_data, prepared_data)
