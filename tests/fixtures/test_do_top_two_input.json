@@ -1,0 +1,66 @@
+[
+   {
+      "region": 3,
+      "strata": "A",
+      "Q607_constructional_fill": [
+         11998
+      ]
+   },
+   {
+      "region": 5,
+      "strata": "A",
+      "Q607_constructional_fill": [
+         0
+      ]
+   },
+   {
+      "region": 6,
+      "strata": "D",
+      "Q607_constructional_fill": [
+         0
+      ]
+   },
+   {
+      "region": 7,
+      "strata": "A",
+      "Q607_constructional_fill": [
+         64406,
+         68673
+      ]
+   },
+   {
+      "region": 7,
+      "strata": "D",
+      "Q607_constructional_fill": [
+         64196
+      ]
+   },
+   {
+      "region": 9,
+      "strata": "A",
+      "Q607_constructional_fill": [
+         0
+      ]
+   },
+   {
+      "region": 9,
+      "strata": "C",
+      "Q607_constructional_fill": [
+         0
+      ]
+   },
+   {
+      "region": 9,
+      "strata": "D",
+      "Q607_constructional_fill": [
+         0
+      ]
+   },
+   {
+      "region": 12,
+      "strata": "B2",
+      "Q607_constructional_fill": [
+         0
+      ]
+   }
+]

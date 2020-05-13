@@ -118,36 +118,10 @@ def calc_top_two(data, total_column, aggregated_column, additional_aggregated_co
         to_aggregate.append(additional_aggregated_column)
 
     # Group data on groupby columns and collect list of total column.
-    def col_to_list(series):
-        """
-        Aggregates values in a series into a single list
-        :param series:
-        :return: List: values in series
-        """
-        return series.tolist()
+
     grouped_data = data.groupby(to_aggregate, as_index=False)\
         .agg({total_column: col_to_list})
-
-    def do_top_two(row, column, top1, top2):
-        """
-        Calculates and appends top two data on row.
-        Assumes that the column has been aggregated to a list.
-        :param row: Row of grouped dataframe
-        :param column: String - Name of the column which holds list of values
-        :param top1: String - Name of top1 column
-        :param top2: String - Name of top2 column
-        :return row:
-        """
-        value_list = row[column]
-        value_list.sort(reverse=True)
-        row[top1] = value_list[0]
-        if(len(value_list) > 1):
-            row[top2] = value_list[1]
-        else:
-            row[top2] = 0
-
-        return row
-
+    grouped_data.to_json("test_do_top_two_input.json", orient='records')
     grouped_data = grouped_data.apply(
         lambda x: do_top_two(x, total_column, top1_column, top2_column), axis=1)
 
@@ -167,3 +141,34 @@ def calc_top_two(data, total_column, aggregated_column, additional_aggregated_co
     logger.info("Successfully completed function: calc_top_two")
 
     return grouped_data
+
+
+def col_to_list(series):
+    """
+    Aggregates values in a series into a single list
+    :param series:
+    :return: List: values in series
+    """
+    return series.tolist()
+
+
+def do_top_two(row, column, top1, top2):
+    """
+    Apply Method.
+    Calculates and appends top two data on row.
+    Assumes that the column has been aggregated to a list.
+    :param row: Row of grouped dataframe
+    :param column: String - Name of the column which holds list of values
+    :param top1: String - Name of top1 column
+    :param top2: String - Name of top2 column
+    :return row:
+    """
+    value_list = row[column]
+    value_list.sort(reverse=True)
+    row[top1] = value_list[0]
+    if(len(value_list) > 1):
+        row[top2] = value_list[1]
+    else:
+        row[top2] = 0
+
+    return row

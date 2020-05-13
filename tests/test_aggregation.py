@@ -820,3 +820,37 @@ def test_wrangler_success_returned(which_lambda, which_environment_variables,
 
     assert output
     assert_frame_equal(produced_data, prepared_data)
+
+
+def test_col_to_list():
+    """
+    Runs the col to list method
+    :param None.
+    :return Test Pass/Fail
+    """
+    input = pd.Series([1, 2, 3, 4, 5])
+    output = lambda_method_top2_function.col_to_list(input)
+    assert output == [1, 2, 3, 4, 5]
+
+
+def test_do_top_two():
+    """
+    Tests the apply method that sets top two on the data
+    :param None.
+    :return Test Pass/Fail
+    """
+    with open("tests/fixtures/test_do_top_two_prepared_output.json", "r") as file_1:
+        prepared_data = file_1.read()
+    prepared_data = pd.DataFrame(json.loads(prepared_data)).sort_index(axis=1)
+
+    with open("tests/fixtures/test_do_top_two_input.json", "r") as file_2:
+        test_data = file_2.read()
+    input_data = pd.DataFrame(json.loads(test_data))
+    produced_data = input_data.apply(
+        lambda x: lambda_method_top2_function.do_top_two(x,
+                                                         'Q607_constructional_fill',
+                                                         '1',
+                                                         '2'), axis=1).\
+        sort_index(axis=1)
+
+    assert_frame_equal(prepared_data, produced_data)

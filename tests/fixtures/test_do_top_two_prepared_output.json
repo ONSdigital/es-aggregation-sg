@@ -1,0 +1,84 @@
+[
+   {
+      "1": 11998,
+      "2": 0,
+      "Q607_constructional_fill": [
+         11998
+      ],
+      "region": 3,
+      "strata": "A"
+   },
+   {
+      "1": 0,
+      "2": 0,
+      "Q607_constructional_fill": [
+         0
+      ],
+      "region": 5,
+      "strata": "A"
+   },
+   {
+      "1": 0,
+      "2": 0,
+      "Q607_constructional_fill": [
+         0
+      ],
+      "region": 6,
+      "strata": "D"
+   },
+   {
+      "1": 68673,
+      "2": 64406,
+      "Q607_constructional_fill": [
+         68673,
+         64406
+      ],
+      "region": 7,
+      "strata": "A"
+   },
+   {
+      "1": 64196,
+      "2": 0,
+      "Q607_constructional_fill": [
+         64196
+      ],
+      "region": 7,
+      "strata": "D"
+   },
+   {
+      "1": 0,
+      "2": 0,
+      "Q607_constructional_fill": [
+         0
+      ],
+      "region": 9,
+      "strata": "A"
+   },
+   {
+      "1": 0,
+      "2": 0,
+      "Q607_constructional_fill": [
+         0
+      ],
+      "region": 9,
+      "strata": "C"
+   },
+   {
+      "1": 0,
+      "2": 0,
+      "Q607_constructional_fill": [
+         0
+      ],
+      "region": 9,
+      "strata": "D"
+   },
+   {
+      "1": 0,
+      "2": 0,
+      "Q607_constructional_fill": [
+         0
+      ],
+      "region": 12,
+      "strata": "B2"
+   }
+]
