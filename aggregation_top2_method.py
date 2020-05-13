@@ -121,7 +121,7 @@ def calc_top_two(data, total_column, aggregated_column, additional_aggregated_co
 
     grouped_data = data.groupby(to_aggregate, as_index=False)\
         .agg({total_column: col_to_list})
-    grouped_data.to_json("test_do_top_two_input.json", orient='records')
+
     grouped_data = grouped_data.apply(
         lambda x: do_top_two(x, total_column, top1_column, top2_column), axis=1)
 
