@@ -5,18 +5,41 @@ import os
 import boto3
 import pandas as pd
 from es_aws_functions import aws_functions, exception_classes, general_functions
-from marshmallow import Schema, fields
+from marshmallow import EXCLUDE, Schema, fields
 
 
 class EnvironmentSchema(Schema):
+    class Meta:
+        unknown = EXCLUDE
+
+    def handle_error(self, e, data, **kwargs):
+        logging.error(f"Error validating environment params: {e}")
+        raise ValueError(f"Error validating environment params: {e}")
+
     checkpoint = fields.Str(required=True)
     bucket_name = fields.Str(required=True)
     method_name = fields.Str(required=True)
 
 
+class FactorsParametersSchema(Schema):
+    region_column = fields.Str(required=True)
+    regionless_code = fields.Int(required=True)
+
+
+class FactorsSchema(Schema):
+    RuntimeVariables = fields.Nested(FactorsParametersSchema, required=True)
+
+
 class RuntimeSchema(Schema):
+    class Meta:
+        unknown = EXCLUDE
+
+    def handle_error(self, e, data, **kwargs):
+        logging.error(f"Error validating runtime params: {e}")
+        raise ValueError(f"Error validating runtime params: {e}")
+
     total_columns = fields.List(fields.String, required=True)
-    factors_parameters = fields.Dict(required=True)
+    factors_parameters = fields.Nested(FactorsSchema, required=True)
     in_file_name = fields.Str(required=True)
     incoming_message_group_id = fields.Str(required=True)
     location = fields.Str(required=True)
@@ -25,11 +48,6 @@ class RuntimeSchema(Schema):
     sns_topic_arn = fields.Str(required=True)
     queue_url = fields.Str(required=True)
     unique_identifier = fields.List(fields.String, required=True)
-
-
-class FactorsSchema(Schema):
-    region_column = fields.Str(required=True)
-    regionless_code = fields.Int(required=True)
 
 
 def lambda_handler(event, context):
@@ -61,22 +79,9 @@ def lambda_handler(event, context):
         sqs = boto3.client("sqs", region_name="eu-west-2")
         lambda_client = boto3.client("lambda", region_name="eu-west-2")
 
-        environment_variables, errors = EnvironmentSchema().load(os.environ)
-        if errors:
-            logger.error(f"Error validating environment params: {errors}")
-            raise ValueError(f"Error validating environment params: {errors}")
+        environment_variables = EnvironmentSchema().load(os.environ)
 
-        runtime_variables, errors = RuntimeSchema().load(event["RuntimeVariables"])
-        if errors:
-            logger.error(f"Error validating runtime params: {errors}")
-            raise ValueError(f"Error validating runtime params: {errors}")
-
-        factors_parameters = runtime_variables["factors_parameters"]
-
-        factors, errors = FactorsSchema().load(factors_parameters["RuntimeVariables"])
-        if errors:
-            logger.error(f"Error validating runtime params: {errors}")
-            raise ValueError(f"Error validating runtime params: {errors}")
+        runtime_variables = RuntimeSchema().load(event["RuntimeVariables"])
 
         logger.info("Validated parameters.")
 
@@ -87,16 +92,19 @@ def lambda_handler(event, context):
 
         # Runtime Variables
         column_list = runtime_variables["total_columns"]
+        factors_parameters = runtime_variables["factors_parameters"]["RuntimeVariables"]
         in_file_name = runtime_variables["in_file_name"]
         incoming_message_group_id = runtime_variables["incoming_message_group_id"]
         location = runtime_variables["location"]
         out_file_name_bricks = runtime_variables["out_file_name_bricks"]
         out_file_name_region = runtime_variables["out_file_name_region"]
-        region_column = factors["region_column"]
-        regionless_code = factors["regionless_code"]
         sns_topic_arn = runtime_variables["sns_topic_arn"]
         sqs_queue_url = runtime_variables["queue_url"]
         unique_identifier = runtime_variables["unique_identifier"]
+
+        # Factors Parameters
+        region_column = factors_parameters["region_column"]
+        regionless_code = factors_parameters["regionless_code"]
 
         logger.info("Retrieved configuration variables.")
 
