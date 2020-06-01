@@ -6,6 +6,7 @@ import boto3
 import pandas as pd
 from es_aws_functions import aws_functions, exception_classes, general_functions
 from marshmallow import EXCLUDE, Schema, fields
+from marshmallow.validate import Equal
 
 
 class EnvironmentSchema(Schema):
@@ -21,13 +22,9 @@ class EnvironmentSchema(Schema):
     method_name = fields.Str(required=True)
 
 
-class FactorsParametersSchema(Schema):
+class FactorsSchema(Schema):
     region_column = fields.Str(required=True)
     regionless_code = fields.Int(required=True)
-
-
-class FactorsSchema(Schema):
-    RuntimeVariables = fields.Nested(FactorsParametersSchema, required=True)
 
 
 class RuntimeSchema(Schema):
@@ -39,7 +36,9 @@ class RuntimeSchema(Schema):
         raise ValueError(f"Error validating runtime params: {e}")
 
     total_columns = fields.List(fields.String, required=True)
-    factors_parameters = fields.Nested(FactorsSchema, required=True)
+    factors_parameters = fields.Dict(
+        keys=fields.String(validate=Equal(comparable="RuntimeVariables")),
+        values=fields.Nested(FactorsSchema, required=True))
     in_file_name = fields.Str(required=True)
     incoming_message_group_id = fields.Str(required=True)
     location = fields.Str(required=True)
