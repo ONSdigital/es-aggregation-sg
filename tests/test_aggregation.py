@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 from es_aws_functions import exception_classes, test_generic_library
 from moto import mock_s3
-from pandas.util.testing import assert_frame_equal
+from pandas.testing import assert_frame_equal
 
 import aggregation_bricks_splitter_wrangler as lambda_pre_wrangler_function
 import aggregation_column_method as lambda_method_col_function
@@ -449,7 +449,7 @@ def test_calculate_row_type():
         lambda x: lambda_pre_wrangler_function.calculate_row_type(
             x, brick_type, runtime["total_columns"]),
         axis=1)
-    produced_data = input_data.sort_index(axis=1)
+    produced_data = input_data
 
     assert_frame_equal(produced_data, prepared_data)
 
@@ -560,7 +560,7 @@ def test_method_success(which_lambda, which_runtime_variables, input_data, prepa
     output = which_lambda.lambda_handler(
         which_runtime_variables, test_generic_library.context_object)
 
-    produced_data = pd.DataFrame(json.loads(output["data"]))
+    produced_data = pd.DataFrame(json.loads(output["data"])).sort_index(axis=1)
     assert output["success"]
     assert_frame_equal(produced_data, prepared_data)
 
@@ -657,7 +657,7 @@ def test_sum_columns():
     input_data = input_data.apply(lambda x: lambda_pre_wrangler_function.sum_columns(
         x, brick_type, runtime["total_columns"], runtime["unique_identifier"]),
         axis=1)
-    produced_data = input_data.sort_index(axis=1)
+    produced_data = input_data
 
     assert_frame_equal(produced_data, prepared_data)
 
