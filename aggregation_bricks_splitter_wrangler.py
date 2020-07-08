@@ -43,12 +43,9 @@ class RuntimeSchema(Schema):
         keys=fields.String(validate=Equal(comparable="RuntimeVariables")),
         values=fields.Nested(FactorsSchema, required=True))
     in_file_name = fields.Str(required=True)
-    incoming_message_group_id = fields.Str(required=True)
-    location = fields.Str(required=True)
     out_file_name_bricks = fields.Str(required=True)
     out_file_name_region = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
-    queue_url = fields.Str(required=True)
     unique_identifier = fields.List(fields.String, required=True)
 
 
@@ -78,7 +75,6 @@ def lambda_handler(event, context):
         # Because it is used in exception handling
         run_id = event["RuntimeVariables"]["run_id"]
 
-        sqs = boto3.client("sqs", region_name="eu-west-2")
         lambda_client = boto3.client("lambda", region_name="eu-west-2")
 
         environment_variables = EnvironmentSchema().load(os.environ)
@@ -96,12 +92,9 @@ def lambda_handler(event, context):
         column_list = runtime_variables["total_columns"]
         factors_parameters = runtime_variables["factors_parameters"]["RuntimeVariables"]
         in_file_name = runtime_variables["in_file_name"]
-        incoming_message_group_id = runtime_variables["incoming_message_group_id"]
-        location = runtime_variables["location"]
         out_file_name_bricks = runtime_variables["out_file_name_bricks"]
         out_file_name_region = runtime_variables["out_file_name_region"]
         sns_topic_arn = runtime_variables["sns_topic_arn"]
-        sqs_queue_url = runtime_variables["queue_url"]
         unique_identifier = runtime_variables["unique_identifier"]
 
         # Factors Parameters
@@ -111,10 +104,7 @@ def lambda_handler(event, context):
         logger.info("Retrieved configuration variables.")
 
         # Pulls In Data.
-        data, receipt_handler = aws_functions.get_dataframe(sqs_queue_url, bucket_name,
-                                                            in_file_name,
-                                                            incoming_message_group_id,
-                                                            location)
+        data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
 
         logger.info("Succesfully retrieved data.")
         new_type = 1  # This number represents Clay & Sandlime Combined
@@ -182,8 +172,7 @@ def lambda_handler(event, context):
 
         region_output = data_region.to_json(orient="records")
 
-        aws_functions.save_to_s3(bucket_name, out_file_name_region,
-                                 region_output, location)
+        aws_functions.save_to_s3(bucket_name, out_file_name_region, region_output)
 
         logger.info("Successfully sent data to s3")
 
@@ -201,13 +190,9 @@ def lambda_handler(event, context):
                                              ).agg(totals_dict).reset_index()
 
         brick_output = brick_dataframe.to_json(orient="records")
-        aws_functions.save_to_s3(bucket_name, out_file_name_bricks,
-                                 brick_output, location)
+        aws_functions.save_to_s3(bucket_name, out_file_name_bricks, brick_output)
 
         logger.info("Successfully sent data to s3")
-
-        if receipt_handler:
-            sqs.delete_message(QueueUrl=sqs_queue_url, ReceiptHandle=receipt_handler)
 
         logger.info(aws_functions.send_sns_message(checkpoint, sns_topic_arn,
                                                    "Pre Aggregation."))
