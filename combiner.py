@@ -99,7 +99,6 @@ def lambda_handler(event, context):
             first_agg = json.loads(data[0])
             second_agg = json.loads(data[1])
             third_agg = json.loads(data[2])
-            logger.info("Successfully retrievied the aggragation files for combination")
 
         # Load file content.
         first_agg_df = aws_functions.read_dataframe_from_s3(first_agg["bucket"],
@@ -108,6 +107,7 @@ def lambda_handler(event, context):
                                                              second_agg["key"])
         third_agg_df = aws_functions.read_dataframe_from_s3(third_agg["bucket"],
                                                             third_agg["key"])
+        logger.info("Successfully retrievied the aggragation files for combination")
 
         to_aggregate = [aggregated_column]
         if additional_aggregated_column != "":
