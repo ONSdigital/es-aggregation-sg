@@ -184,9 +184,6 @@ wrangler_top2_runtime_variables = {
          "ClientError", test_generic_library.wrangler_assert),
         (lambda_pre_wrangler_function, pre_wrangler_runtime_variables,
          generic_environment_variables, None,
-         "ClientError", test_generic_library.wrangler_assert),
-        (lambda_combiner_function, combiner_runtime_variables,
-         generic_environment_variables, None,
          "ClientError", test_generic_library.wrangler_assert)
     ])
 def test_client_error(which_lambda, which_runtime_variables,
