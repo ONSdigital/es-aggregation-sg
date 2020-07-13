@@ -32,7 +32,7 @@ class RuntimeSchema(Schema):
     additional_aggregated_column = fields.Str(required=True)
     aggregated_column = fields.Str(required=True)
     in_file_name = fields.Str(required=True)
-    aggregation_files = fields.List(fields.Str(required=True))
+    aggregation_files = fields.Dict(required=True)
     out_file_name = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
 
@@ -85,29 +85,18 @@ def lambda_handler(event, context):
         # Get file from s3
         imp_df = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
 
-        logger.info("Successfully retrieved data from s3")
-        data = []
+        logger.info("Successfully retrieved imputation data from s3")
 
         # Receive the 3 aggregation outputs.
-        for aggregation_file in aggregation_files:
-            data.append(aggregation_file)
-
-        if len(data) != 3:
-            raise exception_classes.LambdaFailure("Wrong amount of file names provided")
-        else:
-            # Convert the 3 outputs into dataframes.
-            first_agg = json.loads(data[0])
-            second_agg = json.loads(data[1])
-            third_agg = json.loads(data[2])
+        ent_ref_agg = aggregation_files["ent_ref_agg"]
+        cell_agg = aggregation_files["cell_agg"]
+        top2_agg = aggregation_files["top2_agg"]
 
         # Load file content.
-        first_agg_df = aws_functions.read_dataframe_from_s3(first_agg["bucket"],
-                                                            first_agg["key"])
-        second_agg_df = aws_functions.read_dataframe_from_s3(second_agg["bucket"],
-                                                             second_agg["key"])
-        third_agg_df = aws_functions.read_dataframe_from_s3(third_agg["bucket"],
-                                                            third_agg["key"])
-        logger.info("Successfully retrievied the aggragation files for combination")
+        ent_ref_agg_df = aws_functions.read_dataframe_from_s3(bucket_name, ent_ref_agg)
+        cell_agg_df = aws_functions.read_dataframe_from_s3(bucket_name, cell_agg)
+        top2_agg_df = aws_functions.read_dataframe_from_s3(bucket_name, top2_agg)
+        logger.info("Successfully retrievied aggragation data from s3")
 
         to_aggregate = [aggregated_column]
         if additional_aggregated_column != "":
@@ -115,13 +104,13 @@ def lambda_handler(event, context):
 
         # merge the imputation output from s3 with the 3 aggregation outputs
         first_merge = pd.merge(
-            imp_df, first_agg_df, on=to_aggregate, how="left")
+            imp_df, ent_ref_agg_df, on=to_aggregate, how="left")
 
         second_merge = pd.merge(
-            first_merge, second_agg_df, on=to_aggregate, how="left")
+            first_merge, cell_agg_df, on=to_aggregate, how="left")
 
         third_merge = pd.merge(
-            second_merge, third_agg_df, on=to_aggregate, how="left")
+            second_merge, top2_agg_df, on=to_aggregate, how="left")
 
         logger.info("Successfully merged dataframes")
 
@@ -133,9 +122,9 @@ def lambda_handler(event, context):
         logger.info("Successfully sent data to s3.")
 
         if run_environment != "development":
-            logger.info(aws_functions.delete_data(first_agg["bucket"], first_agg["key"]))
-            logger.info(aws_functions.delete_data(second_agg["bucket"], second_agg["key"])) # noqa
-            logger.info(aws_functions.delete_data(third_agg["bucket"], third_agg["key"]))
+            logger.info(aws_functions.delete_data(bucket_name, ent_ref_agg))
+            logger.info(aws_functions.delete_data(bucket_name, cell_agg))
+            logger.info(aws_functions.delete_data(bucket_name, top2_agg))
             logger.info("Successfully deleted input data.")
 
         aws_functions.send_sns_message(checkpoint, sns_topic_arn,

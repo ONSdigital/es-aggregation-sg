@@ -23,11 +23,11 @@ combiner_runtime_variables = {
             "in_file_name": "test_wrangler_agg_input",
             "out_file_name": "test_wrangler_combiner_output.json",
             "sns_topic_arn": "fake_sns_arn",
-            "aggregation_files": [
-                '{"bucket": "test_bucket", "key": "test_wrangler_cell_prepared_output"}',
-                '{"bucket": "test_bucket", "key": "test_wrangler_ent_prepared_output"}',
-                '{"bucket": "test_bucket", "key": "test_wrangler_top2_prepared_output"}'
-            ]
+            "aggregation_files": {
+                "ent_ref_agg": "test_wrangler_cell_prepared_output",
+                "cell_agg": "test_wrangler_ent_prepared_output",
+                "top2_agg": "test_wrangler_top2_prepared_output"
+            }
         }
 }
 
@@ -49,7 +49,6 @@ method_cell_runtime_variables = {
         "aggregation_type": "sum"
     }
 }
-
 
 method_ent_runtime_variables = {
     "RuntimeVariables": {
