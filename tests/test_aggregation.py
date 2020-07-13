@@ -191,7 +191,7 @@ def test_client_error(which_lambda, which_runtime_variables,
 
     bucket_name = which_environment_variables["bucket_name"]
     client = test_generic_library.create_bucket(bucket_name)
-    file_list = ["test_wrangler_agg_input.json"]
+    file_list = ["test_wrangler_agg_input.json", "test_wrangler_splitter_input.json"]
 
     test_generic_library.upload_files(client, bucket_name, file_list)
 
