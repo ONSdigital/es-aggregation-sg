@@ -1,8 +1,6 @@
-import json
 import logging
 import os
 
-import boto3
 import pandas as pd
 from es_aws_functions import aws_functions, exception_classes, general_functions
 from marshmallow import EXCLUDE, Schema, fields
