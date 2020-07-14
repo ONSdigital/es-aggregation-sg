@@ -29,8 +29,8 @@ class RuntimeSchema(Schema):
 
     additional_aggregated_column = fields.Str(required=True)
     aggregated_column = fields.Str(required=True)
-    in_file_name = fields.Str(required=True)
     aggregation_files = fields.Dict(required=True)
+    in_file_name = fields.Str(required=True)
     out_file_name = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
 
@@ -73,8 +73,8 @@ def lambda_handler(event, context):
         # Runtime Variables
         additional_aggregated_column = runtime_variables["additional_aggregated_column"]
         aggregated_column = runtime_variables["aggregated_column"]
-        in_file_name = runtime_variables["in_file_name"]
         aggregation_files = runtime_variables["aggregation_files"]
+        in_file_name = runtime_variables["in_file_name"]
         out_file_name = runtime_variables["out_file_name"]
         sns_topic_arn = runtime_variables["sns_topic_arn"]
 
