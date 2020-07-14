@@ -31,11 +31,8 @@ class RuntimeSchema(Schema):
     additional_aggregated_column = fields.Str(required=True)
     aggregated_column = fields.Str(required=True)
     in_file_name = fields.Str(required=True)
-    location = fields.Str(required=True)
     out_file_name = fields.Str(required=True)
-    outgoing_message_group_id = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
-    queue_url = fields.Str(required=True)
     top1_column = fields.Str(required=True)
     top2_column = fields.Str(required=True)
     total_columns = fields.List(fields.String, required=True)
@@ -93,11 +90,8 @@ def lambda_handler(event, context):
         aggregated_column = runtime_variables["aggregated_column"]
         additional_aggregated_column = runtime_variables["additional_aggregated_column"]
         in_file_name = runtime_variables["in_file_name"]
-        location = runtime_variables["location"]
         out_file_name = runtime_variables["out_file_name"]
-        outgoing_message_group_id = runtime_variables["outgoing_message_group_id"]
         sns_topic_arn = runtime_variables["sns_topic_arn"]
-        sqs_queue_url = runtime_variables["queue_url"]
         top1_column = runtime_variables["top1_column"]
         top2_column = runtime_variables["top2_column"]
         total_columns = runtime_variables["total_columns"]
@@ -105,7 +99,7 @@ def lambda_handler(event, context):
         logger.info("Retrieved configuration variables.")
 
         # Read from S3 bucket
-        data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name, location)
+        data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
         logger.info("Completed reading data from s3")
 
         # Serialise data
@@ -135,12 +129,11 @@ def lambda_handler(event, context):
         if not json_response["success"]:
             raise exception_classes.MethodFailure(json_response["error"])
 
-        # Sending output to SQS, notice to SNS
+        # Sending output to S3, notice to SNS
         logger.info("Sending function response downstream.")
-        aws_functions.save_data(bucket_name, out_file_name,
-                                json_response["data"], sqs_queue_url,
-                                outgoing_message_group_id, location)
+        aws_functions.save_to_s3(bucket_name, out_file_name, json_response["data"])
         logger.info("Successfully sent the data to S3")
+
         aws_functions.send_sns_message(checkpoint, sns_topic_arn, "Aggregation - Top 2.")
         logger.info("Successfully sent the SNS message")
 

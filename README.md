@@ -11,7 +11,7 @@ Steps performed:
 
     - Retrieves data From S3 bucket
     - Invokes method lambda
-    - Puts the aggregated data onto the SQS queue
+    - Puts the aggregated data in an S3 bucket
     - Sends SNS message
  <hr>
  
@@ -29,7 +29,7 @@ Steps performed:
     - Sends the dataframe to the method
     - Ensures the new columns are still present and correctly typed in the returned dataframe
     - Serialises the dataframe back to json
-    - sends the data on via SQS
+    - Saves the data in an S3 bucket 
     - Notifies via SNS   
 <hr>
 
@@ -74,7 +74,7 @@ e.g. {"success": True/False, "checkpoint"/"error": 4/"Message"}
 
 #### Combiner
 
-The combiner is used to join the outputs from the 3 aggregations back onto the original data. It is assumed that the imputed(or original if it didnt need imputing) data is stored in an s3 bucket by the imputation module; and that each of the 3 aggregation processes each write their output to sqs. <br>
-The combiner merely picks up the imputation data from s3, then 3 messages from the sqs queue. It joins these all together and sends onwards. The result of which is that the next module(disclosure) has the granular input data with the addition of aggregations merged on.
+The combiner is used to join the outputs from the 3 aggregations back onto the original data. It is assumed that the imputed(or original if it didnt need imputing) data is stored in an s3 bucket by the imputation module; and that each of the 3 aggregation processes each write their output to S3. <br>
+The combiner merely picks up the imputation data and the 3 files from the other aggregation stages from s3. It joins these all together and sends onwards. The result of which is that the next module(disclosure) has the granular input data with the addition of aggregations merged on.
 
 *The exact column can be provided as a runtime variable.

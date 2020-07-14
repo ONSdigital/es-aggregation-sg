@@ -1,8 +1,6 @@
-import json
 import logging
 import os
 
-import boto3
 import pandas as pd
 from es_aws_functions import aws_functions, exception_classes, general_functions
 from marshmallow import EXCLUDE, Schema, fields
@@ -31,12 +29,10 @@ class RuntimeSchema(Schema):
 
     additional_aggregated_column = fields.Str(required=True)
     aggregated_column = fields.Str(required=True)
+    aggregation_files = fields.Dict(required=True)
     in_file_name = fields.Str(required=True)
-    location = fields.Str(required=True)
     out_file_name = fields.Str(required=True)
-    outgoing_message_group_id = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
-    queue_url = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -77,51 +73,28 @@ def lambda_handler(event, context):
         # Runtime Variables
         additional_aggregated_column = runtime_variables["additional_aggregated_column"]
         aggregated_column = runtime_variables["aggregated_column"]
+        aggregation_files = runtime_variables["aggregation_files"]
         in_file_name = runtime_variables["in_file_name"]
-        location = runtime_variables["location"]
         out_file_name = runtime_variables["out_file_name"]
-        outgoing_message_group_id = runtime_variables["outgoing_message_group_id"]
         sns_topic_arn = runtime_variables["sns_topic_arn"]
-        sqs_queue_url = runtime_variables["queue_url"]
 
         logger.info("Retrieved configuration variables.")
 
-        # Clients
-        sqs = boto3.client("sqs", "eu-west-2")
-
         # Get file from s3
-        imp_df = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name, location)
+        imp_df = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
 
-        logger.info("Successfully retrieved data from s3")
-        data = []
+        logger.info("Successfully retrieved imputation data from s3")
 
-        # Receive the 3 aggregation outputs
-        response = aws_functions.get_sqs_messages(sqs_queue_url, 3, "aggregation")
+        # Receive the 3 aggregation outputs.
+        ent_ref_agg = aggregation_files["ent_ref_agg"]
+        cell_agg = aggregation_files["cell_agg"]
+        top2_agg = aggregation_files["top2_agg"]
 
-        receipt_handles = []
-        logger.info("Successfully retrieved message from sqs")
-        for message in response["Messages"]:
-            receipt_handles.append(message["ReceiptHandle"])
-            data.append(message["Body"])
-
-        for handle in receipt_handles:
-            sqs.delete_message(QueueUrl=sqs_queue_url, ReceiptHandle=handle)
-
-        logger.info("Successfully deleted message from sqs")
-        # convert the 3 outputs into dataframes
-        first_agg = json.loads(data[0])
-        second_agg = json.loads(data[1])
-        third_agg = json.loads(data[2])
-
-        first_agg_df = aws_functions.read_dataframe_from_s3(first_agg["bucket"],
-                                                            first_agg["key"],
-                                                            location)
-        second_agg_df = aws_functions.read_dataframe_from_s3(second_agg["bucket"],
-                                                             second_agg["key"],
-                                                             location)
-        third_agg_df = aws_functions.read_dataframe_from_s3(third_agg["bucket"],
-                                                            third_agg["key"],
-                                                            location)
+        # Load file content.
+        ent_ref_agg_df = aws_functions.read_dataframe_from_s3(bucket_name, ent_ref_agg)
+        cell_agg_df = aws_functions.read_dataframe_from_s3(bucket_name, cell_agg)
+        top2_agg_df = aws_functions.read_dataframe_from_s3(bucket_name, top2_agg)
+        logger.info("Successfully retrievied aggragation data from s3")
 
         to_aggregate = [aggregated_column]
         if additional_aggregated_column != "":
@@ -129,13 +102,13 @@ def lambda_handler(event, context):
 
         # merge the imputation output from s3 with the 3 aggregation outputs
         first_merge = pd.merge(
-            imp_df, first_agg_df, on=to_aggregate, how="left")
+            imp_df, ent_ref_agg_df, on=to_aggregate, how="left")
 
         second_merge = pd.merge(
-            first_merge, second_agg_df, on=to_aggregate, how="left")
+            first_merge, cell_agg_df, on=to_aggregate, how="left")
 
         third_merge = pd.merge(
-            second_merge, third_agg_df, on=to_aggregate, how="left")
+            second_merge, top2_agg_df, on=to_aggregate, how="left")
 
         logger.info("Successfully merged dataframes")
 
@@ -143,18 +116,13 @@ def lambda_handler(event, context):
         final_output = third_merge.to_json(orient="records")
 
         # send output onwards
-        aws_functions.save_data(bucket_name, out_file_name, final_output,
-                                sqs_queue_url, outgoing_message_group_id,
-                                location)
+        aws_functions.save_to_s3(bucket_name, out_file_name, final_output)
         logger.info("Successfully sent data to s3.")
 
         if run_environment != "development":
-            logger.info(aws_functions.delete_data(first_agg["bucket"], first_agg["key"],
-                                                  location))
-            logger.info(aws_functions.delete_data(second_agg["bucket"], second_agg["key"],
-                                                  location))
-            logger.info(aws_functions.delete_data(third_agg["bucket"], third_agg["key"],
-                                                  location))
+            logger.info(aws_functions.delete_data(bucket_name, ent_ref_agg))
+            logger.info(aws_functions.delete_data(bucket_name, cell_agg))
+            logger.info(aws_functions.delete_data(bucket_name, top2_agg))
             logger.info("Successfully deleted input data.")
 
         aws_functions.send_sns_message(checkpoint, sns_topic_arn,

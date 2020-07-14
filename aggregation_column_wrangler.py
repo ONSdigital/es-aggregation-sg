@@ -33,11 +33,8 @@ class RuntimeSchema(Schema):
     aggregation_type = fields.Str(required=True)
     cell_total_column = fields.Str(required=True)
     in_file_name = fields.Str(required=True)
-    location = fields.Str(required=True)
     out_file_name = fields.Str(required=True)
-    outgoing_message_group_id = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
-    queue_url = fields.Str(required=True)
     total_columns = fields.List(fields.String, required=True)
 
 
@@ -92,17 +89,14 @@ def lambda_handler(event, context):
         aggregation_type = runtime_variables["aggregation_type"]
         cell_total_column = runtime_variables["cell_total_column"]
         in_file_name = runtime_variables["in_file_name"]
-        location = runtime_variables["location"]
         out_file_name = runtime_variables["out_file_name"]
-        outgoing_message_group_id = runtime_variables["outgoing_message_group_id"]
         sns_topic_arn = runtime_variables["sns_topic_arn"]
-        sqs_queue_url = runtime_variables["queue_url"]
         total_columns = runtime_variables["total_columns"]
 
         logger.info("Retrieved configuration variables.")
 
         # Read from S3 bucket
-        data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name, location)
+        data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
         logger.info("Completed reading data from s3")
 
         formatted_data = data.to_json(orient="records")
@@ -130,9 +124,8 @@ def lambda_handler(event, context):
         if not json_response["success"]:
             raise exception_classes.MethodFailure(json_response["error"])
 
-        aws_functions.save_data(bucket_name, out_file_name, json_response["data"],
-                                sqs_queue_url, outgoing_message_group_id, location)
-        logger.info("Successfully sent the data to SQS")
+        aws_functions.save_to_s3(bucket_name, out_file_name, json_response["data"])
+        logger.info("Successfully sent the data to S3")
 
         aws_functions.send_sns_message(checkpoint,
                                        sns_topic_arn,

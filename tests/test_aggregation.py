@@ -21,11 +21,13 @@ combiner_runtime_variables = {
             "additional_aggregated_column": "strata",
             "aggregated_column": "region",
             "in_file_name": "test_wrangler_agg_input",
-            "location": "",
             "out_file_name": "test_wrangler_combiner_output.json",
-            "outgoing_message_group_id": "test_id",
-            "queue_url": "Earl",
-            "sns_topic_arn": "fake_sns_arn"
+            "sns_topic_arn": "fake_sns_arn",
+            "aggregation_files": {
+                "ent_ref_agg": "test_wrangler_cell_prepared_output",
+                "cell_agg": "test_wrangler_ent_prepared_output",
+                "top2_agg": "test_wrangler_top2_prepared_output"
+            }
         }
 }
 
@@ -47,7 +49,6 @@ method_cell_runtime_variables = {
         "aggregation_type": "sum"
     }
 }
-
 
 method_ent_runtime_variables = {
     "RuntimeVariables": {
@@ -90,11 +91,8 @@ pre_wrangler_runtime_variables = {
         {
             "run_id": "bob",
             "in_file_name": "test_wrangler_splitter_input",
-            "location": "",
             "out_file_name_bricks": "test_wrangler_splitter_bricks_output.json",
             "out_file_name_region": "test_wrangler_splitter_region_output.json",
-            "outgoing_message_group_id": "test_id",
-            "queue_url": "Earl",
             "sns_topic_arn": "fake_sns_arn",
             "total_columns":  ["opening_stock_commons",
                                "opening_stock_facings",
@@ -132,10 +130,7 @@ wrangler_cell_runtime_variables = {
             "aggregation_type": "sum",
             "cell_total_column": "cell_total",
             "in_file_name": "test_wrangler_agg_input",
-            "location": "",
             "out_file_name": "test_wrangler_cell_output.json",
-            "outgoing_message_group_id": "test_id",
-            "queue_url": "Earl",
             "sns_topic_arn": "fake_sns_arn",
             "total_columns": ["Q608_total"]
         }
@@ -150,10 +145,7 @@ wrangler_ent_runtime_variables = {
         "aggregated_column": "region",
         "cell_total_column": "ent_ref_count",
         "aggregation_type": "nunique",
-        "location": "",
         "out_file_name": "test_wrangler_ent_output.json",
-        "outgoing_message_group_id": "test_id",
-        "queue_url": "Earl",
         "sns_topic_arn": "fake_sns_arn"
     }
 }
@@ -165,35 +157,12 @@ wrangler_top2_runtime_variables = {
             "additional_aggregated_column": "strata",
             "aggregated_column": "region",
             "in_file_name": "test_wrangler_agg_input",
-            "location": "",
             "out_file_name": "test_wrangler_top2_output.json",
-            "outgoing_message_group_id": "test_id",
-            "queue_url": "Earl",
             "sns_topic_arn": "fake_sns_arn",
             "top1_column": "largest_contributor",
             "top2_column": "second_largest_contributor",
             "total_columns": ["Q608_total"]
         }
-}
-
-fake_return = {
-    "Messages": [
-        {
-            "ReceiptHandle": "",
-            "Body":
-                '{"bucket": "test_bucket", "key": "test_wrangler_cell_prepared_output"}'
-        },
-        {
-            "ReceiptHandle": "",
-            "Body":
-                '{"bucket": "test_bucket", "key": "test_wrangler_ent_prepared_output"}'
-        },
-        {
-            "ReceiptHandle": "",
-            "Body":
-                '{"bucket": "test_bucket", "key": "test_wrangler_top2_prepared_output"}'
-        }
-    ]
 }
 
 ##########################################################################################
@@ -214,9 +183,6 @@ fake_return = {
          "ClientError", test_generic_library.wrangler_assert),
         (lambda_pre_wrangler_function, pre_wrangler_runtime_variables,
          generic_environment_variables, None,
-         "ClientError", test_generic_library.wrangler_assert),
-        (lambda_combiner_function, combiner_runtime_variables,
-         generic_environment_variables, None,
          "ClientError", test_generic_library.wrangler_assert)
     ])
 def test_client_error(which_lambda, which_runtime_variables,
@@ -225,7 +191,7 @@ def test_client_error(which_lambda, which_runtime_variables,
 
     bucket_name = which_environment_variables["bucket_name"]
     client = test_generic_library.create_bucket(bucket_name)
-    file_list = ["test_wrangler_agg_input.json"]
+    file_list = ["test_wrangler_agg_input.json", "test_wrangler_splitter_input.json"]
 
     test_generic_library.upload_files(client, bucket_name, file_list)
 
@@ -267,8 +233,6 @@ def test_general_error(which_lambda, which_runtime_variables,
 
 
 @mock_s3
-@mock.patch('aggregation_bricks_splitter_wrangler.aws_functions.get_dataframe',
-            side_effect=test_generic_library.replacement_get_dataframe)
 @pytest.mark.parametrize(
     "which_lambda,which_runtime_variables,which_environment_variables,file_list," +
     "lambda_name,expected_message",
@@ -283,7 +247,7 @@ def test_general_error(which_lambda, which_runtime_variables,
          generic_environment_variables, ["test_wrangler_splitter_input.json"],
          "aggregation_bricks_splitter_wrangler", "IncompleteReadError"),
     ])
-def test_incomplete_read_error(mock_get_s3, which_lambda, which_runtime_variables,
+def test_incomplete_read_error(which_lambda, which_runtime_variables,
                                which_environment_variables, file_list, lambda_name,
                                expected_message):
 
@@ -325,8 +289,6 @@ def test_key_error(which_lambda, which_environment_variables,
 
 
 @mock_s3
-@mock.patch('aggregation_column_wrangler.aws_functions.get_dataframe',
-            side_effect=test_generic_library.replacement_get_dataframe)
 @pytest.mark.parametrize(
     "which_lambda,which_runtime_variables,which_environment_variables," +
     "file_list,lambda_name",
@@ -341,7 +303,7 @@ def test_key_error(which_lambda, which_environment_variables,
          generic_environment_variables, ["test_wrangler_splitter_input.json"],
          "aggregation_bricks_splitter_wrangler")
     ])
-def test_method_error(mock_s3_get, which_lambda, which_runtime_variables,
+def test_method_error(which_lambda, which_runtime_variables,
                       which_environment_variables, file_list, lambda_name):
     test_generic_library.wrangler_method_error(which_lambda,
                                                which_runtime_variables,
@@ -455,9 +417,10 @@ def test_calculate_row_type():
 
 
 @mock_s3
-@mock.patch('combiner.aws_functions.save_data',
-            side_effect=test_generic_library.replacement_save_data)
-def test_combiner_success(mock_s3_put):
+@mock.patch('combiner.aws_functions.save_to_s3',
+            side_effect=test_generic_library.replacement_save_to_s3)
+@mock.patch('combiner.aws_functions.send_sns_message')
+def test_combiner_success(mock_sns, mock_s3_put):
     """
     Runs the wrangler function.
     :param mock_s3_put: Replacement Function
@@ -482,16 +445,10 @@ def test_combiner_success(mock_s3_put):
 
     with mock.patch.dict(lambda_combiner_function.os.environ,
                          generic_environment_variables):
-        with mock.patch('combiner.aws_functions.get_sqs_messages') as mock_message:
-            mock_message.return_value = fake_return
 
-            with mock.patch("combiner.boto3.client") as mock_client:
-                mock_client_object = mock.Mock()
-                mock_client.return_value = mock_client_object
-
-                output = lambda_combiner_function.lambda_handler(
-                    combiner_runtime_variables, test_generic_library.context_object
-                )
+        output = lambda_combiner_function.lambda_handler(
+            combiner_runtime_variables, test_generic_library.context_object
+        )
 
     with open("tests/fixtures/" +
               combiner_runtime_variables["RuntimeVariables"]["out_file_name"],
@@ -566,14 +523,11 @@ def test_method_success(which_lambda, which_runtime_variables, input_data, prepa
 
 
 @mock_s3
-@mock.patch('aggregation_bricks_splitter_wrangler.aws_functions.get_dataframe',
-            side_effect=test_generic_library.replacement_get_dataframe)
 @mock.patch('aggregation_bricks_splitter_wrangler.aws_functions.save_to_s3',
             side_effect=test_generic_library.replacement_save_to_s3)
-def test_splitter_wrangler_success(mock_s3_get, mock_s3_put):
+def test_splitter_wrangler_success(mock_s3_put):
     """
     Runs the wrangler function.
-    :param mock_s3_get - Replacement Function For The Data Retrieval AWS Functionality.
     :param mock_s3_put - Replacement Function For The Data Saving AWS Functionality.
     :return Test Pass/Fail
     """
@@ -705,8 +659,8 @@ def test_wrangler_success_passed(which_lambda, which_environment_variables,
 
     with mock.patch.dict(which_lambda.os.environ,
                          which_environment_variables):
-        with mock.patch(lambda_name + '.aws_functions.save_data',
-                        side_effect=test_generic_library.replacement_save_data):
+        with mock.patch(lambda_name + '.aws_functions.save_to_s3',
+                        side_effect=test_generic_library.replacement_save_to_s3):
             with mock.patch(lambda_name + ".boto3.client") as mock_client:
                 mock_client_object = mock.Mock()
                 mock_client.return_value = mock_client_object
@@ -795,8 +749,8 @@ def test_wrangler_success_returned(which_lambda, which_environment_variables,
 
     with mock.patch.dict(which_lambda.os.environ,
                          which_environment_variables):
-        with mock.patch(lambda_name + '.aws_functions.save_data',
-                        side_effect=test_generic_library.replacement_save_data):
+        with mock.patch(lambda_name + '.aws_functions.save_to_s3',
+                        side_effect=test_generic_library.replacement_save_to_s3):
             with mock.patch(lambda_name + ".boto3.client") as mock_client:
                 mock_client_object = mock.Mock()
                 mock_client.return_value = mock_client_object
