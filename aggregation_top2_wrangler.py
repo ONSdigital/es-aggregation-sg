@@ -59,7 +59,7 @@ def lambda_handler(event, context):
             or LambdaFailure exception
     """
     current_module = "Aggregation Calc Top Two - Wrangler."
-    logger = logging.getLogger()
+    logger = logging.getLogger("Aggregation_Top2")
     logger.setLevel(10)
     error_message = ""
     checkpoint = 4
