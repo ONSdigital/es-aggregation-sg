@@ -40,7 +40,7 @@ def lambda_handler(event, context):
     :return: Success - {"success": True/False, "data"/"error": "JSON String"/"Message"}
     """
     current_module = "Aggregation Calc Top Two - Method"
-    logger = logging.getLogger()
+    logger = logging.getLogger("Aggregation_Top2")
     logger.setLevel(10)
     error_message = ""
     run_id = 0

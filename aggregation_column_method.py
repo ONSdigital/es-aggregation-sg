@@ -43,7 +43,7 @@ def lambda_handler(event, context):
     current_module = "Aggregation by column - Method"
     error_message = ""
     logger = logging.getLogger("Aggregation")
-    logger.setLevel(0)
+    logger.setLevel(10)
     run_id = 0
     try:
         logger.info("Aggregation by column - Method begun.")

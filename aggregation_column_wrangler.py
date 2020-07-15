@@ -59,7 +59,7 @@ def lambda_handler(event, context):
     error_message = ""
     checkpoint = 4
     logger = logging.getLogger("Aggregation")
-    logger.setLevel(0)
+    logger.setLevel(10)
 
     # Define run_id outside of try block
     run_id = 0

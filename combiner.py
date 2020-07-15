@@ -46,8 +46,8 @@ def lambda_handler(event, context):
     :param context:
     :return:
     """
-    logger = logging.getLogger("Combininator")
-    logger.setLevel(logging.INFO)
+    logger = logging.getLogger("Combiner")
+    logger.setLevel(10)
     current_module = "Aggregation_Combiner"
     error_message = ""
     checkpoint = 4
