@@ -51,7 +51,7 @@ Steps performed:
  }}
 
 **Outputs:** A JSON dict which contains a success marker and the aggregated data with the column count/sum. <br>
-e.g. {"success": True/False, "checkpoint"/"error": 4/"Message"}
+e.g. {"success": True/False, None/"error": NA/"Message"}
 <hr>
 
 #### Calculate Top Two Method
@@ -68,7 +68,7 @@ e.g. {"success": True/False, "checkpoint"/"error": 4/"Message"}
     }}
 
 **Outputs:** A JSON dict which contains a success marker and the input DataFrame with the following two columns appended: "largest_contributor" and "second_largest_contributor" <br>
-e.g. {"success": True/False, "checkpoint"/"error": 4/"Message"}
+e.g. {"success": True/False, None/"error": NA/"Message"}
 
 <hr>
 

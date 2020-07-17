@@ -14,7 +14,6 @@ class EnvironmentSchema(Schema):
         logging.error(f"Error validating environment params: {e}")
         raise ValueError(f"Error validating environment params: {e}")
 
-    checkpoint = fields.Str(required=True)
     bucket_name = fields.Str(required=True)
     run_environment = fields.Str(required=True)
 
@@ -50,7 +49,7 @@ def lambda_handler(event, context):
     logger.setLevel(10)
     current_module = "Aggregation_Combiner"
     error_message = ""
-    checkpoint = 4
+
     # Define run_id outside of try block
     run_id = 0
     try:
@@ -66,7 +65,6 @@ def lambda_handler(event, context):
         logger.info("Validated parameters.")
 
         # Environment Variables
-        checkpoint = environment_variables["checkpoint"]
         bucket_name = environment_variables["bucket_name"]
         run_environment = environment_variables["run_environment"]
 
@@ -125,8 +123,7 @@ def lambda_handler(event, context):
             logger.info(aws_functions.delete_data(bucket_name, top2_agg))
             logger.info("Successfully deleted input data.")
 
-        aws_functions.send_sns_message(checkpoint, sns_topic_arn,
-                                       "Aggregation - Combiner.")
+        aws_functions.send_sns_message(sns_topic_arn, "Aggregation - Combiner.")
         logger.info("Successfully sent data to sns.")
 
     except Exception as e:
@@ -139,4 +136,4 @@ def lambda_handler(event, context):
 
     logger.info("Successfully completed module: " + current_module)
 
-    return {"success": True, "checkpoint": checkpoint}
+    return {"success": True}

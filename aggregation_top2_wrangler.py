@@ -16,7 +16,6 @@ class EnvironmentSchema(Schema):
         raise ValueError(f"Error validating environment params: {e}")
 
     bucket_name = fields.Str(required=True)
-    checkpoint = fields.Str(required=True)
     method_name = fields.Str(required=True)
 
 
@@ -55,14 +54,14 @@ def lambda_handler(event, context):
         top2_column - The prefix for the second_largest_contibutor column
     }}
     :param context: N/A
-    :return: {"success": True, "checkpoint": 4}
+    :return: {"success": True}
             or LambdaFailure exception
     """
     current_module = "Aggregation Calc Top Two - Wrangler."
     logger = logging.getLogger("Aggregation_Top2")
     logger.setLevel(10)
     error_message = ""
-    checkpoint = 4
+
     # Define run_id outside of try block
     run_id = 0
     try:
@@ -83,7 +82,6 @@ def lambda_handler(event, context):
 
         # Environment Variables
         bucket_name = environment_variables["bucket_name"]
-        checkpoint = environment_variables["checkpoint"]
         method_name = environment_variables["method_name"]
 
         # Runtime Variables
@@ -134,7 +132,7 @@ def lambda_handler(event, context):
         aws_functions.save_to_s3(bucket_name, out_file_name, json_response["data"])
         logger.info("Successfully sent the data to S3")
 
-        aws_functions.send_sns_message(checkpoint, sns_topic_arn, "Aggregation - Top 2.")
+        aws_functions.send_sns_message(sns_topic_arn, "Aggregation - Top 2.")
         logger.info("Successfully sent the SNS message")
 
     except Exception as e:
@@ -147,4 +145,4 @@ def lambda_handler(event, context):
 
     logger.info("Successfully completed module: " + current_module)
 
-    return {"success": True, "checkpoint": checkpoint}
+    return {"success": True}

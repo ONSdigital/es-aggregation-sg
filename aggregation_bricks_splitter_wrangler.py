@@ -17,7 +17,6 @@ class EnvironmentSchema(Schema):
         logging.error(f"Error validating environment params: {e}")
         raise ValueError(f"Error validating environment params: {e}")
 
-    checkpoint = fields.Str(required=True)
     bucket_name = fields.Str(required=True)
     method_name = fields.Str(required=True)
 
@@ -59,12 +58,13 @@ def lambda_handler(event, context):
     :param event: Contains all the variables which are required for the specific run.
     :param context: N/A
 
-    :return:  Success & Checkpoint/Error - Type: JSON
+    :return:  Success & None/Error - Type: JSON
     """
     current_module = "Pre Aggregation Data Wrangler."
     error_message = ""
     logger = logging.getLogger("Pre Aggregation Data Wrangler")
     logger.setLevel(10)
+
     # Define run_id outside of try block
     run_id = 0
     try:
@@ -84,7 +84,6 @@ def lambda_handler(event, context):
         logger.info("Validated parameters.")
 
         # Environment Variables
-        checkpoint = environment_variables["checkpoint"]
         bucket_name = environment_variables["bucket_name"]
         method_name = environment_variables["method_name"]
 
@@ -194,7 +193,7 @@ def lambda_handler(event, context):
 
         logger.info("Successfully sent data to s3")
 
-        logger.info(aws_functions.send_sns_message(checkpoint, sns_topic_arn,
+        logger.info(aws_functions.send_sns_message(sns_topic_arn,
                                                    "Pre Aggregation."))
 
         logger.info("Succesfully sent message to sns")
@@ -209,7 +208,7 @@ def lambda_handler(event, context):
 
     logger.info("Successfully completed module: " + current_module)
 
-    return {"success": True, "checkpoint": checkpoint}
+    return {"success": True}
 
 
 def calculate_row_type(row, brick_type, column_list):
