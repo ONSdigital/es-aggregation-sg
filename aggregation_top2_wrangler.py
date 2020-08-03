@@ -58,8 +58,7 @@ def lambda_handler(event, context):
             or LambdaFailure exception
     """
     current_module = "Aggregation Calc Top Two - Wrangler."
-    logger = logging.getLogger("Aggregation_Top2")
-    logger.setLevel(10)
+    logger = general_functions.get_logger()
     error_message = ""
 
     # Define run_id outside of try block
