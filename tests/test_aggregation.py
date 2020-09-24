@@ -433,11 +433,14 @@ def test_calculate_row_type():
 @mock.patch('combiner.aws_functions.save_to_s3',
             side_effect=test_generic_library.replacement_save_to_s3)
 @mock.patch('combiner.aws_functions.send_sns_message')
-def test_combiner_success(mock_sns, mock_s3_put):
+@mock.patch('combiner.aws_functions.send_bpm_status')
+def test_combiner_success(mock_bpm_status, mock_sns, mock_s3_put):
     """
     Runs the wrangler function.
     :param mock_s3_put: Replacement Function
                         For The Data Saving AWS Functionality. - Mock.
+    :param mock_sns: Replacement function mocking SNS sends.
+    :param mock_bpm_status: Replacement function mocking bpm status calls.
     :return Test Pass/Fail
     """
     bucket_name = generic_environment_variables["bucket_name"]
