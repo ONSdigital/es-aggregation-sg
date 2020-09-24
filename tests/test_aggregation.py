@@ -219,24 +219,29 @@ def test_client_error(mock_bpm_status, which_lambda, which_runtime_variables,
         (lambda_wrangler_col_function, wrangler_cell_runtime_variables,
          generic_environment_variables, "aggregation_column_wrangler.EnvironmentSchema",
          "Exception", test_generic_library.wrangler_assert),
+
         (lambda_wrangler_top2_function, wrangler_top2_runtime_variables,
          generic_environment_variables, "aggregation_top2_wrangler.EnvironmentSchema",
          "Exception", test_generic_library.wrangler_assert),
+
         (lambda_pre_wrangler_function, pre_wrangler_runtime_variables,
          generic_environment_variables,
          "aggregation_bricks_splitter_wrangler.EnvironmentSchema",
          "Exception", test_generic_library.wrangler_assert),
+
         (lambda_combiner_function, combiner_runtime_variables,
          generic_environment_variables, "combiner.EnvironmentSchema",
          "Exception", test_generic_library.wrangler_assert),
+
         (lambda_method_col_function, method_cell_runtime_variables,
          False, "aggregation_column_method.RuntimeSchema",
          "Exception", test_generic_library.method_assert),
+
         (lambda_method_top2_function, method_top2_runtime_variables,
          False, "aggregation_top2_method.RuntimeSchema",
          "Exception", test_generic_library.method_assert)
     ])
-def test_general_error(which_lambda, which_runtime_variables,
+def test_general_error(mock_bpm_status, which_lambda, which_runtime_variables,
                        which_environment_variables, mockable_function,
                        expected_message, assertion):
     test_generic_library.general_error(which_lambda, which_runtime_variables,
@@ -288,6 +293,7 @@ def test_incomplete_read_error(which_lambda, which_runtime_variables,
         (lambda_method_top2_function, False,
          "KeyError", test_generic_library.method_assert, method_top2_runtime_variables)
     ])
+@mock.patch('aggregation_top2_wrangler.aws_functions.send_bpm_status')
 def test_key_error(which_lambda, which_environment_variables,
                    expected_message, assertion, which_runtime_variables):
     if not which_runtime_variables:
