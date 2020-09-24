@@ -37,7 +37,7 @@ class RuntimeSchema(Schema):
         logging.error(f"Error validating runtime params: {e}")
         raise ValueError(f"Error validating runtime params: {e}")
 
-    total_columns = fields.List(fields.String, required=True)
+    bpm_queue_url = fields.Str(required=True)
     factors_parameters = fields.Dict(
         keys=fields.String(validate=Equal(comparable="RuntimeVariables")),
         values=fields.Nested(FactorsSchema, required=True))
@@ -45,6 +45,7 @@ class RuntimeSchema(Schema):
     out_file_name_bricks = fields.Str(required=True)
     out_file_name_region = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
+    total_columns = fields.List(fields.String, required=True)
     unique_identifier = fields.List(fields.String, required=True)
 
 
@@ -63,11 +64,12 @@ def lambda_handler(event, context):
     current_module = "Pre Aggregation Data Wrangler."
     error_message = ""
     logger = general_functions.get_logger()
+    bpm_queue_url = None
 
     # Define run_id outside of try block
     run_id = 0
-    try:
 
+    try:
         logger.info("Starting " + current_module)
 
         # Retrieve run_id before input validation
@@ -87,6 +89,7 @@ def lambda_handler(event, context):
         method_name = environment_variables["method_name"]
 
         # Runtime Variables
+        bpm_queue_url = runtime_variables["bpm_queue_url"]
         column_list = runtime_variables["total_columns"]
         factors_parameters = runtime_variables["factors_parameters"]["RuntimeVariables"]
         in_file_name = runtime_variables["in_file_name"]
@@ -100,6 +103,11 @@ def lambda_handler(event, context):
         regionless_code = factors_parameters["regionless_code"]
 
         logger.info("Retrieved configuration variables.")
+
+        # Send start of module status to BPM.
+        # (NB: Current step and total steps omitted to display as "-" in bpm.)
+        status = "IN PROGRESS"
+        aws_functions.send_bpm_status(bpm_queue_url, current_module, status, run_id)
 
         # Pulls In Data.
         data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
@@ -198,14 +206,22 @@ def lambda_handler(event, context):
         logger.info("Succesfully sent message to sns")
 
     except Exception as e:
-        error_message = general_functions.handle_exception(e, current_module,
-                                                           run_id, context)
+        error_message = general_functions.handle_exception(e,
+                                                           current_module,
+                                                           run_id,
+                                                           context=context,
+                                                           bpm_queue_url=bpm_queue_url)
     finally:
         if (len(error_message)) > 0:
             logger.error(error_message)
             raise exception_classes.LambdaFailure(error_message)
 
     logger.info("Successfully completed module: " + current_module)
+
+    # Send end of module status to BPM.
+    # (NB: Current step and total steps omitted to display as "-" in bpm.)
+    status = "DONE"
+    aws_functions.send_bpm_status(bpm_queue_url, current_module, status, run_id)
 
     return {"success": True}
 

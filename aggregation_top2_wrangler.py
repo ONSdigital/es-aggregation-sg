@@ -29,12 +29,14 @@ class RuntimeSchema(Schema):
 
     additional_aggregated_column = fields.Str(required=True)
     aggregated_column = fields.Str(required=True)
+    bpm_queue_url = fields.Str(required=True)
     in_file_name = fields.Str(required=True)
     out_file_name = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
     top1_column = fields.Str(required=True)
     top2_column = fields.Str(required=True)
     total_columns = fields.List(fields.String, required=True)
+    total_steps = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -60,6 +62,8 @@ def lambda_handler(event, context):
     current_module = "Aggregation Calc Top Two - Wrangler."
     logger = general_functions.get_logger()
     error_message = ""
+    bpm_queue_url = None
+    current_step_num = "5"
 
     # Define run_id outside of try block
     run_id = 0
@@ -86,14 +90,21 @@ def lambda_handler(event, context):
         # Runtime Variables
         aggregated_column = runtime_variables["aggregated_column"]
         additional_aggregated_column = runtime_variables["additional_aggregated_column"]
+        bpm_queue_url = runtime_variables["bpm_queue_url"]
         in_file_name = runtime_variables["in_file_name"]
         out_file_name = runtime_variables["out_file_name"]
         sns_topic_arn = runtime_variables["sns_topic_arn"]
         top1_column = runtime_variables["top1_column"]
         top2_column = runtime_variables["top2_column"]
         total_columns = runtime_variables["total_columns"]
+        total_steps = runtime_variables["total_steps"]
 
         logger.info("Retrieved configuration variables.")
+
+        # Send start of module status to BPM.
+        status = "IN PROGRESS"
+        aws_functions.send_bpm_status(bpm_queue_url, current_module, status, run_id,
+                                      current_step_num, total_steps)
 
         # Read from S3 bucket
         data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
@@ -135,8 +146,11 @@ def lambda_handler(event, context):
         logger.info("Successfully sent the SNS message")
 
     except Exception as e:
-        error_message = general_functions.handle_exception(e, current_module,
-                                                           run_id, context)
+        error_message = general_functions.handle_exception(e,
+                                                           current_module,
+                                                           run_id,
+                                                           context=context,
+                                                           bpm_queue_url=bpm_queue_url)
     finally:
         if (len(error_message)) > 0:
             logger.error(error_message)
