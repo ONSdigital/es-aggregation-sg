@@ -151,7 +151,8 @@ def lambda_handler(event, context):
                 "data": json.loads(data_region),
                 "regionless_code": regionless_code,
                 "region_column": region_column,
-                "run_id": run_id
+                "run_id": run_id,
+                "bpm_queue_url": bpm_queue_url
             }
         }
 

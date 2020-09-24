@@ -137,7 +137,9 @@ wrangler_cell_runtime_variables = {
             "in_file_name": "test_wrangler_agg_input",
             "out_file_name": "test_wrangler_cell_output.json",
             "sns_topic_arn": "fake_sns_arn",
-            "total_columns": ["Q608_total"]
+            "total_columns": ["Q608_total"],
+            "bpm_queue_url": "fake_queue_url",
+            "total_steps": "6"
         }
 }
 
@@ -185,16 +187,16 @@ wrangler_top2_runtime_variables = {
         (lambda_wrangler_col_function, wrangler_cell_runtime_variables,
          generic_environment_variables, None,
          "ClientError", test_generic_library.wrangler_assert),
+
         (lambda_wrangler_top2_function, wrangler_top2_runtime_variables,
          generic_environment_variables, None,
          "ClientError", test_generic_library.wrangler_assert),
+
         (lambda_pre_wrangler_function, pre_wrangler_runtime_variables,
          generic_environment_variables, None,
          "ClientError", test_generic_library.wrangler_assert)
     ])
-@mock.patch('aggregation_bricks_splitter_wrangler.aws_functions.send_bpm_status')
 @mock.patch('aggregation_top2_wrangler.aws_functions.send_bpm_status')
-@mock.patch('combiner.aws_functions.send_bpm_status')
 def test_client_error(mock_bpm_status, which_lambda, which_runtime_variables,
                       which_environment_variables, which_data,
                       expected_message, assertion):

@@ -125,7 +125,8 @@ def lambda_handler(event, context):
                 "aggregated_column": aggregated_column,
                 "top1_column": top1_column,
                 "top2_column": top2_column,
-                "run_id": run_id
+                "run_id": run_id,
+                "bpm_queue_url": bpm_queue_url
             }
         }
 
