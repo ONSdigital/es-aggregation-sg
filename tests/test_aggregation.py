@@ -23,10 +23,12 @@ combiner_runtime_variables = {
             "in_file_name": "test_wrangler_agg_input",
             "out_file_name": "test_wrangler_combiner_output.json",
             "sns_topic_arn": "fake_sns_arn",
+            "bpm_queue_url": "fake_queue_url",
+            "total_steps": "6",
             "aggregation_files": {
                 "ent_ref_agg": "test_wrangler_cell_prepared_output",
                 "cell_agg": "test_wrangler_ent_prepared_output",
-                "top2_agg": "test_wrangler_top2_prepared_output"
+                "top2_agg": "test_wrangler_top2_prepared_output",
             }
         }
 }
@@ -69,7 +71,8 @@ method_top2_runtime_variables = {
         "additional_aggregated_column": "strata",
         "aggregated_column": "region",
         "top1_column": "largest_contributor",
-        "top2_column": "second_largest_contributor"
+        "top2_column": "second_largest_contributor",
+        "bpm_queue_url": "fake_queue_url"
     }
 }
 
@@ -81,7 +84,8 @@ method_top2_multi_runtime_variables = {
         "additional_aggregated_column": "strata",
         "aggregated_column": "region",
         "top1_column": "largest_contributor",
-        "top2_column": "second_largest_contributor"
+        "top2_column": "second_largest_contributor",
+        "bpm_queue_url": "fake_queue_url"
     }
 }
 
@@ -93,6 +97,8 @@ pre_wrangler_runtime_variables = {
             "out_file_name_bricks": "test_wrangler_splitter_bricks_output.json",
             "out_file_name_region": "test_wrangler_splitter_region_output.json",
             "sns_topic_arn": "fake_sns_arn",
+            "bpm_queue_url": "fake_queue_url",
+            "total_steps": "6",
             "total_columns":  ["opening_stock_commons",
                                "opening_stock_facings",
                                "opening_stock_engineering",
@@ -131,7 +137,9 @@ wrangler_cell_runtime_variables = {
             "in_file_name": "test_wrangler_agg_input",
             "out_file_name": "test_wrangler_cell_output.json",
             "sns_topic_arn": "fake_sns_arn",
-            "total_columns": ["Q608_total"]
+            "total_columns": ["Q608_total"],
+            "bpm_queue_url": "fake_queue_url",
+            "total_steps": "6"
         }
 }
 
@@ -160,7 +168,9 @@ wrangler_top2_runtime_variables = {
             "sns_topic_arn": "fake_sns_arn",
             "top1_column": "largest_contributor",
             "top2_column": "second_largest_contributor",
-            "total_columns": ["Q608_total"]
+            "total_columns": ["Q608_total"],
+            "bpm_queue_url": "fake_queue_url",
+            "total_steps": "6"
         }
 }
 
@@ -177,14 +187,17 @@ wrangler_top2_runtime_variables = {
         (lambda_wrangler_col_function, wrangler_cell_runtime_variables,
          generic_environment_variables, None,
          "ClientError", test_generic_library.wrangler_assert),
+
         (lambda_wrangler_top2_function, wrangler_top2_runtime_variables,
          generic_environment_variables, None,
          "ClientError", test_generic_library.wrangler_assert),
+
         (lambda_pre_wrangler_function, pre_wrangler_runtime_variables,
          generic_environment_variables, None,
          "ClientError", test_generic_library.wrangler_assert)
     ])
-def test_client_error(which_lambda, which_runtime_variables,
+@mock.patch('aggregation_top2_wrangler.aws_functions.send_bpm_status')
+def test_client_error(mock_bpm_status, which_lambda, which_runtime_variables,
                       which_environment_variables, which_data,
                       expected_message, assertion):
 
@@ -275,7 +288,8 @@ def test_incomplete_read_error(which_lambda, which_runtime_variables,
         (lambda_method_top2_function, False,
          "KeyError", test_generic_library.method_assert, method_top2_runtime_variables)
     ])
-def test_key_error(which_lambda, which_environment_variables,
+@mock.patch('aggregation_top2_wrangler.aws_functions.send_bpm_status')
+def test_key_error(mock_bpm_status, which_lambda, which_environment_variables,
                    expected_message, assertion, which_runtime_variables):
     if not which_runtime_variables:
         test_generic_library.key_error(which_lambda, which_environment_variables,
@@ -419,11 +433,14 @@ def test_calculate_row_type():
 @mock.patch('combiner.aws_functions.save_to_s3',
             side_effect=test_generic_library.replacement_save_to_s3)
 @mock.patch('combiner.aws_functions.send_sns_message')
-def test_combiner_success(mock_sns, mock_s3_put):
+@mock.patch('combiner.aws_functions.send_bpm_status')
+def test_combiner_success(mock_bpm_status, mock_sns, mock_s3_put):
     """
     Runs the wrangler function.
     :param mock_s3_put: Replacement Function
                         For The Data Saving AWS Functionality. - Mock.
+    :param mock_sns: Replacement function mocking SNS sends.
+    :param mock_bpm_status: Replacement function mocking bpm status calls.
     :return Test Pass/Fail
     """
     bucket_name = generic_environment_variables["bucket_name"]

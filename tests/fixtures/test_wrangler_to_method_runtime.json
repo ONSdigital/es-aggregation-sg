@@ -1,6 +1,7 @@
 {
     "additional_aggregated_column": "strata",
     "aggregated_column": "region",
+    "bpm_queue_url": "fake_queue_url",
     "data": null,
     "run_id": "bob",
     "top1_column": "largest_contributor",

@@ -20,6 +20,7 @@ class RuntimeSchema(Schema):
     aggregated_column = fields.Str(required=True)
     top1_column = fields.Str(required=True)
     top2_column = fields.Str(required=True)
+    bpm_queue_url = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -43,6 +44,7 @@ def lambda_handler(event, context):
     logger = general_functions.get_logger()
     error_message = ""
     run_id = 0
+    bpm_queue_url = None
     logger.info("Starting " + current_module)
 
     try:
@@ -55,6 +57,7 @@ def lambda_handler(event, context):
         logger.info("Validated parameters.")
 
         # Runtime Variables
+        bpm_queue_url = runtime_variables["bpm_queue_url"]
         data = json.loads(runtime_variables["data"])
         total_columns = runtime_variables["total_columns"]
         additional_aggregated_column = runtime_variables["additional_aggregated_column"]
@@ -88,8 +91,11 @@ def lambda_handler(event, context):
         response_json = response.to_json(orient="records")
         final_output = {"data": response_json}
     except Exception as e:
-        error_message = general_functions.handle_exception(e, current_module,
-                                                           run_id, context)
+        error_message = general_functions.handle_exception(e,
+                                                           current_module,
+                                                           run_id,
+                                                           context=context,
+                                                           bpm_queue_url=bpm_queue_url)
     finally:
         if (len(error_message)) > 0:
             logger.error(error_message)
