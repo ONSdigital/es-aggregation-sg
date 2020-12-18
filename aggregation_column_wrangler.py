@@ -16,7 +16,6 @@ class EnvironmentSchema(Schema):
         raise ValueError(f"Error validating environment params: {e}")
 
     bucket_name = fields.Str(required=True)
-    checkpoint = fields.Str(required=True)
     method_name = fields.Str(required=True)
 
 
@@ -54,12 +53,11 @@ def lambda_handler(event, context):
     }}
 
     :param context: N/A
-    :return: {"success": True, "checkpoint":4}
+    :return: {"success": True}
             or LambdaFailure exception
     """
     current_module = "Aggregation by column - Wrangler"
     error_message = ""
-    checkpoint = 4
 
     # Define run_id outside of try block
     run_id = 0
@@ -77,7 +75,6 @@ def lambda_handler(event, context):
 
         # Environment Variables
         bucket_name = environment_variables["bucket_name"]
-        checkpoint = environment_variables["checkpoint"]
         method_name = environment_variables["method_name"]
 
         # Runtime Variables
@@ -140,8 +137,7 @@ def lambda_handler(event, context):
         aws_functions.save_to_s3(bucket_name, out_file_name, json_response["data"])
         logger.info("Successfully sent the data to S3")
 
-        aws_functions.send_sns_message(checkpoint,
-                                       sns_topic_arn,
+        aws_functions.send_sns_message(sns_topic_arn,
                                        "Aggregation - " + aggregated_column + ".")
 
         logger.info("Successfully sent the SNS message")
@@ -156,4 +152,4 @@ def lambda_handler(event, context):
 
     logger.info("Successfully completed module: " + current_module)
 
-    return {"success": True, "checkpoint": checkpoint}
+    return {"success": True}

@@ -22,6 +22,7 @@ class RuntimeSchema(Schema):
     top1_column = fields.Str(required=True)
     top2_column = fields.Str(required=True)
     survey = fields.Str(required=True)
+    bpm_queue_url = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -42,8 +43,10 @@ def lambda_handler(event, context):
     :return: Success - {"success": True/False, "data"/"error": "JSON String"/"Message"}
     """
     current_module = "Aggregation Calc Top Two - Method"
+
     error_message = ""
     run_id = 0
+    bpm_queue_url = None
 
     try:
         # Retrieve run_id before input validation
@@ -53,6 +56,7 @@ def lambda_handler(event, context):
         runtime_variables = RuntimeSchema().load(event["RuntimeVariables"])
 
         # Runtime Variables
+        bpm_queue_url = runtime_variables["bpm_queue_url"]
         data = json.loads(runtime_variables["data"])
         environment = runtime_variables["environment"]
         total_columns = runtime_variables["total_columns"]
@@ -102,8 +106,11 @@ def lambda_handler(event, context):
         response_json = response.to_json(orient="records")
         final_output = {"data": response_json}
     except Exception as e:
-        error_message = general_functions.handle_exception(e, current_module,
-                                                           run_id, context)
+        error_message = general_functions.handle_exception(e,
+                                                           current_module,
+                                                           run_id,
+                                                           context=context,
+                                                           bpm_queue_url=bpm_queue_url)
     finally:
         if (len(error_message)) > 0:
             logger.error(error_message)

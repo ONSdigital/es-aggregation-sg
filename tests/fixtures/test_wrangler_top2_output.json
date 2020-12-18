@@ -1,20 +1,8 @@
 [
     {
-        "Q608_total_largest_contributor": 718482,
-        "Q608_total_second_largest_contributor": 648461,
-        "region": 7,
-        "strata": "D"
-    },
-    {
-        "Q608_total_largest_contributor": 718482,
-        "Q608_total_second_largest_contributor": 648461,
-        "region": 7,
-        "strata": "A"
-    },
-    {
-        "Q608_total_largest_contributor": 236604,
-        "Q608_total_second_largest_contributor": 95158,
-        "region": 9,
+        "Q608_total_largest_contributor": 225617,
+        "Q608_total_second_largest_contributor": 0,
+        "region": 3,
         "strata": "A"
     },
     {
@@ -24,21 +12,39 @@
         "strata": "A"
     },
     {
+        "Q608_total_largest_contributor": 53595,
+        "Q608_total_second_largest_contributor": 0,
+        "region": 6,
+        "strata": "D"
+    },
+    {
+        "Q608_total_largest_contributor": 718482,
+        "Q608_total_second_largest_contributor": 648461,
+        "region": 7,
+        "strata": "A"
+    },
+    {
+        "Q608_total_largest_contributor": 64196,
+        "Q608_total_second_largest_contributor": 0,
+        "region": 7,
+        "strata": "D"
+    },
+    {
         "Q608_total_largest_contributor": 236604,
-        "Q608_total_second_largest_contributor": 95158,
+        "Q608_total_second_largest_contributor": 0,
+        "region": 9,
+        "strata": "A"
+    },
+    {
+        "Q608_total_largest_contributor": 95158,
+        "Q608_total_second_largest_contributor": 0,
         "region": 9,
         "strata": "C"
     },
     {
-        "Q608_total_largest_contributor": 236604,
-        "Q608_total_second_largest_contributor": 95158,
-        "region": 9,
-        "strata": "D"
-    },
-    {
-        "Q608_total_largest_contributor": 53595,
+        "Q608_total_largest_contributor": 75190,
         "Q608_total_second_largest_contributor": 0,
-        "region": 6,
+        "region": 9,
         "strata": "D"
     },
     {
@@ -46,11 +52,5 @@
         "Q608_total_second_largest_contributor": 0,
         "region": 12,
         "strata": "B2"
-    },
-    {
-        "Q608_total_largest_contributor": 225617,
-        "Q608_total_second_largest_contributor": 0,
-        "region": 3,
-        "strata": "A"
     }
 ]

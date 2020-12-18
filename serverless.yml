@@ -41,7 +41,6 @@ functions:
     tags:
       app: results
     environment:
-      checkpoint: 4
       bucket_name: spp-results-${self:custom.environment}
       method_name: es-add-regionless-method
 
@@ -60,7 +59,6 @@ functions:
     tags:
       app: results
     environment:
-      checkpoint: 4
       bucket_name: spp-results-${self:custom.environment}
       method_name: es-aggregation-column-method
 
@@ -94,7 +92,6 @@ functions:
     tags:
       app: results
     environment:
-      checkpoint: 4
       bucket_name: spp-results-${self:custom.environment}
       method_name: es-aggregation-top2-method
 
@@ -128,7 +125,6 @@ functions:
     tags:
       app: results
     environment:
-      checkpoint: 4
       bucket_name: spp-results-${self:custom.environment}
       run_environment: ${self:custom.environmentType}
 

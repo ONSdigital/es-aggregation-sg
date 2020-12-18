@@ -17,7 +17,6 @@ class EnvironmentSchema(Schema):
         logging.error(f"Error validating environment params: {e}")
         raise ValueError(f"Error validating environment params: {e}")
 
-    checkpoint = fields.Str(required=True)
     bucket_name = fields.Str(required=True)
     method_name = fields.Str(required=True)
 
@@ -40,6 +39,7 @@ class RuntimeSchema(Schema):
 
     total_columns = fields.List(fields.String, required=True)
     environment = fields.Str(Required=True)
+    bpm_queue_url = fields.Str(required=True)
     factors_parameters = fields.Dict(
         keys=fields.String(validate=Equal(comparable="RuntimeVariables")),
         values=fields.Nested(FactorsSchema, required=True))
@@ -61,15 +61,15 @@ def lambda_handler(event, context):
     :param event: Contains all the variables which are required for the specific run.
     :param context: N/A
 
-    :return:  Success & Checkpoint/Error - Type: JSON
+    :return:  Success & None/Error - Type: JSON
     """
     current_module = "Pre Aggregation Data Wrangler."
     error_message = ""
 
     # Define run_id outside of try block
     run_id = 0
-    try:
 
+    try:
         # Retrieve run_id before input validation
         # Because it is used in exception handling
         run_id = event["RuntimeVariables"]["run_id"]
@@ -82,11 +82,11 @@ def lambda_handler(event, context):
 
 
         # Environment Variables
-        checkpoint = environment_variables["checkpoint"]
         bucket_name = environment_variables["bucket_name"]
         method_name = environment_variables["method_name"]
 
         # Runtime Variables
+        bpm_queue_url = runtime_variables["bpm_queue_url"]
         column_list = runtime_variables["total_columns"]
         environment = runtime_variables["environment"]
         factors_parameters = runtime_variables["factors_parameters"]["RuntimeVariables"]
@@ -113,10 +113,16 @@ def lambda_handler(event, context):
 
         raise exception_classes.LambdaFailure(error_message)
     try:
+
+        # Send start of module status to BPM.
+        # (NB: Current step and total steps omitted to display as "-" in bpm.)
+        status = "IN PROGRESS"
+        aws_functions.send_bpm_status(bpm_queue_url, current_module, status, run_id)
+
         # Pulls In Data.
         data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
 
-        logger.info("Started - retrieved data from s3")
+        logger.info("retrieved data from s3")
         new_type = 1  # This number represents Clay & Sandlime Combined
         brick_type = {
             "clay": 3,
@@ -157,7 +163,8 @@ def lambda_handler(event, context):
                 "regionless_code": regionless_code,
                 "region_column": region_column,
                 "run_id": run_id,
-                "survey": survey
+                "survey": survey,
+                "bpm_queue_url": bpm_queue_url
             }
         }
 
@@ -206,14 +213,17 @@ def lambda_handler(event, context):
 
         logger.info("Successfully sent data to s3")
 
-        logger.info(aws_functions.send_sns_message(checkpoint, sns_topic_arn,
+        logger.info(aws_functions.send_sns_message(sns_topic_arn,
                                                    "Pre Aggregation."))
 
         logger.info("Succesfully sent message to sns")
 
     except Exception as e:
-        error_message = general_functions.handle_exception(e, current_module,
-                                                           run_id, context)
+        error_message = general_functions.handle_exception(e,
+                                                           current_module,
+                                                           run_id,
+                                                           context=context,
+                                                           bpm_queue_url=bpm_queue_url)
     finally:
         if (len(error_message)) > 0:
             logger.error(error_message)
@@ -221,7 +231,12 @@ def lambda_handler(event, context):
 
     logger.info("Successfully completed module: " + current_module)
 
-    return {"success": True, "checkpoint": checkpoint}
+    # Send end of module status to BPM.
+    # (NB: Current step and total steps omitted to display as "-" in bpm.)
+    status = "DONE"
+    aws_functions.send_bpm_status(bpm_queue_url, current_module, status, run_id)
+
+    return {"success": True}
 
 
 def calculate_row_type(row, brick_type, column_list):

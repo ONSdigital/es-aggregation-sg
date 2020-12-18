@@ -16,7 +16,6 @@ class EnvironmentSchema(Schema):
         raise ValueError(f"Error validating environment params: {e}")
 
     bucket_name = fields.Str(required=True)
-    checkpoint = fields.Str(required=True)
     method_name = fields.Str(required=True)
 
 
@@ -31,6 +30,7 @@ class RuntimeSchema(Schema):
     additional_aggregated_column = fields.Str(required=True)
     aggregated_column = fields.Str(required=True)
     environment = fields.Str(required=True)
+    bpm_queue_url = fields.Str(required=True)
     in_file_name = fields.Str(required=True)
     out_file_name = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
@@ -38,6 +38,7 @@ class RuntimeSchema(Schema):
     top1_column = fields.Str(required=True)
     top2_column = fields.Str(required=True)
     total_columns = fields.List(fields.String, required=True)
+    total_steps = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -57,13 +58,15 @@ def lambda_handler(event, context):
         top2_column - The prefix for the second_largest_contibutor column
     }}
     :param context: N/A
-    :return: {"success": True, "checkpoint": 4}
+    :return: {"success": True}
             or LambdaFailure exception
     """
     current_module = "Aggregation Calc Top Two - Wrangler."
 
     error_message = ""
-    checkpoint = 4
+    bpm_queue_url = None
+    current_step_num = "5"
+
     # Define run_id outside of try block
     run_id = 0
     try:
@@ -81,13 +84,13 @@ def lambda_handler(event, context):
 
         # Environment Variables
         bucket_name = environment_variables["bucket_name"]
-        checkpoint = environment_variables["checkpoint"]
         method_name = environment_variables["method_name"]
 
         # Runtime Variables
         aggregated_column = runtime_variables["aggregated_column"]
         additional_aggregated_column = runtime_variables["additional_aggregated_column"]
         environment = runtime_variables["environment"]
+        bpm_queue_url = runtime_variables["bpm_queue_url"]
         in_file_name = runtime_variables["in_file_name"]
         out_file_name = runtime_variables["out_file_name"]
         sns_topic_arn = runtime_variables["sns_topic_arn"]
@@ -95,6 +98,7 @@ def lambda_handler(event, context):
         top1_column = runtime_variables["top1_column"]
         top2_column = runtime_variables["top2_column"]
         total_columns = runtime_variables["total_columns"]
+        total_steps = runtime_variables["total_steps"]
 
     except Exception as e:
         error_message = general_functions.handle_exception(e, current_module, run_id,
@@ -110,6 +114,11 @@ def lambda_handler(event, context):
         raise exception_classes.LambdaFailure(error_message)
 
     try:
+        # Send start of module status to BPM.
+        status = "IN PROGRESS"
+        aws_functions.send_bpm_status(bpm_queue_url, current_module, status, run_id,
+                                      current_step_num, total_steps)
+
         # Read from S3 bucket
         data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
         logger.info("Started - retrieved data from s3")
@@ -131,7 +140,8 @@ def lambda_handler(event, context):
                 "top1_column": top1_column,
                 "top2_column": top2_column,
                 "survey": survey,
-                "run_id": run_id
+                "run_id": run_id,
+                "bpm_queue_url": bpm_queue_url
             }
         }
 
@@ -148,12 +158,15 @@ def lambda_handler(event, context):
         aws_functions.save_to_s3(bucket_name, out_file_name, json_response["data"])
         logger.info("Successfully sent the data to S3")
 
-        aws_functions.send_sns_message(checkpoint, sns_topic_arn, "Aggregation - Top 2.")
+        aws_functions.send_sns_message(sns_topic_arn, "Aggregation - Top 2.")
         logger.info("Successfully sent the SNS message")
 
     except Exception as e:
-        error_message = general_functions.handle_exception(e, current_module,
-                                                           run_id, context)
+        error_message = general_functions.handle_exception(e,
+                                                           current_module,
+                                                           run_id,
+                                                           context=context,
+                                                           bpm_queue_url=bpm_queue_url)
     finally:
         if (len(error_message)) > 0:
             logger.error(error_message)
@@ -161,4 +174,4 @@ def lambda_handler(event, context):
 
     logger.info("Successfully completed module: " + current_module)
 
-    return {"success": True, "checkpoint": checkpoint}
+    return {"success": True}

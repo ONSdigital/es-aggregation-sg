@@ -1,11 +1,12 @@
 {
-    "data": null,
-    "total_columns": [
-        "Q608_total"
-    ],
     "additional_aggregated_column": "strata",
     "aggregated_column": "region",
+    "bpm_queue_url": "fake_queue_url",
+    "data": null,
+    "run_id": "bob",
     "top1_column": "largest_contributor",
     "top2_column": "second_largest_contributor",
-    "run_id": "bob"
+    "total_columns": [
+        "Q608_total"
+    ]
 }
