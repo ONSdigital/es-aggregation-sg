@@ -15,11 +15,13 @@ class RuntimeSchema(Schema):
         raise ValueError(f"Error validating runtime params: {e}")
 
     data = fields.Str(required=True)
+    environment = fields.Str(required=True)
     total_columns = fields.List(fields.String, required=True)
     additional_aggregated_column = fields.Str(required=True)
     aggregated_column = fields.Str(required=True)
     cell_total_column = fields.Str(required=True)
     aggregation_type = fields.Str(required=True)
+    survey = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -42,27 +44,40 @@ def lambda_handler(event, context):
     """
     current_module = "Aggregation by column - Method"
     error_message = ""
-    logger = logging.getLogger("Aggregation")
-    logger.setLevel(0)
+
     run_id = 0
     try:
-        logger.info("Aggregation by column - Method begun.")
+
         # Retrieve run_id before input validation
         # Because it is used in exception handling
         run_id = event["RuntimeVariables"]["run_id"]
 
         runtime_variables = RuntimeSchema().load(event["RuntimeVariables"])
 
-        logger.info("Validated parameters.")
-
         # Runtime Variables
         additional_aggregated_column = runtime_variables["additional_aggregated_column"]
         aggregated_column = runtime_variables["aggregated_column"]
         aggregation_type = runtime_variables["aggregation_type"]
         cell_total_column = runtime_variables["cell_total_column"]
+        environment = runtime_variables["environment"]
         data = json.loads(runtime_variables["data"])
         total_columns = runtime_variables["total_columns"]
+        survey = runtime_variables["survey"]
+    except Exception as e:
+        error_message = general_functions.handle_exception(e, current_module, run_id,
+                                                           context=context)
+        return {"success": False, "error": error_message}
 
+    try:
+        logger = general_functions.get_logger(survey, current_module, environment,
+                                              run_id)
+    except Exception as e:
+        error_message = general_functions.handle_exception(e, current_module,
+                                                           run_id, context=context)
+        return {"success": False, "error": error_message}
+
+    try:
+        logger.info("Started")
         input_dataframe = pd.DataFrame(data)
         totals_dict = {total_column: aggregation_type for total_column in total_columns}
 

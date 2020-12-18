@@ -39,6 +39,7 @@ class RuntimeSchema(Schema):
         raise ValueError(f"Error validating runtime params: {e}")
 
     total_columns = fields.List(fields.String, required=True)
+    environment = fields.Str(Required=True)
     factors_parameters = fields.Dict(
         keys=fields.String(validate=Equal(comparable="RuntimeVariables")),
         values=fields.Nested(FactorsSchema, required=True))
@@ -46,6 +47,7 @@ class RuntimeSchema(Schema):
     out_file_name_bricks = fields.Str(required=True)
     out_file_name_region = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
+    survey = fields.Str(required=True)
     unique_identifier = fields.List(fields.String, required=True)
 
 
@@ -63,13 +65,10 @@ def lambda_handler(event, context):
     """
     current_module = "Pre Aggregation Data Wrangler."
     error_message = ""
-    logger = logging.getLogger("Pre Aggregation Data Wrangler")
-    logger.setLevel(10)
+
     # Define run_id outside of try block
     run_id = 0
     try:
-
-        logger.info("Starting " + current_module)
 
         # Retrieve run_id before input validation
         # Because it is used in exception handling
@@ -81,7 +80,6 @@ def lambda_handler(event, context):
 
         runtime_variables = RuntimeSchema().load(event["RuntimeVariables"])
 
-        logger.info("Validated parameters.")
 
         # Environment Variables
         checkpoint = environment_variables["checkpoint"]
@@ -90,23 +88,35 @@ def lambda_handler(event, context):
 
         # Runtime Variables
         column_list = runtime_variables["total_columns"]
+        environment = runtime_variables["environment"]
         factors_parameters = runtime_variables["factors_parameters"]["RuntimeVariables"]
         in_file_name = runtime_variables["in_file_name"]
         out_file_name_bricks = runtime_variables["out_file_name_bricks"]
         out_file_name_region = runtime_variables["out_file_name_region"]
         sns_topic_arn = runtime_variables["sns_topic_arn"]
+        survey = runtime_variables["survey"]
         unique_identifier = runtime_variables["unique_identifier"]
 
         # Factors Parameters
         region_column = factors_parameters["region_column"]
         regionless_code = factors_parameters["regionless_code"]
+    except Exception as e:
+        error_message = general_functions.handle_exception(e, current_module, run_id,
+                                                           context=context)
+        raise exception_classes.LambdaFailure(error_message)
+    try:
+        logger = general_functions.get_logger(survey, current_module, environment,
+                                              run_id)
+    except Exception as e:
+        error_message = general_functions.handle_exception(e, current_module,
+                                                           run_id, context=context)
 
-        logger.info("Retrieved configuration variables.")
-
+        raise exception_classes.LambdaFailure(error_message)
+    try:
         # Pulls In Data.
         data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
 
-        logger.info("Succesfully retrieved data.")
+        logger.info("Started - retrieved data from s3")
         new_type = 1  # This number represents Clay & Sandlime Combined
         brick_type = {
             "clay": 3,
@@ -143,9 +153,11 @@ def lambda_handler(event, context):
         payload = {
             "RuntimeVariables": {
                 "data": json.loads(data_region),
+                "environment": environment,
                 "regionless_code": regionless_code,
                 "region_column": region_column,
-                "run_id": run_id
+                "run_id": run_id,
+                "survey": survey
             }
         }
 

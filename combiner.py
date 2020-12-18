@@ -31,10 +31,12 @@ class RuntimeSchema(Schema):
 
     additional_aggregated_column = fields.Str(required=True)
     aggregated_column = fields.Str(required=True)
+    environment = fields.Str(required=True)
     in_file_name = fields.Str(required=True)
     aggregation_files = fields.List(fields.Str(required=True))
     out_file_name = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
+    survey = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -48,15 +50,13 @@ def lambda_handler(event, context):
     :param context:
     :return:
     """
-    logger = logging.getLogger("Combininator")
-    logger.setLevel(logging.INFO)
+
     current_module = "Aggregation_Combiner"
     error_message = ""
     checkpoint = 4
     # Define run_id outside of try block
     run_id = 0
     try:
-        logger.info("Starting Aggregation Combiner.")
         # Retrieve run_id before input validation
         # Because it is used in exception handling
         run_id = event["RuntimeVariables"]["run_id"]
@@ -64,8 +64,6 @@ def lambda_handler(event, context):
         environment_variables = EnvironmentSchema().load(os.environ)
 
         runtime_variables = RuntimeSchema().load(event["RuntimeVariables"])
-
-        logger.info("Validated parameters.")
 
         # Environment Variables
         checkpoint = environment_variables["checkpoint"]
@@ -75,17 +73,31 @@ def lambda_handler(event, context):
         # Runtime Variables
         additional_aggregated_column = runtime_variables["additional_aggregated_column"]
         aggregated_column = runtime_variables["aggregated_column"]
+        environment = runtime_variables["environment"]
         in_file_name = runtime_variables["in_file_name"]
         aggregation_files = runtime_variables["aggregation_files"]
         out_file_name = runtime_variables["out_file_name"]
         sns_topic_arn = runtime_variables["sns_topic_arn"]
+        survey = runtime_variables["survey"]
 
-        logger.info("Retrieved configuration variables.")
+    except Exception as e:
+        error_message = general_functions.handle_exception(e, current_module, run_id,
+                                                           context=context)
+        raise exception_classes.LambdaFailure(error_message)
 
+    try:
+        logger = general_functions.get_logger(survey, current_module, environment,
+                                              run_id)
+    except Exception as e:
+        error_message = general_functions.handle_exception(e, current_module,
+                                                           run_id, context=context)
+        raise exception_classes.LambdaFailure(error_message)
+
+    try:
         # Get file from s3
         imp_df = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
 
-        logger.info("Successfully retrieved data from s3")
+        logger.info("Started - retrieved data from s3")
         data = []
 
         # Receive the 3 aggregation outputs.

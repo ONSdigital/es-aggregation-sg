@@ -18,11 +18,13 @@ combiner_runtime_variables = {
     "RuntimeVariables":
         {
             "run_id": "bob",
+            "environment": "test - environment",
             "additional_aggregated_column": "strata",
             "aggregated_column": "region",
             "in_file_name": "test_wrangler_agg_input",
             "out_file_name": "test_wrangler_combiner_output.json",
             "sns_topic_arn": "fake_sns_arn",
+            "survey": "survey",
             "aggregation_files": [
                 '{"bucket": "test_bucket", "key": "test_wrangler_cell_prepared_output"}',
                 '{"bucket": "test_bucket", "key": "test_wrangler_ent_prepared_output"}',
@@ -42,7 +44,9 @@ method_cell_runtime_variables = {
     "RuntimeVariables": {
         "run_id": "bob",
         "data": None,
+        "environment": "test - environment",
         "total_columns": ["Q608_total"],
+        "survey": "survey",
         "additional_aggregated_column": "strata",
         "aggregated_column": "region",
         "cell_total_column": "cell_total",
@@ -55,7 +59,9 @@ method_ent_runtime_variables = {
     "RuntimeVariables": {
         "run_id": "bob",
         "data": None,
+        "environment": "test - environment",
         "total_columns": ["enterprise_reference"],
+        "survey": "survey",
         "additional_aggregated_column": "strata",
         "aggregated_column": "region",
         "cell_total_column": "ent_ref_count",
@@ -66,8 +72,10 @@ method_ent_runtime_variables = {
 method_top2_runtime_variables = {
     "RuntimeVariables": {
         "data": None,
+        "environment": "test - environment",
         "run_id": "bob",
         "total_columns": ["Q608_total"],
+        "survey": "survey",
         "additional_aggregated_column": "strata",
         "aggregated_column": "region",
         "top1_column": "largest_contributor",
@@ -79,7 +87,9 @@ method_top2_multi_runtime_variables = {
     "RuntimeVariables": {
         "data": None,
         "run_id": "bob",
+        "environment": "test - environment",
         "total_columns": ["Q608_total", "Q607_constructional_fill"],
+        "survey": "survey",
         "additional_aggregated_column": "strata",
         "aggregated_column": "region",
         "top1_column": "largest_contributor",
@@ -91,10 +101,12 @@ pre_wrangler_runtime_variables = {
     "RuntimeVariables":
         {
             "run_id": "bob",
+            "environment": "test - environment",
             "in_file_name": "test_wrangler_splitter_input",
             "out_file_name_bricks": "test_wrangler_splitter_bricks_output.json",
             "out_file_name_region": "test_wrangler_splitter_region_output.json",
             "sns_topic_arn": "fake_sns_arn",
+            "survey": "survey",
             "total_columns":  ["opening_stock_commons",
                                "opening_stock_facings",
                                "opening_stock_engineering",
@@ -126,10 +138,12 @@ wrangler_cell_runtime_variables = {
     "RuntimeVariables":
         {
             "run_id": "bob",
+            "environment": "test - environment",
             "additional_aggregated_column": "strata",
             "aggregated_column": "region",
             "aggregation_type": "sum",
             "cell_total_column": "cell_total",
+            "survey": "survey",
             "in_file_name": "test_wrangler_agg_input",
             "out_file_name": "test_wrangler_cell_output.json",
             "sns_topic_arn": "fake_sns_arn",
@@ -140,6 +154,7 @@ wrangler_cell_runtime_variables = {
 wrangler_ent_runtime_variables = {
     "RuntimeVariables": {
         "run_id": "bob",
+        "environment": "test - environment",
         "in_file_name": "test_wrangler_agg_input",
         "total_columns": ["enterprise_reference"],
         "additional_aggregated_column": "strata",
@@ -147,7 +162,8 @@ wrangler_ent_runtime_variables = {
         "cell_total_column": "ent_ref_count",
         "aggregation_type": "nunique",
         "out_file_name": "test_wrangler_ent_output.json",
-        "sns_topic_arn": "fake_sns_arn"
+        "sns_topic_arn": "fake_sns_arn",
+        "survey": "survey"
     }
 }
 
@@ -155,11 +171,13 @@ wrangler_top2_runtime_variables = {
     "RuntimeVariables":
         {
             "run_id": "bob",
+            "environment": "test - environment",
             "additional_aggregated_column": "strata",
             "aggregated_column": "region",
             "in_file_name": "test_wrangler_agg_input",
             "out_file_name": "test_wrangler_top2_output.json",
             "sns_topic_arn": "fake_sns_arn",
+            "survey": "survey",
             "top1_column": "largest_contributor",
             "top2_column": "second_largest_contributor",
             "total_columns": ["Q608_total"]

@@ -15,11 +15,13 @@ class RuntimeSchema(Schema):
         raise ValueError(f"Error validating runtime params: {e}")
 
     data = fields.Str(required=True)
+    environment = fields.Str(required=True)
     total_columns = fields.List(fields.String, required=True)
     additional_aggregated_column = fields.Str(required=True)
     aggregated_column = fields.Str(required=True)
     top1_column = fields.Str(required=True)
     top2_column = fields.Str(required=True)
+    survey = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -40,11 +42,8 @@ def lambda_handler(event, context):
     :return: Success - {"success": True/False, "data"/"error": "JSON String"/"Message"}
     """
     current_module = "Aggregation Calc Top Two - Method"
-    logger = logging.getLogger()
-    logger.setLevel(10)
     error_message = ""
     run_id = 0
-    logger.info("Starting " + current_module)
 
     try:
         # Retrieve run_id before input validation
@@ -53,16 +52,30 @@ def lambda_handler(event, context):
 
         runtime_variables = RuntimeSchema().load(event["RuntimeVariables"])
 
-        logger.info("Validated parameters.")
-
         # Runtime Variables
         data = json.loads(runtime_variables["data"])
+        environment = runtime_variables["environment"]
         total_columns = runtime_variables["total_columns"]
         additional_aggregated_column = runtime_variables["additional_aggregated_column"]
         aggregated_column = runtime_variables["aggregated_column"]
+        survey = runtime_variables["survey"]
         top1_column = runtime_variables["top1_column"]
         top2_column = runtime_variables["top2_column"]
+    except Exception as e:
+        error_message = general_functions.handle_exception(e, current_module, run_id,
+                                                           context=context)
+        return {"success": False, "error": error_message}
 
+    try:
+        logger = general_functions.get_logger(survey, current_module, environment,
+                                              run_id)
+    except Exception as e:
+        error_message = general_functions.handle_exception(e, current_module,
+                                                           run_id, context=context)
+        return {"success": False, "error": error_message}
+
+    try:
+        logger.info("Started")
         input_dataframe = pd.DataFrame(data)
         top_two_output = pd.DataFrame()
         logger.info("Invoking calc_top_two function on input dataframe")
