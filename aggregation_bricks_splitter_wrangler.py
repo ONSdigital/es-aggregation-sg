@@ -80,7 +80,6 @@ def lambda_handler(event, context):
 
         runtime_variables = RuntimeSchema().load(event["RuntimeVariables"])
 
-
         # Environment Variables
         bucket_name = environment_variables["bucket_name"]
         method_name = environment_variables["method_name"]

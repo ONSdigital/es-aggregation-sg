@@ -38,7 +38,6 @@ class RuntimeSchema(Schema):
     total_steps = fields.Str(required=True)
 
 
-
 def lambda_handler(event, context):
     """
     This method takes the new columns and adds them all onto the main dataset.
@@ -89,7 +88,6 @@ def lambda_handler(event, context):
                                                            context=context)
         raise exception_classes.LambdaFailure(error_message)
 
-
     try:
         logger = general_functions.get_logger(survey, current_module, environment,
                                               run_id)
@@ -103,7 +101,6 @@ def lambda_handler(event, context):
         imp_df = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
 
         logger.info("Started - retrieved data from s3")
-        data = []
 
         # Receive the 3 aggregation outputs.
         ent_ref_agg = aggregation_files["ent_ref_agg"]
