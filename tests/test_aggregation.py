@@ -17,21 +17,21 @@ import combiner as lambda_combiner_function
 combiner_runtime_variables = {
     "RuntimeVariables":
         {
-            "run_id": "bob",
-            "environment": "test - environment",
             "additional_aggregated_column": "strata",
             "aggregated_column": "region",
-            "in_file_name": "test_wrangler_agg_input",
-            "out_file_name": "test_wrangler_combiner_output.json",
-            "sns_topic_arn": "fake_sns_arn",
-            "survey": "survey",
             "aggregation_files": {
                 "ent_ref_agg": "test_wrangler_cell_prepared_output",
                 "cell_agg": "test_wrangler_ent_prepared_output",
                 "top2_agg": "test_wrangler_top2_prepared_output",
             },
             "bpm_queue_url": "fake_queue_url",
-            "total_steps": "6",
+            "environment": "test - environment",
+            "in_file_name": "test_wrangler_agg_input",
+            "out_file_name": "test_wrangler_combiner_output.json",
+            "run_id": "bob",
+            "sns_topic_arn": "fake_sns_arn",
+            "survey": "survey",
+            "total_steps": "6"
         }
 }
 
@@ -43,74 +43,81 @@ generic_environment_variables = {
 
 method_cell_runtime_variables = {
     "RuntimeVariables": {
-        "run_id": "bob",
+        "aggregated_column": "region",
+        "aggregation_type": "sum",
+        "cell_total_column": "cell_total",
         "data": None,
         "environment": "test - environment",
-        "total_columns": ["Q608_total"],
-        "survey": "survey",
         "additional_aggregated_column": "strata",
-        "aggregated_column": "region",
-        "cell_total_column": "cell_total",
-        "aggregation_type": "sum"
+        "run_id": "bob",
+        "survey": "survey",
+        "total_columns": ["Q608_total"]
     }
 }
 
 method_ent_runtime_variables = {
     "RuntimeVariables": {
-        "run_id": "bob",
-        "data": None,
-        "environment": "test - environment",
-        "total_columns": ["enterprise_reference"],
-        "survey": "survey",
         "additional_aggregated_column": "strata",
         "aggregated_column": "region",
+        "aggregation_type": "nunique",
         "cell_total_column": "ent_ref_count",
-        "aggregation_type": "nunique"
+        "data": None,
+        "environment": "test - environment",
+        "run_id": "bob",
+        "survey": "survey",
+        "total_columns": ["enterprise_reference"]
     }
 }
 
 method_top2_runtime_variables = {
     "RuntimeVariables": {
+        "bpm_queue_url": "fake_queue_url",
+        "additional_aggregated_column": "strata",
+        "aggregated_column": "region",
         "data": None,
         "environment": "test - environment",
         "run_id": "bob",
-        "total_columns": ["Q608_total"],
         "survey": "survey",
-        "additional_aggregated_column": "strata",
-        "aggregated_column": "region",
         "top1_column": "largest_contributor",
         "top2_column": "second_largest_contributor",
-        "bpm_queue_url": "fake_queue_url"
+        "total_columns": ["Q608_total"]
     }
 }
 
 method_top2_multi_runtime_variables = {
     "RuntimeVariables": {
-        "data": None,
-        "run_id": "bob",
-        "environment": "test - environment",
-        "total_columns": ["Q608_total", "Q607_constructional_fill"],
-        "survey": "survey",
         "additional_aggregated_column": "strata",
         "aggregated_column": "region",
+        "bpm_queue_url": "fake_queue_url",
+        "data": None,
+        "environment": "test - environment",
+        "run_id": "bob",
+        "survey": "survey",
         "top1_column": "largest_contributor",
         "top2_column": "second_largest_contributor",
-        "bpm_queue_url": "fake_queue_url"
+        "total_columns": ["Q608_total", "Q607_constructional_fill"],
+
     }
 }
 
 pre_wrangler_runtime_variables = {
     "RuntimeVariables":
         {
-            "run_id": "bob",
+            "bpm_queue_url": "fake_queue_url",
             "environment": "test - environment",
+            "factors_parameters": {
+                "RuntimeVariables": {
+                    "region_column": "region",
+                    "regionless_code": "14"
+                }
+            },
+            "incoming_message_group_id": "",
             "in_file_name": "test_wrangler_splitter_input",
             "out_file_name_bricks": "test_wrangler_splitter_bricks_output.json",
             "out_file_name_region": "test_wrangler_splitter_region_output.json",
+            "run_id": "bob",
             "sns_topic_arn": "fake_sns_arn",
             "survey": "survey",
-            "bpm_queue_url": "fake_queue_url",
-            "total_steps": "6",
             "total_columns":  ["opening_stock_commons",
                                "opening_stock_facings",
                                "opening_stock_engineering",
@@ -123,13 +130,7 @@ pre_wrangler_runtime_variables = {
                                "closing_stock_commons",
                                "closing_stock_facings",
                                "closing_stock_engineering"],
-            "factors_parameters": {
-                "RuntimeVariables": {
-                    "region_column": "region",
-                    "regionless_code": "14"
-                }
-            },
-            "incoming_message_group_id": "",
+            "total_steps": "6",
             "unique_identifier": [
                 "brick_type",
                 "enterprise_reference",
@@ -141,53 +142,53 @@ pre_wrangler_runtime_variables = {
 wrangler_cell_runtime_variables = {
     "RuntimeVariables":
         {
-            "run_id": "bob",
-            "environment": "test - environment",
             "additional_aggregated_column": "strata",
             "aggregated_column": "region",
             "aggregation_type": "sum",
+            "bpm_queue_url": "fake_queue_url",
             "cell_total_column": "cell_total",
-            "survey": "survey",
+            "environment": "test - environment",
             "in_file_name": "test_wrangler_agg_input",
             "out_file_name": "test_wrangler_cell_output.json",
+            "run_id": "bob",
             "sns_topic_arn": "fake_sns_arn",
+            "survey": "survey",
             "total_columns": ["Q608_total"],
-            "bpm_queue_url": "fake_queue_url",
             "total_steps": "6"
         }
 }
 
 wrangler_ent_runtime_variables = {
     "RuntimeVariables": {
-        "run_id": "bob",
-        "environment": "test - environment",
-        "in_file_name": "test_wrangler_agg_input",
-        "total_columns": ["enterprise_reference"],
         "additional_aggregated_column": "strata",
         "aggregated_column": "region",
-        "cell_total_column": "ent_ref_count",
         "aggregation_type": "nunique",
+        "cell_total_column": "ent_ref_count",
+        "environment": "test - environment",
+        "in_file_name": "test_wrangler_agg_input",
         "out_file_name": "test_wrangler_ent_output.json",
+        "run_id": "bob",
         "sns_topic_arn": "fake_sns_arn",
-        "survey": "survey"
+        "survey": "survey",
+        "total_columns": ["enterprise_reference"]
     }
 }
 
 wrangler_top2_runtime_variables = {
     "RuntimeVariables":
         {
-            "run_id": "bob",
-            "environment": "test - environment",
             "additional_aggregated_column": "strata",
             "aggregated_column": "region",
+            "bpm_queue_url": "fake_queue_url",
+            "environment": "test - environment",
             "in_file_name": "test_wrangler_agg_input",
             "out_file_name": "test_wrangler_top2_output.json",
+            "run_id": "bob",
             "sns_topic_arn": "fake_sns_arn",
             "survey": "survey",
             "top1_column": "largest_contributor",
             "top2_column": "second_largest_contributor",
             "total_columns": ["Q608_total"],
-            "bpm_queue_url": "fake_queue_url",
             "total_steps": "6"
         }
 }

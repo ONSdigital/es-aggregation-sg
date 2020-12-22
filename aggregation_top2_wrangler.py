@@ -29,8 +29,8 @@ class RuntimeSchema(Schema):
 
     additional_aggregated_column = fields.Str(required=True)
     aggregated_column = fields.Str(required=True)
-    environment = fields.Str(required=True)
     bpm_queue_url = fields.Str(required=True)
+    environment = fields.Str(required=True)
     in_file_name = fields.Str(required=True)
     out_file_name = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
@@ -70,7 +70,6 @@ def lambda_handler(event, context):
     # Define run_id outside of try block
     run_id = 0
     try:
-
         # Retrieve run_id before input validation
         # Because it is used in exception handling
         run_id = event["RuntimeVariables"]["run_id"]
@@ -87,10 +86,10 @@ def lambda_handler(event, context):
         method_name = environment_variables["method_name"]
 
         # Runtime Variables
-        aggregated_column = runtime_variables["aggregated_column"]
         additional_aggregated_column = runtime_variables["additional_aggregated_column"]
-        environment = runtime_variables["environment"]
+        aggregated_column = runtime_variables["aggregated_column"]
         bpm_queue_url = runtime_variables["bpm_queue_url"]
+        environment = runtime_variables["environment"]
         in_file_name = runtime_variables["in_file_name"]
         out_file_name = runtime_variables["out_file_name"]
         sns_topic_arn = runtime_variables["sns_topic_arn"]
@@ -104,7 +103,6 @@ def lambda_handler(event, context):
         error_message = general_functions.handle_exception(e, current_module, run_id,
                                                            context=context)
         raise exception_classes.LambdaFailure(error_message)
-
     try:
         logger = general_functions.get_logger(survey, current_module, environment,
                                               run_id)
@@ -114,6 +112,7 @@ def lambda_handler(event, context):
         raise exception_classes.LambdaFailure(error_message)
 
     try:
+        logger.info("Started - retrieved configuration variables")
         # Send start of module status to BPM.
         status = "IN PROGRESS"
         aws_functions.send_bpm_status(bpm_queue_url, current_module, status, run_id,
@@ -121,7 +120,7 @@ def lambda_handler(event, context):
 
         # Read from S3 bucket
         data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
-        logger.info("Started - retrieved data from s3")
+        logger.info("Retrieved data from s3")
 
         # Serialise data
         logger.info("Converting dataframe to json.")
@@ -134,14 +133,14 @@ def lambda_handler(event, context):
             "RuntimeVariables": {
                 "additional_aggregated_column": additional_aggregated_column,
                 "aggregated_column": aggregated_column,
+                "bpm_queue_url": bpm_queue_url,
                 "data": prepared_data,
                 "environment": environment,
+                "run_id": run_id,
+                "survey": survey,
                 "total_columns": total_columns,
                 "top1_column": top1_column,
-                "top2_column": top2_column,
-                "survey": survey,
-                "run_id": run_id,
-                "bpm_queue_url": bpm_queue_url
+                "top2_column": top2_column
             }
         }
 

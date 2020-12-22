@@ -38,9 +38,9 @@ gitdb2==2.0.5
 gitpython==2.1.11
 idna==2.8
 imagesize==1.1.0
+immutables == 0.14
 importlib-metadata==0.18
 isort==4.3.21
-immutables == 0.14
 ipdb==0.12
 ipython-genutils==0.2.0
 ipython==7.5.0
@@ -109,3 +109,4 @@ yamllint==1.20.0
 zipp==0.5.1
 git+https://github.com/ONSdigital/es-functions.git
 git+https://github.com/ONSdigital/spp-logger
+# Force build

@@ -14,14 +14,14 @@ class RuntimeSchema(Schema):
         logging.error(f"Error validating runtime params: {e}")
         raise ValueError(f"Error validating runtime params: {e}")
 
-    data = fields.Str(required=True)
-    environment = fields.Str(required=True)
-    total_columns = fields.List(fields.String, required=True)
     additional_aggregated_column = fields.Str(required=True)
     aggregated_column = fields.Str(required=True)
-    cell_total_column = fields.Str(required=True)
     aggregation_type = fields.Str(required=True)
+    cell_total_column = fields.Str(required=True)
+    data = fields.Str(required=True)
+    environment = fields.Str(required=True)
     survey = fields.Str(required=True)
+    total_columns = fields.List(fields.String, required=True)
 
 
 def lambda_handler(event, context):
@@ -47,7 +47,6 @@ def lambda_handler(event, context):
 
     run_id = 0
     try:
-
         # Retrieve run_id before input validation
         # Because it is used in exception handling
         run_id = event["RuntimeVariables"]["run_id"]
@@ -59,15 +58,15 @@ def lambda_handler(event, context):
         aggregated_column = runtime_variables["aggregated_column"]
         aggregation_type = runtime_variables["aggregation_type"]
         cell_total_column = runtime_variables["cell_total_column"]
-        environment = runtime_variables["environment"]
         data = json.loads(runtime_variables["data"])
-        total_columns = runtime_variables["total_columns"]
+        environment = runtime_variables["environment"]
         survey = runtime_variables["survey"]
+        total_columns = runtime_variables["total_columns"]
+
     except Exception as e:
         error_message = general_functions.handle_exception(e, current_module, run_id,
                                                            context=context)
         return {"success": False, "error": error_message}
-
     try:
         logger = general_functions.get_logger(survey, current_module, environment,
                                               run_id)
@@ -77,7 +76,7 @@ def lambda_handler(event, context):
         return {"success": False, "error": error_message}
 
     try:
-        logger.info("Started")
+        logger.info("Started - retrieved configuration variables from wrangler.")
         input_dataframe = pd.DataFrame(data)
         totals_dict = {total_column: aggregation_type for total_column in total_columns}
 
@@ -116,6 +115,6 @@ def lambda_handler(event, context):
             logger.error(error_message)
             return {"success": False, "error": error_message}
 
-    logger.info("Successfully completed module: " + current_module)
+    logger.info("Successfully completed module.")
     final_output["success"] = True
     return final_output

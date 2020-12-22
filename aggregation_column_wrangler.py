@@ -93,7 +93,6 @@ def lambda_handler(event, context):
         error_message = general_functions.handle_exception(e, current_module, run_id,
                                                            context=context)
         raise exception_classes.LambdaFailure(error_message)
-
     try:
         logger = general_functions.get_logger(survey, current_module, environment,
                                               run_id)
@@ -103,6 +102,7 @@ def lambda_handler(event, context):
         raise exception_classes.LambdaFailure(error_message)
 
     try:
+        logger.info("Started - retrieved configuration variables.")
         # Read from S3 bucket
         data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
         logger.info("Started - retrieved data from s3")

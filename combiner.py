@@ -28,13 +28,13 @@ class RuntimeSchema(Schema):
 
     additional_aggregated_column = fields.Str(required=True)
     aggregated_column = fields.Str(required=True)
-    environment = fields.Str(required=True)
     aggregation_files = fields.Dict(required=True)
+    bpm_queue_url = fields.Str(required=True)
+    environment = fields.Str(required=True)
     in_file_name = fields.Str(required=True)
     out_file_name = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
     survey = fields.Str(required=True)
-    bpm_queue_url = fields.Str(required=True)
     total_steps = fields.Str(required=True)
 
 
@@ -73,21 +73,20 @@ def lambda_handler(event, context):
         # Runtime Variables
         additional_aggregated_column = runtime_variables["additional_aggregated_column"]
         aggregated_column = runtime_variables["aggregated_column"]
-        environment = runtime_variables["environment"]
-        in_file_name = runtime_variables["in_file_name"]
         aggregation_files = runtime_variables["aggregation_files"]
         bpm_queue_url = runtime_variables["bpm_queue_url"]
+        environment = runtime_variables["environment"]
+        in_file_name = runtime_variables["in_file_name"]
         in_file_name = runtime_variables["in_file_name"]
         out_file_name = runtime_variables["out_file_name"]
         sns_topic_arn = runtime_variables["sns_topic_arn"]
-        total_steps = runtime_variables["total_steps"]
         survey = runtime_variables["survey"]
+        total_steps = runtime_variables["total_steps"]
 
     except Exception as e:
         error_message = general_functions.handle_exception(e, current_module, run_id,
                                                            context=context)
         raise exception_classes.LambdaFailure(error_message)
-
     try:
         logger = general_functions.get_logger(survey, current_module, environment,
                                               run_id)
@@ -97,10 +96,11 @@ def lambda_handler(event, context):
         raise exception_classes.LambdaFailure(error_message)
 
     try:
+        logger.info("Started - Retrieved configuration variables.")
         # Get file from s3
         imp_df = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
 
-        logger.info("Started - retrieved data from s3")
+        logger.info("Retrieved data from s3")
 
         # Receive the 3 aggregation outputs.
         ent_ref_agg = aggregation_files["ent_ref_agg"]
@@ -157,7 +157,7 @@ def lambda_handler(event, context):
             logger.error(error_message)
             raise exception_classes.LambdaFailure(error_message)
 
-    logger.info("Successfully completed module: " + current_module)
+    logger.info("Successfully completed module.")
 
     # Send end of module status to BPM.
     status = "DONE"

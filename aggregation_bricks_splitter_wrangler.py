@@ -37,9 +37,8 @@ class RuntimeSchema(Schema):
         logging.error(f"Error validating runtime params: {e}")
         raise ValueError(f"Error validating runtime params: {e}")
 
-    total_columns = fields.List(fields.String, required=True)
-    environment = fields.Str(Required=True)
     bpm_queue_url = fields.Str(required=True)
+    environment = fields.Str(Required=True)
     factors_parameters = fields.Dict(
         keys=fields.String(validate=Equal(comparable="RuntimeVariables")),
         values=fields.Nested(FactorsSchema, required=True))
@@ -48,6 +47,7 @@ class RuntimeSchema(Schema):
     out_file_name_region = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
     survey = fields.Str(required=True)
+    total_columns = fields.List(fields.String, required=True)
     unique_identifier = fields.List(fields.String, required=True)
 
 
@@ -99,6 +99,7 @@ def lambda_handler(event, context):
         # Factors Parameters
         region_column = factors_parameters["region_column"]
         regionless_code = factors_parameters["regionless_code"]
+
     except Exception as e:
         error_message = general_functions.handle_exception(e, current_module, run_id,
                                                            context=context)
@@ -112,7 +113,7 @@ def lambda_handler(event, context):
 
         raise exception_classes.LambdaFailure(error_message)
     try:
-
+        logger.info("Started - retrieved configuration variables.")
         # Send start of module status to BPM.
         # (NB: Current step and total steps omitted to display as "-" in bpm.)
         status = "IN PROGRESS"
@@ -121,7 +122,7 @@ def lambda_handler(event, context):
         # Pulls In Data.
         data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
 
-        logger.info("retrieved data from s3")
+        logger.info("Retrieved data from s3")
         new_type = 1  # This number represents Clay & Sandlime Combined
         brick_type = {
             "clay": 3,
@@ -157,13 +158,13 @@ def lambda_handler(event, context):
 
         payload = {
             "RuntimeVariables": {
+                "bpm_queue_url": bpm_queue_url,
                 "data": json.loads(data_region),
                 "environment": environment,
                 "regionless_code": regionless_code,
                 "region_column": region_column,
                 "run_id": run_id,
-                "survey": survey,
-                "bpm_queue_url": bpm_queue_url
+                "survey": survey
             }
         }
 
@@ -228,7 +229,7 @@ def lambda_handler(event, context):
             logger.error(error_message)
             raise exception_classes.LambdaFailure(error_message)
 
-    logger.info("Successfully completed module: " + current_module)
+    logger.info("Successfully completed module.")
 
     # Send end of module status to BPM.
     # (NB: Current step and total steps omitted to display as "-" in bpm.)
