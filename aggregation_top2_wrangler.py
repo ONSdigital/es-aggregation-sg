@@ -138,9 +138,9 @@ def lambda_handler(event, context):
                 "environment": environment,
                 "run_id": run_id,
                 "survey": survey,
-                "total_columns": total_columns,
                 "top1_column": top1_column,
-                "top2_column": top2_column
+                "top2_column": top2_column,
+                "total_columns": total_columns
             }
         }
 

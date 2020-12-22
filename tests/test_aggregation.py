@@ -43,12 +43,12 @@ generic_environment_variables = {
 
 method_cell_runtime_variables = {
     "RuntimeVariables": {
+        "additional_aggregated_column": "strata",
         "aggregated_column": "region",
         "aggregation_type": "sum",
         "cell_total_column": "cell_total",
         "data": None,
         "environment": "test - environment",
-        "additional_aggregated_column": "strata",
         "run_id": "bob",
         "survey": "survey",
         "total_columns": ["Q608_total"]
@@ -71,9 +71,9 @@ method_ent_runtime_variables = {
 
 method_top2_runtime_variables = {
     "RuntimeVariables": {
-        "bpm_queue_url": "fake_queue_url",
         "additional_aggregated_column": "strata",
         "aggregated_column": "region",
+        "bpm_queue_url": "fake_queue_url",
         "data": None,
         "environment": "test - environment",
         "run_id": "bob",
@@ -96,7 +96,6 @@ method_top2_multi_runtime_variables = {
         "top1_column": "largest_contributor",
         "top2_column": "second_largest_contributor",
         "total_columns": ["Q608_total", "Q607_constructional_fill"],
-
     }
 }
 
@@ -111,8 +110,8 @@ pre_wrangler_runtime_variables = {
                     "regionless_code": "14"
                 }
             },
-            "incoming_message_group_id": "",
             "in_file_name": "test_wrangler_splitter_input",
+            "incoming_message_group_id": "",
             "out_file_name_bricks": "test_wrangler_splitter_bricks_output.json",
             "out_file_name_region": "test_wrangler_splitter_region_output.json",
             "run_id": "bob",

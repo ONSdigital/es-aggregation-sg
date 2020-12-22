@@ -77,7 +77,6 @@ def lambda_handler(event, context):
         bpm_queue_url = runtime_variables["bpm_queue_url"]
         environment = runtime_variables["environment"]
         in_file_name = runtime_variables["in_file_name"]
-        in_file_name = runtime_variables["in_file_name"]
         out_file_name = runtime_variables["out_file_name"]
         sns_topic_arn = runtime_variables["sns_topic_arn"]
         survey = runtime_variables["survey"]
