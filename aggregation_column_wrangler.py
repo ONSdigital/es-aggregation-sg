@@ -31,9 +31,11 @@ class RuntimeSchema(Schema):
     aggregated_column = fields.Str(required=True)
     aggregation_type = fields.Str(required=True)
     cell_total_column = fields.Str(required=True)
+    environment = fields.Str(Required=True)
     in_file_name = fields.Str(required=True)
     out_file_name = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
+    survey = fields.Str(required=True)
     total_columns = fields.List(fields.String, required=True)
 
 
@@ -56,12 +58,10 @@ def lambda_handler(event, context):
     """
     current_module = "Aggregation by column - Wrangler"
     error_message = ""
-    logger = general_functions.get_logger()
 
     # Define run_id outside of try block
     run_id = 0
     try:
-        logger.info("Started Aggregation - Wrangler.")
         # Retrieve run_id before input validation
         # Because it is used in exception handling
         run_id = event["RuntimeVariables"]["run_id"]
@@ -73,8 +73,6 @@ def lambda_handler(event, context):
 
         runtime_variables = RuntimeSchema().load(event["RuntimeVariables"])
 
-        logger.info("Validated parameters.")
-
         # Environment Variables
         bucket_name = environment_variables["bucket_name"]
         method_name = environment_variables["method_name"]
@@ -84,29 +82,45 @@ def lambda_handler(event, context):
         aggregated_column = runtime_variables["aggregated_column"]
         aggregation_type = runtime_variables["aggregation_type"]
         cell_total_column = runtime_variables["cell_total_column"]
+        environment = runtime_variables["environment"]
         in_file_name = runtime_variables["in_file_name"]
         out_file_name = runtime_variables["out_file_name"]
         sns_topic_arn = runtime_variables["sns_topic_arn"]
+        survey = runtime_variables["survey"]
         total_columns = runtime_variables["total_columns"]
 
-        logger.info("Retrieved configuration variables.")
+    except Exception as e:
+        error_message = general_functions.handle_exception(e, current_module, run_id,
+                                                           context=context)
+        raise exception_classes.LambdaFailure(error_message)
+    try:
+        logger = general_functions.get_logger(survey, current_module, environment,
+                                              run_id)
+    except Exception as e:
+        error_message = general_functions.handle_exception(e, current_module,
+                                                           run_id, context=context)
+        raise exception_classes.LambdaFailure(error_message)
 
+    try:
+        logger.info("Started - retrieved configuration variables.")
         # Read from S3 bucket
         data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
-        logger.info("Completed reading data from s3")
+        logger.info("Started - retrieved data from s3")
 
         formatted_data = data.to_json(orient="records")
-        logger.info("Formated disaggregated_data")
+        logger.info("Formatted disaggregated_data")
 
         json_payload = {
             "RuntimeVariables": {
-                "data": formatted_data,
-                "total_columns": total_columns,
                 "additional_aggregated_column": additional_aggregated_column,
                 "aggregated_column": aggregated_column,
-                "cell_total_column": cell_total_column,
                 "aggregation_type": aggregation_type,
-                "run_id": run_id
+                "cell_total_column": cell_total_column,
+                "data": formatted_data,
+                "environment": environment,
+                "run_id": run_id,
+                "survey": survey,
+                "total_columns": total_columns
             }
         }
 

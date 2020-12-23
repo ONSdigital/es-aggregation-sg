@@ -30,9 +30,11 @@ class RuntimeSchema(Schema):
     additional_aggregated_column = fields.Str(required=True)
     aggregated_column = fields.Str(required=True)
     bpm_queue_url = fields.Str(required=True)
+    environment = fields.Str(required=True)
     in_file_name = fields.Str(required=True)
     out_file_name = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
+    survey = fields.Str(required=True)
     top1_column = fields.Str(required=True)
     top2_column = fields.Str(required=True)
     total_columns = fields.List(fields.String, required=True)
@@ -60,7 +62,7 @@ def lambda_handler(event, context):
             or LambdaFailure exception
     """
     current_module = "Aggregation Calc Top Two - Wrangler."
-    logger = general_functions.get_logger()
+
     error_message = ""
     bpm_queue_url = None
     current_step_num = "5"
@@ -68,39 +70,49 @@ def lambda_handler(event, context):
     # Define run_id outside of try block
     run_id = 0
     try:
-        logger.info("Starting " + current_module)
         # Retrieve run_id before input validation
         # Because it is used in exception handling
         run_id = event["RuntimeVariables"]["run_id"]
 
         # Needs to be declared inside of the lambda handler
         lambda_client = boto3.client("lambda", region_name="eu-west-2")
-        logger.info("Setting-up environment configs")
 
         environment_variables = EnvironmentSchema().load(os.environ)
 
         runtime_variables = RuntimeSchema().load(event["RuntimeVariables"])
-
-        logger.info("Validated parameters.")
 
         # Environment Variables
         bucket_name = environment_variables["bucket_name"]
         method_name = environment_variables["method_name"]
 
         # Runtime Variables
-        aggregated_column = runtime_variables["aggregated_column"]
         additional_aggregated_column = runtime_variables["additional_aggregated_column"]
+        aggregated_column = runtime_variables["aggregated_column"]
         bpm_queue_url = runtime_variables["bpm_queue_url"]
+        environment = runtime_variables["environment"]
         in_file_name = runtime_variables["in_file_name"]
         out_file_name = runtime_variables["out_file_name"]
         sns_topic_arn = runtime_variables["sns_topic_arn"]
+        survey = runtime_variables["survey"]
         top1_column = runtime_variables["top1_column"]
         top2_column = runtime_variables["top2_column"]
         total_columns = runtime_variables["total_columns"]
         total_steps = runtime_variables["total_steps"]
 
-        logger.info("Retrieved configuration variables.")
+    except Exception as e:
+        error_message = general_functions.handle_exception(e, current_module, run_id,
+                                                           context=context)
+        raise exception_classes.LambdaFailure(error_message)
+    try:
+        logger = general_functions.get_logger(survey, current_module, environment,
+                                              run_id)
+    except Exception as e:
+        error_message = general_functions.handle_exception(e, current_module,
+                                                           run_id, context=context)
+        raise exception_classes.LambdaFailure(error_message)
 
+    try:
+        logger.info("Started - retrieved configuration variables")
         # Send start of module status to BPM.
         status = "IN PROGRESS"
         aws_functions.send_bpm_status(bpm_queue_url, current_module, status, run_id,
@@ -108,7 +120,7 @@ def lambda_handler(event, context):
 
         # Read from S3 bucket
         data = aws_functions.read_dataframe_from_s3(bucket_name, in_file_name)
-        logger.info("Completed reading data from s3")
+        logger.info("Retrieved data from s3")
 
         # Serialise data
         logger.info("Converting dataframe to json.")
@@ -119,14 +131,16 @@ def lambda_handler(event, context):
 
         json_payload = {
             "RuntimeVariables": {
-                "data": prepared_data,
-                "total_columns": total_columns,
                 "additional_aggregated_column": additional_aggregated_column,
                 "aggregated_column": aggregated_column,
+                "bpm_queue_url": bpm_queue_url,
+                "data": prepared_data,
+                "environment": environment,
+                "run_id": run_id,
+                "survey": survey,
                 "top1_column": top1_column,
                 "top2_column": top2_column,
-                "run_id": run_id,
-                "bpm_queue_url": bpm_queue_url
+                "total_columns": total_columns
             }
         }
 
