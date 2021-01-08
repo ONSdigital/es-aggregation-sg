@@ -31,7 +31,7 @@ combiner_runtime_variables = {
             "run_id": "bob",
             "sns_topic_arn": "fake_sns_arn",
             "survey": "survey",
-            "total_steps": "6"
+            "total_steps": 6
         }
 }
 
@@ -129,7 +129,7 @@ pre_wrangler_runtime_variables = {
                                "closing_stock_commons",
                                "closing_stock_facings",
                                "closing_stock_engineering"],
-            "total_steps": "6",
+            "total_steps": 6,
             "unique_identifier": [
                 "brick_type",
                 "enterprise_reference",
@@ -153,7 +153,7 @@ wrangler_cell_runtime_variables = {
             "sns_topic_arn": "fake_sns_arn",
             "survey": "survey",
             "total_columns": ["Q608_total"],
-            "total_steps": "6"
+            "total_steps": 6
         }
 }
 
@@ -188,7 +188,7 @@ wrangler_top2_runtime_variables = {
             "top1_column": "largest_contributor",
             "top2_column": "second_largest_contributor",
             "total_columns": ["Q608_total"],
-            "total_steps": "6"
+            "total_steps": 6
         }
 }
 

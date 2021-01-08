@@ -35,7 +35,7 @@ class RuntimeSchema(Schema):
     out_file_name = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
     survey = fields.Str(required=True)
-    total_steps = fields.Str(required=True)
+    total_steps = fields.Int(required=True)
 
 
 def lambda_handler(event, context):
@@ -53,7 +53,7 @@ def lambda_handler(event, context):
     current_module = "Aggregation_Combiner"
     error_message = ""
     bpm_queue_url = None
-    current_step_num = "5"
+    current_step_num = 5
 
     # Define run_id outside of try block
     run_id = 0
